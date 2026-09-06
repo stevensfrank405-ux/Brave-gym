@@ -1,0 +1,20 @@
+[
+  {
+    "id": "notif-1",
+    "userId": "usr-athlete-1",
+    "title": "Class Reservation Confirmed",
+    "message": "Your spot in Championship Boxing with Marcus Vance has been secured.",
+    "type": "admin_response",
+    "read": false,
+    "createdAt": "2026-09-06T21:13:25.119Z"
+  },
+  {
+    "id": "notif-70e533d0",
+    "userId": "usr-admin",
+    "title": "Reservation Secured",
+    "message": "Your spot in Championship Boxing with Marcus Vance is confirmed.",
+    "type": "admin_response",
+    "read": false,
+    "createdAt": "2026-09-06T21:16:14.293Z"
+  }
+]

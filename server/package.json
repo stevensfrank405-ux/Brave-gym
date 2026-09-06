@@ -1,0 +1,20 @@
+{
+  "name": "brave-gym-server",
+  "version": "1.0.0",
+  "description": "Brave Gym Backend API using MVVM architecture in Node.js",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.0.2",
+    "uuid": "^13.0.0"
+  }
+}

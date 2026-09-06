@@ -1,0 +1,25 @@
+[
+  {
+    "id": "req-1",
+    "userId": "usr-athlete-1",
+    "trainerId": "marcus-vance",
+    "trainerName": "Marcus Vance",
+    "userName": "Darius Sterling",
+    "phone": "+1 (555) 234-5678",
+    "address": "Brooklyn, NY",
+    "serviceType": "Private Boxing Assessment",
+    "customRequirements": "Preparing for amateur golden gloves competition next spring.",
+    "chatMessages": [
+      {
+        "sender": "user",
+        "text": "Looking forward to working on ring mechanics and punch speed."
+      },
+      {
+        "sender": "trainer",
+        "text": "Welcome to Brave Gym. Let's schedule your kinetic baseline analysis."
+      }
+    ],
+    "status": "Pending",
+    "createdAt": "2026-09-06T21:13:25.120Z"
+  }
+]
