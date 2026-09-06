@@ -42,5 +42,14 @@
     "notes": "Testing new Node.js MVVM workout ledger",
     "date": "Today",
     "createdAt": "2026-09-06T21:36:12.844Z"
+  },
+  {
+    "id": "log-581a68c4",
+    "userId": "usr-admin",
+    "exercise": "Heavy Bag Interval Power",
+    "weight": "6 Rounds RPE 9",
+    "notes": "Testing new Node.js MVVM workout ledger",
+    "date": "Today",
+    "createdAt": "2026-09-06T22:16:09.981Z"
   }
 ]

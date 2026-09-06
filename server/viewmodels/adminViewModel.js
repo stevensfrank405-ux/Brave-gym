@@ -5,9 +5,9 @@ import { ClassModel } from "../models/Class.js";
 import { WorkoutLogModel } from "../models/WorkoutLog.js";
 
 export class AdminViewModel {
-  static getStats() {
+  static async getStats() {
     const transactions = TransactionModel.findAll();
-    const users = UserModel.findAll();
+    const users = await UserModel.findAll();
     const classes = ClassModel.findAll();
     const bookings = BookingModel.findAll();
     const workoutLogs = WorkoutLogModel.findAll();

@@ -48,5 +48,15 @@
     "status": "Paid",
     "date": "Today",
     "createdAt": "2026-09-06T21:36:12.855Z"
+  },
+  {
+    "id": "tx-f48697d1",
+    "userId": "usr-admin",
+    "member": "Marcus Vance HQ",
+    "plan": "Obsidian Private",
+    "amount": "$349",
+    "status": "Paid",
+    "date": "Today",
+    "createdAt": "2026-09-06T22:16:09.988Z"
   }
 ]

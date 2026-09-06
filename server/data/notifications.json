@@ -25,5 +25,14 @@
     "type": "admin_response",
     "read": false,
     "createdAt": "2026-09-06T21:36:12.838Z"
+  },
+  {
+    "id": "notif-e0ad6c3b",
+    "userId": "usr-admin",
+    "title": "Reservation Secured",
+    "message": "Your spot in Championship Boxing with Marcus Vance is confirmed.",
+    "type": "admin_response",
+    "read": false,
+    "createdAt": "2026-09-06T22:16:09.976Z"
   }
 ]
