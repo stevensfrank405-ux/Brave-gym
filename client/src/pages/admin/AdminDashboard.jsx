@@ -55,8 +55,7 @@ export default function AdminDashboard() {
     removeScheduleClass,
     adminBookings,
     allUsersRoster,
-    allWorkoutLogs,
-    isSupabaseConfigured
+    allWorkoutLogs
   } = useGym();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("overview");
@@ -97,12 +96,10 @@ export default function AdminDashboard() {
         return;
       }
       try {
-        if (isSupabaseConfigured) {
-          const publicUrl = await uploadUserAvatar(file);
-          if (publicUrl) {
-            updateProfile({ avatar: publicUrl });
-            return;
-          }
+        const publicUrl = await uploadUserAvatar(file);
+        if (publicUrl) {
+          updateProfile({ avatar: publicUrl });
+          return;
         }
         const reader = new FileReader();
         reader.onloadend = () => {

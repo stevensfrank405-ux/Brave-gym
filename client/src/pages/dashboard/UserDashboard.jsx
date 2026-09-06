@@ -44,8 +44,7 @@ export default function UserDashboard() {
     updateProfile,
     uploadUserAvatar,
     memberships,
-    purchasePlan,
-    isSupabaseConfigured
+    purchasePlan
   } = useGym();
   
   const [newLog, setNewLog] = useState({ exercise: "", weight: "", notes: "" });
@@ -95,13 +94,11 @@ export default function UserDashboard() {
       }
       setIsUploadingPhoto(true);
       try {
-        if (isSupabaseConfigured) {
-          const publicUrl = await uploadUserAvatar(file);
-          if (publicUrl) {
-            setProfileForm((prev) => ({ ...prev, avatar: publicUrl }));
-            setIsUploadingPhoto(false);
-            return;
-          }
+        const publicUrl = await uploadUserAvatar(file);
+        if (publicUrl) {
+          setProfileForm((prev) => ({ ...prev, avatar: publicUrl }));
+          setIsUploadingPhoto(false);
+          return;
         }
         // Fallback local data URL
         const reader = new FileReader();

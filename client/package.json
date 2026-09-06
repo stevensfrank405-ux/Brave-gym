@@ -7,12 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "oxlint",
-    "preview": "vite preview",
-    "db:push": "supabase db push",
-    "db:diff": "supabase db diff"
+    "preview": "vite preview"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.115.0",
     "@tailwindcss/vite": "^4.3.3",
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",
@@ -30,7 +27,6 @@
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.1.0",
     "oxlint": "^1.79.0",
-    "supabase": "^2.116.0",
     "tailwindcss": "^4.3.3",
     "vite": "^8.2.2"
   }
