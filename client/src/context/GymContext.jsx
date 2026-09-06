@@ -128,21 +128,18 @@ export function GymProvider({ children }) {
       }
 
       // 4. Load Admin Telemetry
-      const isAdmin = role === "admin" || currentUser?.role === "admin";
-      if (isAdmin) {
-        const stats = await api.getAdminStats().catch(() => null);
-        if (stats) {
-          setAdminStats({
-            monthlyRevenue: stats.monthlyRevenue || 0,
-            activeMembers: stats.activeMembers || 0,
-            todayOccupancy: stats.todayOccupancy || 0,
-            newSignupsThisWeek: stats.newSignupsThisWeek || 0,
-            recentTransactions: stats.recentTransactions || []
-          });
-          if (Array.isArray(stats.allUsersRoster)) setAllUsersRoster(stats.allUsersRoster);
-          if (Array.isArray(stats.allWorkoutLogs)) setAllWorkoutLogs(stats.allWorkoutLogs);
-          if (Array.isArray(stats.adminBookings)) setAdminBookings(stats.adminBookings);
-        }
+      const stats = await api.getAdminStats().catch(() => null);
+      if (stats) {
+        setAdminStats({
+          monthlyRevenue: stats.monthlyRevenue || 0,
+          activeMembers: stats.activeMembers || 0,
+          todayOccupancy: stats.todayOccupancy || 0,
+          newSignupsThisWeek: stats.newSignupsThisWeek || 0,
+          recentTransactions: stats.recentTransactions || []
+        });
+        if (Array.isArray(stats.allUsersRoster)) setAllUsersRoster(stats.allUsersRoster);
+        if (Array.isArray(stats.allWorkoutLogs)) setAllWorkoutLogs(stats.allWorkoutLogs);
+        if (Array.isArray(stats.adminBookings)) setAdminBookings(stats.adminBookings);
       }
 
       // 5. User Specific Data

@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import { config } from "../config/config.js";
 import { UserModel } from "../models/User.js";
 
-export function authenticate(req, res, next) {
+export async function authenticate(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res.status(401).json({ success: false, message: "No authentication token provided" });
@@ -11,7 +11,7 @@ export function authenticate(req, res, next) {
   const token = authHeader.split(" ")[1];
   try {
     const decoded = jwt.verify(token, config.jwtSecret);
-    const user = UserModel.findById(decoded.id);
+    const user = await UserModel.findById(decoded.id);
     if (!user) {
       return res.status(401).json({ success: false, message: "User belonging to token no longer exists" });
     }
@@ -22,13 +22,13 @@ export function authenticate(req, res, next) {
   }
 }
 
-export function optionalAuthenticate(req, res, next) {
+export async function optionalAuthenticate(req, res, next) {
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith("Bearer ")) {
     const token = authHeader.split(" ")[1];
     try {
       const decoded = jwt.verify(token, config.jwtSecret);
-      const user = UserModel.findById(decoded.id);
+      const user = await UserModel.findById(decoded.id);
       if (user) {
         req.user = user;
       }

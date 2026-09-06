@@ -53,14 +53,17 @@ function mapPgRowToUser(r) {
     name: r.name,
     role: r.role,
     membership: r.membership,
+    membership_tier: r.membership,
     status: r.status,
     renewalDate: r.renewal_date,
     streak: Number(r.streak || 0),
     sessionsThisMonth: Number(r.sessions_this_month || 0),
     avatar: r.avatar,
+    avatar_url: r.avatar,
     bio: r.bio,
     phone: r.phone,
     weightClass: r.weight_class,
+    weight_class: r.weight_class,
     discipline: r.discipline,
     createdAt: r.created_at
   };
@@ -81,7 +84,8 @@ export class UserModel {
         console.warn("PostgreSQL findByEmail error, falling back to local:", err.message);
       }
     }
-    return userStore.findOne((u) => u.email.toLowerCase() === cleanEmail);
+    const local = userStore.findOne((u) => u.email.toLowerCase() === cleanEmail);
+    return local ? mapPgRowToUser(local) : null;
   }
 
   static async findById(id) {
@@ -96,7 +100,8 @@ export class UserModel {
         console.warn("PostgreSQL findById error, falling back to local:", err.message);
       }
     }
-    return userStore.findById(id);
+    const local = userStore.findById(id);
+    return local ? mapPgRowToUser(local) : null;
   }
 
   static async findAll() {
@@ -110,7 +115,7 @@ export class UserModel {
         console.warn("PostgreSQL findAll error, falling back to local:", err.message);
       }
     }
-    return userStore.findAll();
+    return userStore.findAll().map(mapPgRowToUser);
   }
 
   static async create({ email, password, name, role = "user", membership = "Brave Trial" }) {

@@ -721,9 +721,10 @@ export default function AdminDashboard() {
                     ath.weight_class?.toLowerCase().includes(q) ||
                     ath.id?.toLowerCase().includes(q);
 
-                  const tier = ath.membership_tier || "Iron Standard";
+                  const tier = ath.membership || ath.membership_tier || "Iron Standard";
                   const matchesTier =
                     athleteFilterTier === "ALL" ||
+                    (athleteFilterTier === "Free Tier" && (tier.toLowerCase().includes("free") || tier.toLowerCase().includes("trial") || tier.toLowerCase().includes("standard"))) ||
                     tier.toLowerCase().includes(athleteFilterTier.toLowerCase());
 
                   return matchesQuery && matchesTier;
