@@ -218,23 +218,9 @@ export function GymProvider({ children }) {
       loadRemoteData(user.id, user.role);
       return user;
     } catch (err) {
-      console.warn("Backend register fallback:", err.message);
-      const cleanEmail = email.trim().toLowerCase();
-      const isAdmin = cleanEmail.includes("admin") || role === "admin";
-      const fallbackUser = {
-        id: "usr-" + Date.now().toString().slice(-4),
-        name: name || "New Athlete",
-        email: cleanEmail,
-        role: isAdmin ? "admin" : role,
-        membership: isAdmin ? "Staff Command" : (initialMembership || "Brave Trial"),
-        status: "Active",
-        renewalDate: "30 Days Free",
-        streak: 0,
-        sessionsThisMonth: 0,
-        avatar: "/media/david-guliciuc-o2zrjlM5s5o-unsplash.jpg"
-      };
-      setCurrentUser(fallbackUser);
-      return fallbackUser;
+      console.error("Backend register error:", err.message);
+      // Throw the genuine error so user sees the validation error on the form
+      throw err;
     }
   };
 

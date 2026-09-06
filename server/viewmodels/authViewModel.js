@@ -18,14 +18,27 @@ export class AuthViewModel {
   }
 
   static async register({ name, email, password, role, membership }) {
-    if (!email || !password) {
-      throw new Error("Email and password are required");
+    if (!name || typeof name !== "string" || name.trim().length < 2) {
+      throw new Error("Full name must be at least 2 characters long.");
+    }
+
+    if (!email || typeof email !== "string") {
+      throw new Error("A valid email address is required.");
     }
 
     const cleanEmail = email.trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanEmail)) {
+      throw new Error("Please enter a valid email address format (e.g. name@domain.com).");
+    }
+
+    if (!password || typeof password !== "string" || password.length < 6) {
+      throw new Error("Password must be at least 6 characters long.");
+    }
+
     const existing = await UserModel.findByEmail(cleanEmail);
     if (existing) {
-      throw new Error("User with this email already exists");
+      throw new Error("An athlete or account with this email is already registered.");
     }
 
     const isAdmin = cleanEmail.includes("admin") || role === "admin";
