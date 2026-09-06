@@ -188,26 +188,8 @@ export function GymProvider({ children }) {
       loadRemoteData(user.id, user.role);
       return user;
     } catch (err) {
-      console.warn("Backend login fallback:", err.message);
-      // Fallback local athlete login if server disconnected
-      const cleanEmail = email.trim().toLowerCase();
-      const isAdmin = cleanEmail.includes("admin") || role === "admin";
-      const fallbackUser = {
-        id: "usr-" + Date.now().toString().slice(-4),
-        name: isAdmin ? "Admin Director" : (cleanEmail.split("@")[0].replace(".", " ") || "Brave Member"),
-        email: cleanEmail,
-        role: isAdmin ? "admin" : "user",
-        membership: isAdmin ? "Staff Command" : "Black Tier",
-        status: "Active",
-        renewalDate: "Dec 31, 2026",
-        streak: isAdmin ? 42 : 18,
-        sessionsThisMonth: isAdmin ? 24 : 14,
-        avatar: isAdmin 
-          ? "/media/edgar-chaparro-sHfo3WOgGTU-unsplash.jpg"
-          : "/media/chris-kendall-sJ6az6-T1u8-unsplash.jpg"
-      };
-      setCurrentUser(fallbackUser);
-      return fallbackUser;
+      console.error("Backend login error:", err.message);
+      throw err;
     }
   };
 

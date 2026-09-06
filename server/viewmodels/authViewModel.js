@@ -69,20 +69,12 @@ export class AuthViewModel {
     let user = await UserModel.findByEmail(cleanEmail);
 
     if (!user) {
-      // Auto-provision user on valid login for smooth demo / migration experience
-      const isAdmin = cleanEmail.includes("admin") || role === "admin";
-      user = await UserModel.create({
-        email: cleanEmail,
-        password,
-        name: isAdmin ? "Admin Director" : cleanEmail.split("@")[0],
-        role: isAdmin ? "admin" : "user",
-        membership: isAdmin ? "Staff Command" : "Black Tier"
-      });
-    } else {
-      const isValid = await UserModel.verifyPassword(user, password);
-      if (!isValid) {
-        throw new Error("Invalid credentials provided");
-      }
+      throw new Error("No account found with this email. Please register first.");
+    }
+
+    const isValid = await UserModel.verifyPassword(user, password);
+    if (!isValid) {
+      throw new Error("Invalid email or password provided.");
     }
 
     const token = this.generateToken(user);
