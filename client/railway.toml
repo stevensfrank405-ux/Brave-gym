@@ -1,5 +1,6 @@
 [build]
 builder = "NIXPACKS"
+nixpkgs = ["nodejs_22"]
 buildCommand = "npm install && npm run build"
 
 [deploy]
