@@ -855,11 +855,12 @@ export default function UserDashboard() {
               setShowProfileModal(false);
               setIsEditingProfile(false);
             }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/90 backdrop-blur-md overflow-y-auto animate-fade-in"
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/90 backdrop-blur-md animate-fade-in"
           >
             <div
+              data-lenis-prevent
               onClick={(e) => e.stopPropagation()}
-              className="bg-[#141414] border border-white/20 max-w-2xl w-full my-auto rounded-sm p-6 sm:p-8 space-y-6 shadow-2xl relative"
+              className="bg-[#141414] border border-white/20 max-w-2xl w-full rounded-sm p-5 sm:p-8 space-y-6 shadow-2xl relative max-h-[90vh] overflow-y-auto overscroll-contain"
             >
               <button
                 onClick={() => {
