@@ -135,6 +135,50 @@ export async function initPostgresTables() {
   try {
     await pool.query(schemaSql);
     console.log("🐘 PostgreSQL schema initialized successfully on Railway!");
+
+    // Auto-seed default classes if table is empty
+    const classCheck = await pool.query("SELECT COUNT(*) FROM classes");
+    if (Number(classCheck.rows[0].count) === 0) {
+      console.log("🌱 Auto-seeding initial timetable classes...");
+      await pool.query(`
+        INSERT INTO classes (id, day, time, class_title, trainer, spots_left, total) VALUES
+          ('sc-1', 'Monday', '06:30 AM', 'Metabolic Warfare', 'Jaxson Cole', 3, 20),
+          ('sc-2', 'Monday', '08:00 AM', 'Championship Boxing', 'Marcus Vance', 2, 16),
+          ('sc-3', 'Monday', '05:30 PM', 'Iron Discipline Strength', 'Elena Rostova', 1, 12),
+          ('sc-4', 'Tuesday', '07:00 AM', 'Championship Boxing', 'Marcus Vance', 5, 16),
+          ('sc-5', 'Tuesday', '06:00 PM', 'Kinetic Reset & Ice Protocol', 'Dr. Maya Lin', 2, 8),
+          ('sc-6', 'Wednesday', '06:30 AM', 'Iron Discipline Strength', 'Elena Rostova', 4, 12),
+          ('sc-7', 'Wednesday', '05:30 PM', 'Metabolic Warfare', 'Jaxson Cole', 0, 20),
+          ('sc-8', 'Thursday', '07:00 AM', 'Championship Boxing', 'Marcus Vance', 3, 16),
+          ('sc-9', 'Friday', '05:30 PM', 'Friday Night Sparring & Conditioning', 'Marcus Vance', 6, 16),
+          ('sc-10', 'Saturday', '09:00 AM', 'Brave Community Combine', 'All Coaches', 8, 30);
+      `);
+    }
+
+    // Auto-seed default membership tiers if empty
+    const tierCheck = await pool.query("SELECT COUNT(*) FROM membership_tiers");
+    if (Number(tierCheck.rows[0].count) === 0) {
+      console.log("🌱 Auto-seeding initial membership tiers...");
+      await pool.query(`
+        INSERT INTO membership_tiers (id, name, price, interval, billing, description, features, popular, cta) VALUES
+          ('trial', 'Brave Trial', 39, '3-class pass', '3-class pass', 'Experience the facility, coaching precision, and community standard.', '["Access to any 3 classes within 14 days", "Full locker room & sauna privileges", "1-on-1 movement assessment", "Complimentary hand wraps & glove rental"]', false, 'Book Trial Pass'),
+          ('black-tier', 'Black Tier', 189, 'monthly', 'monthly', 'The complete athletic standard for disciplined, dedicated daily athletes.', '["Unlimited group classes (Boxing, Strength, HIIT)", "Priority 7-day advance booking window", "Recovery suite (Sauna & Cold Plunge)", "Quarterly body composition & biomarker scan", "1 Guest pass per month"]', true, 'Claim Black Tier'),
+          ('obsidian-tier', 'Obsidian Private', 349, 'monthly', 'monthly', 'High-touch coaching with individualized programming and biometric oversight.', '["All Black Tier privileges included", "4 Private 1-on-1 coaching sessions per month", "Custom nutrition & recovery protocol", "Private locker with daily laundry service", "24/7 dedicated coach direct messaging"]', false, 'Apply for Obsidian');
+      `);
+    }
+
+    // Auto-seed default admin and athlete accounts if empty
+    const userCheck = await pool.query("SELECT COUNT(*) FROM users");
+    if (Number(userCheck.rows[0].count) === 0) {
+      console.log("🌱 Auto-seeding initial admin and athlete accounts...");
+      await pool.query(`
+        INSERT INTO users (id, email, password_hash, name, role, membership, status, renewal_date, streak, sessions_this_month, avatar, bio, phone, weight_class, discipline) VALUES
+          ('usr-admin', 'admin@bravegym.com', '$2a$10$wNqBw5r1hVpM4y7I9w8E0.kQe3oQfS0GzZkR3sU9m6tQ2wE4rY1Ou', 'Marcus Vance HQ', 'admin', 'Staff Command', 'Active', 'Lifetime Master', 42, 24, '/media/edgar-chaparro-sHfo3WOgGTU-unsplash.jpg', 'Full jurisdiction over facility security protocols, coaches timetable scheduling, athlete subscriptions, and financial audits.', '+1 (555) 019-2831', 'Heavyweight (91+ kg)', 'Head Boxing Director'),
+          ('usr-athlete-1', 'athlete@bravegym.com', '$2a$10$wNqBw5r1hVpM4y7I9w8E0.kQe3oQfS0GzZkR3sU9m6tQ2wE4rY1Ou', 'Darius Sterling', 'user', 'Black Tier', 'Active', 'Dec 31, 2026', 18, 14, '/media/chris-kendall-sJ6az6-T1u8-unsplash.jpg', 'Discipline over motivation. Training for athletic excellence.', '+1 (555) 234-5678', 'Middleweight (75 kg)', 'Championship Boxing & Strength');
+      `);
+    }
+
+    console.log("✨ PostgreSQL auto-setup and initial seeding complete!");
     return true;
   } catch (err) {
     console.error("Error initializing PostgreSQL schema:", err);
