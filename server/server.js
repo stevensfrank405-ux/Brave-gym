@@ -28,11 +28,19 @@ app.use("/api", routes);
 // Global Error Handler
 app.use(errorHandler);
 
+import { db, initPostgresTables } from "./config/db.js";
+
 // Start server
-app.listen(config.port, () => {
+app.listen(config.port, async () => {
   console.log(`=========================================`);
   console.log(`🥊 Brave Gym MVVM Node.js Server Running`);
   console.log(`📡 Port: http://localhost:${config.port}`);
   console.log(`🌐 Health Check: http://localhost:${config.port}/api/health`);
+  if (db.isConfigured()) {
+    console.log(`🐘 PostgreSQL detected via DATABASE_URL. Initializing tables...`);
+    await initPostgresTables();
+  } else {
+    console.log(`💾 Using Local File Store (PostgreSQL ready when DATABASE_URL is provided)`);
+  }
   console.log(`=========================================`);
 });
