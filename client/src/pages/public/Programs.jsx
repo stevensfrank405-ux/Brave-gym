@@ -1,12 +1,16 @@
 import React, { useState } from "react";
-import { Clock, Flame, Users, Calendar, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Clock, Flame, Users, Calendar, ArrowRight, CheckCircle2, AlertCircle, ShieldAlert } from "lucide-react";
 import { useGym } from "../../context/GymContext";
 import confetti from "canvas-confetti";
 
 export default function Programs() {
-  const { programs, schedule, bookClass } = useGym();
+  const { currentUser, programs, schedule, bookClass } = useGym();
   const [selectedCategory, setSelectedCategory] = useState("ALL");
   const [bookingSuccess, setBookingSuccess] = useState(null);
+  const [bookingError, setBookingError] = useState(null);
+
+  const isPending = currentUser && currentUser.role !== "admin" && (currentUser.status === "Pending" || currentUser.status?.toLowerCase().includes("pending"));
 
   const categories = ["ALL", "BOXING", "STRENGTH", "METABOLIC", "RECOVERY"];
 
@@ -19,17 +23,28 @@ export default function Programs() {
     return true;
   });
 
-  const handleBook = (sc) => {
+  const handleBook = async (sc) => {
     if (sc.spotsLeft <= 0) return;
-    const booking = bookClass(sc);
-    setBookingSuccess(booking);
-    confetti({
-      particleCount: 80,
-      spread: 60,
-      origin: { y: 0.8 },
-      colors: ["#ffffff", "#aaaaaa", "#444444"]
-    });
-    setTimeout(() => setBookingSuccess(null), 4000);
+    setBookingError(null);
+
+    if (isPending) {
+      setBookingError("Your account/membership is currently Pending Admin Verification. Bookings will unlock once HQ approves your order.");
+      return;
+    }
+
+    try {
+      const booking = await bookClass(sc);
+      setBookingSuccess(booking);
+      confetti({
+        particleCount: 80,
+        spread: 60,
+        origin: { y: 0.8 },
+        colors: ["#ffffff", "#aaaaaa", "#444444"]
+      });
+      setTimeout(() => setBookingSuccess(null), 4000);
+    } catch (err) {
+      setBookingError(err.message);
+    }
   };
 
   const imagesMap = {
@@ -56,6 +71,29 @@ export default function Programs() {
           <p className="text-sm sm:text-base text-[#8C8C8C] leading-relaxed">
             Every session is capped to ensure strict coach-to-athlete ratios. Choose your discipline below to review technical curriculum and reserve a spot on the floor.
           </p>
+
+          {/* Pending Approval Notice */}
+          {isPending && (
+            <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2.5 text-amber-400 font-medium">
+                <ShieldAlert className="w-4 h-4 shrink-0" />
+                <span>Account Status: <strong>Pending HQ Approval</strong>. Class bookings are locked until verified.</span>
+              </div>
+              <Link
+                to="/dashboard?tab=chat"
+                className="px-3.5 py-1.5 bg-amber-400 text-black font-bold font-mono text-[11px] uppercase tracking-wider rounded shrink-0 text-center hover:bg-amber-300"
+              >
+                Chat with Admin
+              </Link>
+            </div>
+          )}
+
+          {bookingError && (
+            <div className="p-3 bg-rose-500/10 border border-rose-500/30 text-rose-400 rounded-sm text-xs flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{bookingError}</span>
+            </div>
+          )}
         </div>
 
         {/* Category Filters */}

@@ -258,6 +258,35 @@ class ApiService {
     return res.data;
   }
 
+  async getMembershipOrders() {
+    const res = await this.request("/memberships/orders");
+    return res.data || [];
+  }
+
+  async approveMembershipOrder(orderId, userId, planName) {
+    const res = await this.request("/memberships/approve", {
+      method: "POST",
+      body: JSON.stringify({ orderId, userId, planName })
+    });
+    return res.data;
+  }
+
+  async rejectMembershipOrder(orderId, userId, reason) {
+    const res = await this.request("/memberships/reject", {
+      method: "POST",
+      body: JSON.stringify({ orderId, userId, reason })
+    });
+    return res.data;
+  }
+
+  async sendConsultationMessage(threadId, text, sender = "user") {
+    const res = await this.request(`/consultations/${threadId}/message`, {
+      method: "POST",
+      body: JSON.stringify({ text, sender })
+    });
+    return res.data;
+  }
+
   // Admin Telemetry & Statistics
   async getAdminStats() {
     const res = await this.request("/admin/stats");

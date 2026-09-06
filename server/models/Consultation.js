@@ -1,38 +1,83 @@
 import { JsonStore } from "./JsonStore.js";
+import { db } from "../config/db.js";
 import { v4 as uuidv4 } from "uuid";
 
-const defaultConsultations = [
-  {
-    id: "req-1",
-    userId: "usr-athlete-1",
-    trainerId: "marcus-vance",
-    trainerName: "Marcus Vance",
-    userName: "Darius Sterling",
-    phone: "+1 (555) 234-5678",
-    address: "Brooklyn, NY",
-    serviceType: "Private Boxing Assessment",
-    customRequirements: "Preparing for amateur golden gloves competition next spring.",
-    chatMessages: [
-      { sender: "user", text: "Looking forward to working on ring mechanics and punch speed." },
-      { sender: "trainer", text: "Welcome to Brave Gym. Let's schedule your kinetic baseline analysis." }
-    ],
-    status: "Pending",
-    createdAt: new Date().toISOString()
-  }
-];
+const defaultConsultations = [];
 
 export const consultationStore = new JsonStore("consultations", defaultConsultations);
 
+function mapPgRowToConsultation(r) {
+  if (!r) return null;
+  let parsedMessages = [];
+  if (Array.isArray(r.chat_messages)) {
+    parsedMessages = r.chat_messages;
+  } else if (typeof r.chat_messages === "string") {
+    try {
+      parsedMessages = JSON.parse(r.chat_messages);
+    } catch {
+      parsedMessages = [];
+    }
+  }
+  return {
+    id: r.id,
+    userId: r.user_id,
+    trainerId: r.trainer_id,
+    trainerName: r.trainer_name,
+    userName: r.user_name,
+    phone: r.phone,
+    address: r.address,
+    serviceType: r.service_type,
+    customRequirements: r.custom_requirements,
+    chatMessages: parsedMessages,
+    status: r.status,
+    createdAt: r.created_at
+  };
+}
+
 export class ConsultationModel {
-  static findAll() {
+  static async findAll() {
+    if (db.isConfigured()) {
+      try {
+        const res = await db.query("SELECT * FROM consultations ORDER BY created_at DESC");
+        if (res.rows.length > 0) {
+          return res.rows.map(mapPgRowToConsultation);
+        }
+      } catch (err) {
+        console.warn("PostgreSQL consultations findAll error:", err.message);
+      }
+    }
     return consultationStore.findAll();
   }
 
-  static findById(id) {
+  static async findById(id) {
+    if (db.isConfigured()) {
+      try {
+        const res = await db.query("SELECT * FROM consultations WHERE id = $1 LIMIT 1", [id]);
+        if (res.rows.length > 0) {
+          return mapPgRowToConsultation(res.rows[0]);
+        }
+      } catch (err) {
+        console.warn("PostgreSQL consultations findById error:", err.message);
+      }
+    }
     return consultationStore.findById(id);
   }
 
-  static create(data) {
+  static async findByUserId(userId) {
+    if (db.isConfigured() && userId) {
+      try {
+        const res = await db.query("SELECT * FROM consultations WHERE user_id = $1 ORDER BY created_at DESC", [userId]);
+        if (res.rows.length > 0) {
+          return res.rows.map(mapPgRowToConsultation);
+        }
+      } catch (err) {
+        console.warn("PostgreSQL consultations findByUserId error:", err.message);
+      }
+    }
+    return consultationStore.findAll((c) => String(c.userId) === String(userId));
+  }
+
+  static async create(data) {
     const newReq = {
       id: data.id || `req-${uuidv4().slice(0, 8)}`,
       userId: data.userId || null,
@@ -44,18 +89,86 @@ export class ConsultationModel {
       serviceType: data.serviceType || "Coaching Consultation",
       customRequirements: data.customRequirements || "",
       chatMessages: data.chatMessages || [],
-      status: "Pending",
+      status: data.status || "Pending",
       createdAt: new Date().toISOString()
     };
+
+    if (db.isConfigured()) {
+      try {
+        await db.query(
+          `INSERT INTO consultations (
+            id, user_id, trainer_id, trainer_name, user_name, phone, address, 
+            service_type, custom_requirements, chat_messages, status, created_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())`,
+          [
+            newReq.id,
+            newReq.userId,
+            newReq.trainerId,
+            newReq.trainerName,
+            newReq.userName,
+            newReq.phone,
+            newReq.address,
+            newReq.serviceType,
+            newReq.customRequirements,
+            JSON.stringify(newReq.chatMessages),
+            newReq.status
+          ]
+        );
+      } catch (err) {
+        console.error("PostgreSQL consultation insert error:", err.message);
+      }
+    }
+
     consultationStore.insert(newReq);
     return newReq;
   }
 
-  static updateStatus(id, status) {
+  static async updateStatus(id, status) {
+    if (db.isConfigured()) {
+      try {
+        await db.query("UPDATE consultations SET status = $1 WHERE id = $2", [status, id]);
+      } catch (err) {
+        console.error("PostgreSQL consultation updateStatus error:", err.message);
+      }
+    }
     return consultationStore.update(id, { status });
   }
 
-  static delete(id) {
+  static async addMessage(id, message) {
+    const current = await this.findById(id);
+    if (!current) return null;
+
+    const messages = Array.isArray(current.chatMessages) ? [...current.chatMessages] : [];
+    const newMsg = {
+      sender: message.sender || "user",
+      text: message.text || "",
+      timestamp: new Date().toISOString()
+    };
+    messages.push(newMsg);
+
+    if (db.isConfigured()) {
+      try {
+        await db.query("UPDATE consultations SET chat_messages = $1 WHERE id = $2", [
+          JSON.stringify(messages),
+          id
+        ]);
+      } catch (err) {
+        console.error("PostgreSQL consultation addMessage error:", err.message);
+      }
+    }
+
+    consultationStore.update(id, { chatMessages: messages });
+    return { ...current, chatMessages: messages };
+  }
+
+  static async delete(id) {
+    if (db.isConfigured()) {
+      try {
+        await db.query("DELETE FROM consultations WHERE id = $1", [id]);
+      } catch (err) {
+        console.error("PostgreSQL consultation delete error:", err.message);
+      }
+    }
     return consultationStore.delete(id);
   }
 }

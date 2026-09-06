@@ -42,4 +42,33 @@ export class MembershipController {
       return res.status(400).json({ success: false, message: err.message });
     }
   }
+
+  static async getOrders(req, res) {
+    try {
+      const orders = await MembershipViewModel.getOrders();
+      return res.status(200).json({ success: true, data: orders });
+    } catch (err) {
+      return res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
+  static async approve(req, res) {
+    try {
+      const { orderId, userId, planName } = req.body;
+      const result = await MembershipViewModel.approveOrder({ orderId, userId, planName });
+      return res.status(200).json({ success: true, data: result });
+    } catch (err) {
+      return res.status(400).json({ success: false, message: err.message });
+    }
+  }
+
+  static async reject(req, res) {
+    try {
+      const { orderId, userId, reason } = req.body;
+      const result = await MembershipViewModel.rejectOrder({ orderId, userId, reason });
+      return res.status(200).json({ success: true, data: result });
+    } catch (err) {
+      return res.status(400).json({ success: false, message: err.message });
+    }
+  }
 }

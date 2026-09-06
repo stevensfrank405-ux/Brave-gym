@@ -212,7 +212,16 @@ export function GymProvider({ children }) {
   // CLASS BOOKINGS
   // ==========================================
 
+  // ==========================================
+  // CLASS BOOKINGS
+  // ==========================================
+
   const bookClass = async (scheduleItem) => {
+    // 🛡️ Restrict booking if user membership is Pending
+    if (currentUser && currentUser.role !== "admin" && (currentUser.status === "Pending" || currentUser.status?.toLowerCase().includes("pending"))) {
+      throw new Error("Your membership is currently pending Admin verification. Please wait for confirmation or use the Chat below to reach HQ.");
+    }
+
     const newBookingData = {
       id: "bk-" + Date.now(),
       classTitle: scheduleItem.classTitle,
@@ -244,13 +253,15 @@ export function GymProvider({ children }) {
   };
 
   const purchasePlan = async (plan) => {
-    // 1. Update current user state
+    // 1. Update current user state to Pending approval
     setCurrentUser((prev) => {
       if (!prev) return prev;
       const updated = {
         ...prev,
         membership: plan.name,
-        status: "Active"
+        membership_tier: plan.name,
+        status: "Pending",
+        renewalDate: "Pending Admin Approval"
       };
       localStorage.setItem("brave_user", JSON.stringify(updated));
       return updated;
@@ -261,27 +272,69 @@ export function GymProvider({ children }) {
       if (result?.transaction) {
         setAdminStats((prev) => ({
           ...prev,
-          monthlyRevenue: prev.monthlyRevenue + Number(plan.price || 0),
-          recentTransactions: [result.transaction, ...prev.recentTransactions]
+          recentTransactions: [result.transaction, ...prev.recentTransactions.filter(t => t.id !== result.transaction.id)]
         }));
       }
+      return result;
     } catch (err) {
-      // Local fallback
+      console.warn("Purchase plan submitted with local pending state:", err.message);
+    }
+  };
+
+  const approveMembershipOrder = async (orderId, athleteUserId, planName) => {
+    try {
+      await api.approveMembershipOrder(orderId, athleteUserId, planName);
+      
+      // Update local roster in real time
+      setAllUsersRoster((prev) =>
+        prev.map((u) => (u.id === athleteUserId ? { ...u, status: "Active", membership: planName || u.membership, renewalDate: "30 Days Active" } : u))
+      );
+
+      // If viewing self
+      if (currentUser?.id === athleteUserId) {
+        setCurrentUser((prev) => ({ ...prev, status: "Active", membership: planName || prev.membership, renewalDate: "30 Days Active" }));
+      }
+
+      // Update admin stats
       setAdminStats((prev) => ({
         ...prev,
-        monthlyRevenue: prev.monthlyRevenue + Number(plan.price || 0),
-        recentTransactions: [
-          {
-            id: `tx-${Date.now().toString().slice(-4)}`,
-            member: currentUser?.name || "Athlete",
-            plan: plan.name,
-            amount: `$${plan.price}`,
-            status: "Paid",
-            date: "Today"
-          },
-          ...prev.recentTransactions
-        ]
+        recentTransactions: prev.recentTransactions.map((tx) =>
+          tx.id === orderId ? { ...tx, status: "Confirmed" } : tx
+        )
       }));
+    } catch (err) {
+      console.error("Failed to approve order:", err.message);
+      throw err;
+    }
+  };
+
+  const rejectMembershipOrder = async (orderId, athleteUserId, reason) => {
+    try {
+      await api.rejectMembershipOrder(orderId, athleteUserId, reason);
+      setAdminStats((prev) => ({
+        ...prev,
+        recentTransactions: prev.recentTransactions.map((tx) =>
+          tx.id === orderId ? { ...tx, status: "Declined" } : tx
+        )
+      }));
+    } catch (err) {
+      console.error("Failed to reject order:", err.message);
+      throw err;
+    }
+  };
+
+  const sendNegotiationMessage = async (consultationId, text, sender = "user") => {
+    try {
+      const res = await api.sendConsultationMessage(consultationId, text, sender);
+      if (res?.data) {
+        setConsultationRequests((prev) =>
+          prev.map((c) => (c.id === consultationId ? res.data : c))
+        );
+      }
+      return res?.data;
+    } catch (err) {
+      console.error("Failed to send message:", err.message);
+      throw err;
     }
   };
 
@@ -517,6 +570,9 @@ export function GymProvider({ children }) {
         allUsersRoster,
         allWorkoutLogs,
         purchasePlan,
+        approveMembershipOrder,
+        rejectMembershipOrder,
+        sendNegotiationMessage,
         isBackendConnected: true
       }}
     >

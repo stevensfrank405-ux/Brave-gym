@@ -44,7 +44,8 @@ export default function UserDashboard() {
     updateProfile,
     uploadUserAvatar,
     memberships,
-    purchasePlan
+    purchasePlan,
+    sendNegotiationMessage
   } = useGym();
   
   const [newLog, setNewLog] = useState({ exercise: "", weight: "", notes: "" });
@@ -124,7 +125,14 @@ export default function UserDashboard() {
     confetti({ particleCount: 60, spread: 60, origin: { y: 0.7 } });
   };
 
-  const [activeTab, setActiveTab] = useState("overview"); // "overview" | "schedule" | "notifications" | "logs"
+  const [activeTab, setActiveTab] = useState("overview"); // "overview" | "schedule" | "notifications" | "logs" | "tiers" | "negotiate"
+  const [chatMessageInput, setChatMessageInput] = useState("");
+  const isPending = currentUser?.status === "Pending";
+
+  // Find user's negotiation consultation thread
+  const userConsultation = (consultationRequests || []).find(
+    (c) => c.userId === currentUser?.id || c.name?.toLowerCase() === currentUser?.name?.toLowerCase()
+  );
 
   const handleAddWorkout = (e) => {
     e.preventDefault();
@@ -186,10 +194,14 @@ export default function UserDashboard() {
                   <Edit className="w-5 h-5 text-white" />
                 </div>
               </div>
-              {/* Green status indicator outside the overflow-hidden circle */}
+              {/* Status indicator outside the overflow-hidden circle */}
               <span 
-                className="absolute bottom-0 right-0 w-4 h-4 bg-emerald-400 border-2 border-[#141414] rounded-full shadow-[0_0_8px_rgba(52,211,153,0.8)] z-10" 
-                title="Active Athletic Standing" 
+                className={`absolute bottom-0 right-0 w-4 h-4 border-2 border-[#141414] rounded-full z-10 ${
+                  isPending
+                    ? "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)] animate-pulse"
+                    : "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]"
+                }`}
+                title={isPending ? "Membership Pending Verification" : "Active Athletic Standing"} 
               />
             </div>
 
@@ -204,8 +216,12 @@ export default function UserDashboard() {
                 <span className="px-3 py-0.5 rounded-full text-[10px] uppercase font-mono tracking-widest bg-white text-black font-bold shadow-sm">
                   {currentUser?.membership}
                 </span>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] uppercase font-mono tracking-widest bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                  {currentUser?.status}
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] uppercase font-mono tracking-widest font-bold ${
+                  isPending
+                    ? "bg-amber-400/20 text-amber-300 border border-amber-400/30 animate-pulse"
+                    : "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                }`}>
+                  {currentUser?.status || "Pending"}
                 </span>
               </div>
               <p className="text-xs text-[#8C8C8C] break-all">{currentUser?.email} · Member ID #{currentUser?.id}</p>
@@ -231,12 +247,48 @@ export default function UserDashboard() {
           </div>
         </div>
 
+        {/* Clean, Clear Pending Notification Banner for User */}
+        {isPending && (
+          <div className="p-5 bg-gradient-to-r from-amber-500/15 via-[#18150e] to-black border border-amber-500/40 rounded-sm flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-lg">
+            <div className="flex items-start sm:items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-amber-400/20 border border-amber-400/40 flex items-center justify-center shrink-0">
+                <AlertCircle className="w-5 h-5 text-amber-400 animate-pulse" />
+              </div>
+              <div className="space-y-0.5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="font-display text-base font-bold text-white uppercase tracking-wide">
+                    Membership Order Pending Admin Approval
+                  </h3>
+                  <span className="text-[10px] font-mono bg-amber-400 text-black font-bold px-2 py-0.5 rounded uppercase">
+                    Order In Review
+                  </span>
+                </div>
+                <p className="text-xs text-white/75 leading-relaxed">
+                  Your <strong className="text-amber-400">{currentUser?.membership}</strong> order has been received by Brave HQ. Class booking and facility services will unlock as soon as Director Marcus Vance confirms your membership.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 self-start md:self-center shrink-0">
+              <button
+                type="button"
+                onClick={() => setActiveTab("negotiate")}
+                className="px-4 py-2.5 bg-amber-400 hover:bg-amber-300 text-black font-bold text-xs uppercase tracking-wider rounded transition-colors flex items-center gap-2 shadow"
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span>Chat with HQ / Negotiate</span>
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Dashboard Navigation Tabs - Responsive Horizontal Scrollable */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
           <div className="flex items-center gap-1.5 bg-[#141414] p-1 rounded-sm border border-white/10 overflow-x-auto max-w-full scrollbar-none">
             {[
               { id: "overview", label: "Hub Overview" },
               { id: "tiers", label: "Membership Tiers", badge: memberships?.length },
+              { id: "negotiate", label: "Live HQ Chat", badge: isPending ? "Pending" : undefined },
               { id: "schedule", label: "My Bookings", badge: bookings?.length },
               { id: "notifications", label: "Admin Dispatch", badge: unreadCount },
               { id: "logs", label: "Training Logs", badge: workoutLogs?.length }
@@ -251,9 +303,13 @@ export default function UserDashboard() {
                 }`}
               >
                 <span>{tab.label}</span>
-                {tab.badge !== undefined && tab.badge > 0 && (
+                {tab.badge !== undefined && (
                   <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
-                    activeTab === tab.id ? "bg-black text-white" : "bg-amber-400 text-black font-bold"
+                    activeTab === tab.id
+                      ? "bg-black text-white"
+                      : tab.badge === "Pending"
+                      ? "bg-amber-400 text-black font-bold"
+                      : "bg-white/10 text-white font-bold"
                   }`}>
                     {tab.badge}
                   </span>
@@ -316,14 +372,24 @@ export default function UserDashboard() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between text-xs font-mono uppercase tracking-widest text-[#8C8C8C]">
                     <span className="flex items-center gap-2 text-white">
-                      <ShieldCheck className="w-3.5 h-3.5 text-white" /> Active Plan
+                      <ShieldCheck className="w-3.5 h-3.5 text-white" /> {isPending ? "Requested Plan" : "Active Plan"}
                     </span>
-                    <span className="text-emerald-400 font-semibold uppercase">{currentUser?.status}</span>
+                    <span className={`font-semibold uppercase px-2 py-0.5 rounded text-[10px] ${
+                      isPending
+                        ? "bg-amber-400 text-black font-bold"
+                        : "text-emerald-400"
+                    }`}>
+                      {currentUser?.status || "Pending"}
+                    </span>
                   </div>
 
                   <div className="space-y-1">
                     <h3 className="font-display text-2xl font-bold text-white uppercase">{currentUser?.membership}</h3>
-                    <p className="text-xs text-[#8C8C8C]">Renews on {currentUser?.renewalDate}.</p>
+                    <p className="text-xs text-[#8C8C8C]">
+                      {isPending
+                        ? "Awaiting Admin Confirmation. Facility services locked."
+                        : `Renews on ${currentUser?.renewalDate}.`}
+                    </p>
                   </div>
 
                   {/* Dynamic inclusions from current tier */}
@@ -341,21 +407,32 @@ export default function UserDashboard() {
                           ];
                       return features.slice(0, 3).map((f, i) => (
                         <div key={i} className="flex items-center gap-2">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                          <span>{f}</span>
+                          <CheckCircle2 className={`w-3.5 h-3.5 shrink-0 ${isPending ? "text-amber-400" : "text-emerald-400"}`} />
+                          <span className={isPending ? "text-white/60" : "text-white/90"}>{f}</span>
                         </div>
                       ));
                     })()}
                   </div>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("tiers")}
-                  className="block w-full py-2.5 text-center text-xs uppercase tracking-widest font-semibold border border-white/20 text-white hover:bg-white hover:text-black rounded transition-colors"
-                >
-                  Manage Membership & Tiers
-                </button>
+                <div className="space-y-2 pt-2">
+                  {isPending && (
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("negotiate")}
+                      className="block w-full py-2.5 text-center text-xs uppercase tracking-widest font-semibold bg-amber-400 text-black hover:bg-amber-300 rounded transition-colors shadow"
+                    >
+                      Negotiate / Chat with Admin
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("tiers")}
+                    className="block w-full py-2.5 text-center text-xs uppercase tracking-widest font-semibold border border-white/20 text-white hover:bg-white hover:text-black rounded transition-colors"
+                  >
+                    Manage Membership & Tiers
+                  </button>
+                </div>
               </div>
 
               {/* Live Dispatch / Admin Response Pill */}
@@ -540,6 +617,129 @@ export default function UserDashboard() {
           </div>
         )}
 
+        {/* Live HQ Chat / Negotiation Tab */}
+        {activeTab === "negotiate" && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-white/10">
+              <div className="space-y-1">
+                <span className="text-xs font-mono uppercase tracking-widest text-amber-400">
+                  Direct Line to Brave HQ Operations
+                </span>
+                <h2 className="font-display text-2xl font-bold text-white uppercase">
+                  Membership Negotiation & Support
+                </h2>
+              </div>
+              <div className="flex items-center gap-2 text-xs font-mono">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-[#8C8C8C]">Director Desk:</span>
+                <strong className="text-white">Marcus Vance (Online)</strong>
+              </div>
+            </div>
+
+            {/* Chat Container */}
+            <div className="bg-[#141414] border border-white/10 rounded-sm overflow-hidden flex flex-col h-[520px] shadow-xl">
+              {/* Context bar */}
+              <div className="p-4 bg-[#1a1a1a] border-b border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-amber-400/20 border border-amber-400/30 flex items-center justify-center text-amber-400 font-bold">
+                    HQ
+                  </div>
+                  <div>
+                    <span className="text-white font-bold block uppercase font-display">
+                      Tier Discussion: {currentUser?.membership || "Membership Plan"}
+                    </span>
+                    <span className="text-[11px] text-[#8C8C8C] font-mono">
+                      Status: {currentUser?.status || "Pending Verification"}
+                    </span>
+                  </div>
+                </div>
+
+                {isPending && (
+                  <span className="px-3 py-1 rounded bg-amber-400/10 text-amber-300 border border-amber-400/30 font-mono text-[11px]">
+                    Pending Admin Approval
+                  </span>
+                )}
+              </div>
+
+              {/* Chat Thread */}
+              <div className="flex-1 p-5 overflow-y-auto space-y-4 bg-[#0D0D0D]">
+                <div className="text-center">
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-[#8C8C8C] bg-white/5 px-3 py-1 rounded-full border border-white/10">
+                    Live Channel Open with Brave Gym Admin
+                  </span>
+                </div>
+
+                {/* Introductory message */}
+                <div className="flex flex-col items-start">
+                  <span className="text-[9px] font-mono text-[#8C8C8C] uppercase mb-1">
+                    Director Marcus Vance · HQ
+                  </span>
+                  <div className="bg-[#1C1C1C] text-white/90 border border-white/15 px-4 py-3 rounded text-xs max-w-[85%] leading-relaxed">
+                    Welcome to Brave Gym. Your membership order for <strong>{currentUser?.membership}</strong> is currently on my desk for verification. If you have questions regarding customized payment plans, scheduling needs, or session upgrades, discuss them directly here.
+                  </div>
+                </div>
+
+                {/* Conversation messages */}
+                {userConsultation?.chatHistory && userConsultation.chatHistory.length > 0 ? (
+                  userConsultation.chatHistory.map((msg, mIdx) => {
+                    const isMe = msg.sender === "user";
+                    return (
+                      <div
+                        key={mIdx}
+                        className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}
+                      >
+                        <span className="text-[9px] font-mono text-[#8C8C8C] uppercase mb-1">
+                          {isMe ? "You (Athlete)" : "Brave Gym Director"} · {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Live"}
+                        </span>
+                        <div
+                          className={`px-4 py-2.5 rounded text-xs max-w-[85%] leading-relaxed ${
+                            isMe
+                              ? "bg-amber-400 text-black font-semibold shadow-md rounded-br-none"
+                              : "bg-[#202020] text-white border border-white/15 rounded-bl-none"
+                          }`}
+                        >
+                          {msg.text}
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : null}
+              </div>
+
+              {/* Message Input Box */}
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (!chatMessageInput.trim()) return;
+                  const text = chatMessageInput.trim();
+                  setChatMessageInput("");
+                  try {
+                    const consultationId = userConsultation?.id || "order-user-" + currentUser?.id;
+                    await sendNegotiationMessage(consultationId, text, "user");
+                  } catch (err) {
+                    console.error("Failed to send message:", err);
+                  }
+                }}
+                className="p-4 bg-[#161616] border-t border-white/10 flex items-center gap-2"
+              >
+                <input
+                  type="text"
+                  value={chatMessageInput}
+                  onChange={(e) => setChatMessageInput(e.target.value)}
+                  placeholder="Discuss payment terms, ask questions, or request tier changes..."
+                  className="flex-1 px-4 py-2.5 bg-[#0D0D0D] border border-white/15 rounded text-white text-xs placeholder:text-[#8C8C8C] focus:outline-none focus:border-amber-400 transition-colors"
+                />
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 bg-amber-400 hover:bg-amber-300 text-black font-bold text-xs uppercase tracking-wider rounded transition-colors"
+                >
+                  Send
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+
         {/* 2. My Bookings Tab */}
         {activeTab === "schedule" && (
           <div className="space-y-6">
@@ -548,13 +748,28 @@ export default function UserDashboard() {
                 <span className="text-xs font-mono uppercase tracking-widest text-[#8C8C8C]">Active Reservations</span>
                 <h2 className="font-display text-2xl font-bold text-white uppercase">Class Schedule & Reservations</h2>
               </div>
-              <Link
-                to="/programs"
-                className="px-4 py-2 bg-white text-black font-bold text-xs uppercase tracking-wider rounded hover:bg-[#F5F5F3]"
-              >
-                Book More Classes
-              </Link>
+              {isPending ? (
+                <span className="px-4 py-2 bg-white/10 text-[#8C8C8C] text-xs uppercase tracking-wider font-mono rounded">
+                  Booking Locked (Order Pending)
+                </span>
+              ) : (
+                <Link
+                  to="/programs"
+                  className="px-4 py-2 bg-white text-black font-bold text-xs uppercase tracking-wider rounded hover:bg-[#F5F5F3]"
+                >
+                  Book More Classes
+                </Link>
+              )}
             </div>
+
+            {isPending && (
+              <div className="p-4 bg-amber-500/10 border border-amber-500/25 rounded text-xs text-amber-300 flex items-center gap-3">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>
+                  Your membership is currently pending admin approval. You can view existing bookings or chat with admin, but reserving new arena slots is restricted until activated.
+                </span>
+              </div>
+            )}
 
             <div className="bg-[#141414] border border-white/10 rounded-sm divide-y divide-white/10">
               {bookings.length > 0 ? (

@@ -128,10 +128,10 @@ export class UserModel {
       passwordHash,
       name: name || cleanEmail.split("@")[0],
       role,
-      membership,
-      status: "Active",
-      renewalDate: role === "admin" ? "Staff Sovereign" : "30 Days Free",
-      streak: role === "admin" ? 42 : 1,
+      membership: membership || "Brave Trial",
+      status: role === "admin" ? "Active" : "Pending",
+      renewalDate: role === "admin" ? "Staff Sovereign" : "Pending Admin Approval",
+      streak: role === "admin" ? 42 : 0,
       sessionsThisMonth: role === "admin" ? 24 : 0,
       avatar: role === "admin"
         ? "/media/edgar-chaparro-sHfo3WOgGTU-unsplash.jpg"

@@ -7,6 +7,7 @@ const router = express.Router();
 router.get("/", ConsultationController.getConsultations);
 router.post("/", optionalAuthenticate, ConsultationController.submit);
 router.patch("/:id/status", ConsultationController.updateStatus);
+router.post("/:id/message", optionalAuthenticate, ConsultationController.addMessage);
 router.delete("/:id", ConsultationController.remove);
 
 export default router;

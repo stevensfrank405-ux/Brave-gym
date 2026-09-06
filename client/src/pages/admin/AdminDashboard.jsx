@@ -55,7 +55,10 @@ export default function AdminDashboard() {
     removeScheduleClass,
     adminBookings,
     allUsersRoster,
-    allWorkoutLogs
+    allWorkoutLogs,
+    approveMembershipOrder,
+    rejectMembershipOrder,
+    sendNegotiationMessage
   } = useGym();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("overview");
@@ -66,6 +69,9 @@ export default function AdminDashboard() {
   const [newClassModal, setNewClassModal] = useState(false);
   const [showAdminProfileModal, setShowAdminProfileModal] = useState(false);
   const [newTierModal, setNewTierModal] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [adminChatInput, setAdminChatInput] = useState("");
+  const [activeNegotiationThread, setActiveNegotiationThread] = useState(null);
 
   const [isEditingAdminProfile, setIsEditingAdminProfile] = useState(false);
   const [adminProfileForm, setAdminProfileForm] = useState({
@@ -224,8 +230,11 @@ export default function AdminDashboard() {
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
+  const pendingOrdersCount = (adminStats?.recentTransactions || []).filter(t => t.status === "Pending").length;
+
   const sidebarNavItems = [
     { id: "overview", label: "Dashboard Overview", icon: LayoutDashboard, desc: "Live KPI Telemetry" },
+    { id: "orders", label: "Membership Orders", icon: ShieldCheck, badge: pendingOrdersCount, desc: "Verify Athlete Subscriptions" },
     { id: "athletes", label: "Athlete Monitoring", icon: UserCheck, badge: allUsersRoster?.length, desc: "Full Client Dossier Monitoring" },
     { id: "bookings", label: "Athlete Bookings", icon: Users, badge: adminBookings?.length, desc: "Reserved Spots Roster" },
     { id: "requests", label: "Consultation Orders", icon: MessageSquare, badge: consultationRequests?.length, desc: "Athlete Intake Leads" },
@@ -657,6 +666,216 @@ export default function AdminDashboard() {
           </div>
 
         </div>
+
+        {/* Real-time Pending Orders Banner if any pending orders exist */}
+        {pendingOrdersCount > 0 && activeTab !== "orders" && (
+          <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-amber-400/20 flex items-center justify-center shrink-0 border border-amber-400/40">
+                <AlertCircle className="w-5 h-5 text-amber-400" />
+              </div>
+              <div>
+                <h4 className="text-white font-bold text-sm uppercase font-display tracking-wide">
+                  {pendingOrdersCount} Pending Membership {pendingOrdersCount === 1 ? "Order" : "Orders"} Awaiting Verification
+                </h4>
+                <p className="text-xs text-[#8C8C8C]">
+                  Athletes cannot book classes or access facility services until their membership is reviewed and confirmed.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setActiveTab("orders")}
+              className="px-4 py-2 bg-amber-400 hover:bg-amber-300 text-black font-bold text-xs uppercase tracking-wider rounded transition-colors self-start sm:self-center shrink-0"
+            >
+              Review Orders
+            </button>
+          </div>
+        )}
+
+        {/* Tab Content: Membership Orders & Real-time Verification */}
+        {(activeTab === "overview" || activeTab === "orders") && (
+          <div className="space-y-6 pt-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-white/10">
+              <div className="space-y-1">
+                <span className="text-xs font-mono uppercase tracking-widest text-amber-400 block">
+                  Gatekeeper Subscriptions & Real-Time Approval
+                </span>
+                <div className="flex flex-wrap items-center gap-3">
+                  <h2 className="font-display text-2xl font-bold text-white uppercase">
+                    Membership Orders & Payment Plans
+                  </h2>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono font-bold ${
+                    pendingOrdersCount > 0 ? "bg-amber-400 text-black animate-pulse" : "bg-white/10 text-white"
+                  }`}>
+                    {pendingOrdersCount} Pending Approval
+                  </span>
+                </div>
+              </div>
+              <div className="text-xs text-[#8C8C8C] font-mono">
+                Real-Time Postgres Ledger Sync
+              </div>
+            </div>
+
+            {/* Orders Cards Grid */}
+            <div className="space-y-4">
+              {adminStats?.recentTransactions && adminStats.recentTransactions.length > 0 ? (
+                adminStats.recentTransactions.map((order) => {
+                  const athleteUser = (allUsersRoster || []).find(
+                    (u) => u.id === order.userId || u.name?.toLowerCase() === order.member?.toLowerCase()
+                  );
+                  const isPending = order.status === "Pending";
+                  const isConfirmed = order.status === "Confirmed";
+
+                  // Find or associate consultation negotiation thread
+                  const userConsultation = (consultationRequests || []).find(
+                    (c) => c.userId === order.userId || c.name?.toLowerCase() === order.member?.toLowerCase()
+                  );
+
+                  return (
+                    <div
+                      key={order.id}
+                      className={`p-5 rounded-sm border transition-all ${
+                        isPending
+                          ? "bg-[#18150e] border-amber-500/40 shadow-[0_0_15px_rgba(251,191,36,0.08)]"
+                          : isConfirmed
+                          ? "bg-[#141414] border-white/10"
+                          : "bg-[#141414] border-red-500/20"
+                      }`}
+                    >
+                      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+                        {/* Member Info */}
+                        <div className="flex items-start gap-4">
+                          <div className="w-12 h-12 rounded-sm bg-[#202020] border border-white/10 flex items-center justify-center shrink-0 font-display font-bold text-lg text-white">
+                            {order.member ? order.member.charAt(0).toUpperCase() : "U"}
+                          </div>
+
+                          <div className="space-y-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h3 className="font-display text-lg font-bold text-white uppercase">
+                                {order.member}
+                              </h3>
+                              <span
+                                className={`px-2 py-0.5 rounded text-[10px] uppercase font-mono tracking-wider font-bold ${
+                                  isPending
+                                    ? "bg-amber-400 text-black"
+                                    : isConfirmed
+                                    ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                                    : "bg-red-500/20 text-red-400 border border-red-500/30"
+                                }`}
+                              >
+                                {order.status}
+                              </span>
+                              {isPending && (
+                                <span className="text-[10px] font-mono text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">
+                                  Services Locked Until Approved
+                                </span>
+                              )}
+                            </div>
+
+                            <p className="text-xs text-[#8C8C8C]">
+                              Plan: <strong className="text-white">{order.plan}</strong> · Amount: <strong className="text-white">{order.amount}</strong> · Order #{order.id}
+                            </p>
+
+                            {athleteUser && (
+                              <p className="text-[11px] text-[#8C8C8C] font-mono">
+                                Email: {athleteUser.email} · Registered: {athleteUser.createdAt ? new Date(athleteUser.createdAt).toLocaleDateString() : "Active"}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex flex-wrap items-center gap-3 pt-3 lg:pt-0 border-t lg:border-t-0 border-white/10">
+                          {/* Chat / Negotiate Button */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedOrder(order);
+                              setActiveNegotiationThread(userConsultation || {
+                                id: "order-" + order.id,
+                                name: order.member,
+                                email: athleteUser?.email || "athlete@bravegym.com",
+                                chatHistory: []
+                              });
+                            }}
+                            className="px-3 py-2 bg-[#202020] hover:bg-[#2a2a2a] text-white border border-white/15 rounded text-xs font-semibold uppercase tracking-wider flex items-center gap-2 transition-colors"
+                          >
+                            <MessageSquare className="w-3.5 h-3.5 text-amber-400" />
+                            <span>Discuss / Negotiate</span>
+                          </button>
+
+                          {/* Inspect Athlete Dossier */}
+                          {athleteUser && (
+                            <button
+                              type="button"
+                              onClick={() => setSelectedDossierAthlete(athleteUser)}
+                              className="px-3 py-2 bg-white/5 hover:bg-white/10 text-white/90 border border-white/10 rounded text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 transition-colors"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                              <span>View Dossier</span>
+                            </button>
+                          )}
+
+                          {/* Approve / Reject Controls */}
+                          {isPending ? (
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  if (window.confirm(`Confirm and activate membership "${order.plan}" for athlete ${order.member}?`)) {
+                                    try {
+                                      await approveMembershipOrder(order.id, order.userId || athleteUser?.id, order.plan);
+                                    } catch (e) {
+                                      alert("Failed to confirm order: " + e.message);
+                                    }
+                                  }
+                                }}
+                                className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-black font-bold rounded text-xs uppercase tracking-wider flex items-center gap-1.5 shadow transition-colors"
+                              >
+                                <Check className="w-4 h-4" />
+                                <span>Approve & Activate</span>
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  const reason = window.prompt(`Provide reason for rejecting order #${order.id}:`, "Payment verification incomplete");
+                                  if (reason) {
+                                    try {
+                                      await rejectMembershipOrder(order.id, order.userId || athleteUser?.id, reason);
+                                    } catch (e) {
+                                      alert("Failed to reject order: " + e.message);
+                                    }
+                                  }
+                                }}
+                                className="px-3 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 transition-colors"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                                <span>Decline</span>
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-xs font-mono text-[#8C8C8C] uppercase flex items-center gap-1.5">
+                              <ShieldCheck className="w-4 h-4 text-emerald-400" /> Order Verified
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="p-8 bg-[#141414] border border-white/10 rounded-sm text-center space-y-2">
+                  <ShieldCheck className="w-8 h-8 text-[#8C8C8C] mx-auto" />
+                  <h4 className="text-white font-bold text-sm uppercase">No Orders On Record</h4>
+                  <p className="text-xs text-[#8C8C8C]">
+                    When an athlete registers or chooses a membership tier, their order appears here for verification.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Tab Content: Athlete Roster & Client Dossier Monitoring */}
         {(activeTab === "overview" || activeTab === "athletes") && (
@@ -2142,6 +2361,157 @@ export default function AdminDashboard() {
                 >
                   Close Dossier
                 </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Real-time Athlete & Admin Negotiation Chat Modal */}
+        {activeNegotiationThread && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
+            <div className="bg-[#141414] border border-amber-500/40 w-full max-w-xl rounded-sm shadow-2xl flex flex-col max-h-[85vh] overflow-hidden">
+              {/* Header */}
+              <div className="p-4 border-b border-white/10 flex items-center justify-between bg-[#1A1A1A]">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-amber-400/20 border border-amber-400/40 flex items-center justify-center text-amber-400">
+                    <MessageSquare className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-display text-base font-bold text-white uppercase tracking-wide">
+                      Live Negotiation & Support: {activeNegotiationThread.name || selectedOrder?.member || "Athlete"}
+                    </h3>
+                    <p className="text-[11px] text-[#8C8C8C] font-mono">
+                      Order #{selectedOrder?.id || "N/A"} · Plan: {selectedOrder?.plan || "Membership"} · Status: {selectedOrder?.status || "Pending"}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setActiveNegotiationThread(null);
+                    setSelectedOrder(null);
+                    setAdminChatInput("");
+                  }}
+                  className="p-1.5 hover:bg-white/10 rounded text-white/60 hover:text-white transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Chat Messages */}
+              <div className="p-5 flex-1 overflow-y-auto space-y-3 bg-[#0D0D0D]">
+                <div className="text-center">
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-[#8C8C8C] bg-white/5 px-3 py-1 rounded-full border border-white/10">
+                    Encrypted Real-Time Communication Channel
+                  </span>
+                </div>
+
+                {activeNegotiationThread.chatHistory && activeNegotiationThread.chatHistory.length > 0 ? (
+                  activeNegotiationThread.chatHistory.map((msg, mIdx) => {
+                    const isAdmin = msg.sender === "admin" || msg.sender === "assistant";
+                    return (
+                      <div
+                        key={mIdx}
+                        className={`flex flex-col ${isAdmin ? "items-end" : "items-start"}`}
+                      >
+                        <span className="text-[9px] font-mono text-[#8C8C8C] uppercase mb-1">
+                          {isAdmin ? "Brave Gym Director (HQ)" : (activeNegotiationThread.name || "Athlete")} · {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Live"}
+                        </span>
+                        <div
+                          className={`px-4 py-2.5 rounded text-xs max-w-[85%] leading-relaxed ${
+                            isAdmin
+                              ? "bg-amber-400 text-black font-medium shadow-md rounded-br-none"
+                              : "bg-[#202020] text-white border border-white/15 rounded-bl-none"
+                          }`}
+                        >
+                          {msg.text}
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="py-12 text-center text-xs text-[#8C8C8C] space-y-2">
+                    <MessageSquare className="w-8 h-8 mx-auto text-[#8C8C8C]/50" />
+                    <p className="text-white/80 font-semibold">Start direct conversation with athlete.</p>
+                    <p className="text-[11px] max-w-xs mx-auto">
+                      Clarify payment plans, answer training inquiries, or offer custom terms before confirming their membership order.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Input Footer */}
+              <div className="p-4 border-t border-white/10 bg-[#161616] space-y-3">
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    if (!adminChatInput.trim()) return;
+                    const text = adminChatInput.trim();
+                    setAdminChatInput("");
+                    try {
+                      // Send message to backend
+                      const updated = await sendNegotiationMessage(activeNegotiationThread.id, text, "admin");
+                      if (updated) {
+                        setActiveNegotiationThread(updated);
+                      } else {
+                        // local optimistic update
+                        setActiveNegotiationThread((prev) => ({
+                          ...prev,
+                          chatHistory: [
+                            ...(prev.chatHistory || []),
+                            { sender: "admin", text, timestamp: new Date().toISOString() }
+                          ]
+                        }));
+                      }
+                    } catch (err) {
+                      // optimistic update fallback
+                      setActiveNegotiationThread((prev) => ({
+                        ...prev,
+                        chatHistory: [
+                          ...(prev.chatHistory || []),
+                          { sender: "admin", text, timestamp: new Date().toISOString() }
+                        ]
+                      }));
+                    }
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <input
+                    type="text"
+                    value={adminChatInput}
+                    onChange={(e) => setAdminChatInput(e.target.value)}
+                    placeholder="Type message to athlete..."
+                    className="flex-1 px-4 py-2.5 bg-[#0D0D0D] border border-white/15 rounded text-white text-xs placeholder:text-[#8C8C8C] focus:outline-none focus:border-amber-400 transition-colors"
+                  />
+                  <button
+                    type="submit"
+                    className="px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-black font-bold text-xs uppercase tracking-wider rounded transition-colors"
+                  >
+                    Send
+                  </button>
+                </form>
+
+                {selectedOrder && selectedOrder.status === "Pending" && (
+                  <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                    <span className="text-[11px] text-[#8C8C8C]">
+                      Order #{selectedOrder.id} is currently <strong className="text-amber-400">Pending</strong>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          await approveMembershipOrder(selectedOrder.id, selectedOrder.userId, selectedOrder.plan);
+                          setSelectedOrder((prev) => ({ ...prev, status: "Confirmed" }));
+                          alert("Membership successfully confirmed & athlete activated!");
+                        } catch (e) {
+                          alert("Failed to confirm: " + e.message);
+                        }
+                      }}
+                      className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs uppercase tracking-wider rounded transition-colors flex items-center gap-1"
+                    >
+                      <Check className="w-3.5 h-3.5" /> Approve Order Now
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
