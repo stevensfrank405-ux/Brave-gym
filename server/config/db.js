@@ -4,15 +4,26 @@ import { config } from "../config/config.js";
 
 let pool = null;
 
-if (config.databaseUrl) {
-  pool = new Pool({
-    connectionString: config.databaseUrl,
-    ssl: config.databaseUrl.includes("localhost") ? false : { rejectUnauthorized: false }
-  });
+const rawDbUrl = (config.databaseUrl || "").trim();
 
-  pool.on("error", (err) => {
-    console.error("Unexpected error on idle PostgreSQL client:", err);
-  });
+if (rawDbUrl && (rawDbUrl.startsWith("postgres://") || rawDbUrl.startsWith("postgresql://"))) {
+  try {
+    // Validate with URL constructor to avoid crash on malformed string
+    new URL(rawDbUrl);
+    pool = new Pool({
+      connectionString: rawDbUrl,
+      ssl: rawDbUrl.includes("localhost") ? false : { rejectUnauthorized: false }
+    });
+
+    pool.on("error", (err) => {
+      console.error("Unexpected error on idle PostgreSQL client:", err);
+    });
+  } catch (urlErr) {
+    console.warn("⚠️ Invalid DATABASE_URL format provided. Falling back to local file store:", urlErr.message);
+    pool = null;
+  }
+} else if (rawDbUrl) {
+  console.warn("⚠️ DATABASE_URL does not start with postgresql:// or postgres://. Value:", rawDbUrl);
 }
 
 export const db = {
