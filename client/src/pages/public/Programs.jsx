@@ -229,11 +229,11 @@ export default function Programs() {
                 if (b.classTitle?.toLowerCase() !== sc.classTitle?.toLowerCase()) return false;
                 
                 // Fallback for older formats ("Monday, 09:00 AM")
-                if (b.date?.toLowerCase().includes(sc.day.toLowerCase())) return true;
+                if (sc.day && b.date?.toLowerCase().includes(sc.day.toLowerCase())) return true;
                 
                 // For new formats ("2023-11-20 09:00")
                 const parsedDate = new Date(b.date);
-                if (!isNaN(parsedDate)) {
+                if (!isNaN(parsedDate) && sc.day) {
                   const weekday = parsedDate.toLocaleDateString('en-US', { weekday: 'long' });
                   return weekday.toLowerCase() === sc.day.toLowerCase();
                 }
