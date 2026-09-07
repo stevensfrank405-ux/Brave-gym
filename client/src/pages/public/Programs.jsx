@@ -12,6 +12,7 @@ export default function Programs() {
   const [selectedClassToBook, setSelectedClassToBook] = useState(null);
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
+  const [bookingError, setBookingError] = useState(null);
 
   const isPending = currentUser && currentUser.role !== "admin" && (currentUser.status === "Pending" || currentUser.status?.toLowerCase().includes("pending"));
 
