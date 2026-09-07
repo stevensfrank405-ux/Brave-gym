@@ -1,9 +1,84 @@
-import React, { useEffect } from "react";
+import React, { useEffect, Component } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Lenis from "lenis";
 import { GymProvider, useGym } from "./context/GymContext";
 import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
+
+// Error Boundary to prevent blank screen crashes
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null, errorInfo: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    this.setState({ errorInfo });
+    console.error("[ErrorBoundary] Caught error:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{
+          minHeight: '100vh',
+          background: '#0D0D0D',
+          color: '#F5F5F3',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '2rem',
+          fontFamily: 'system-ui, sans-serif'
+        }}>
+          <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '1rem', color: '#f59e0b' }}>
+            ⚠️ Something Went Wrong
+          </h1>
+          <p style={{ marginBottom: '1rem', opacity: 0.7 }}>
+            The application encountered an unexpected error.
+          </p>
+          <pre style={{
+            background: '#1a1a1a',
+            border: '1px solid rgba(255,255,255,0.1)',
+            padding: '1rem',
+            borderRadius: '0.5rem',
+            maxWidth: '600px',
+            width: '100%',
+            overflow: 'auto',
+            fontSize: '0.75rem',
+            marginBottom: '1.5rem'
+          }}>
+            {this.state.error?.toString()}
+            {'\n\n'}
+            {this.state.errorInfo?.componentStack}
+          </pre>
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              padding: '0.75rem 2rem',
+              background: '#f59e0b',
+              color: '#000',
+              fontWeight: 'bold',
+              border: 'none',
+              borderRadius: '0.25rem',
+              cursor: 'pointer',
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em'
+            }}
+          >
+            Reload Page
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 // Public Pages
 import Home from "./pages/public/Home";
@@ -131,11 +206,13 @@ export default function App() {
   }, []);
 
   return (
-    <GymProvider>
-      <BrowserRouter>
-        <ScrollToTop />
-        <LayoutContent />
-      </BrowserRouter>
-    </GymProvider>
+    <ErrorBoundary>
+      <GymProvider>
+        <BrowserRouter>
+          <ScrollToTop />
+          <LayoutContent />
+        </BrowserRouter>
+      </GymProvider>
+    </ErrorBoundary>
   );
 }

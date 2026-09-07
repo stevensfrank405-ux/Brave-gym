@@ -192,7 +192,7 @@ export default function UserDashboard() {
       <div className="max-w-7xl mx-auto space-y-8 sm:space-y-10">
         
         {/* User Hero Banner Header - Clickable to View Profile */}
-        <div className="bg-white/5 bg-opacity-10 backdrop-blur-md border border-white/10 rounded-sm p-5 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl">
+        <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-sm p-5 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl">
           <div 
             onClick={() => setShowProfileModal(true)}
             className="flex items-center gap-5 cursor-pointer group select-none"
@@ -299,7 +299,7 @@ export default function UserDashboard() {
 
         {/* Dashboard Navigation Tabs - Responsive Horizontal Scrollable */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
-          <div className="flex items-center gap-1.5 bg-white/5 bg-opacity-10 backdrop-blur-md p-1 rounded-sm border border-white/10 overflow-x-auto max-w-full scrollbar-none">
+          <div className="flex items-center gap-1.5 bg-white/5 backdrop-blur-md p-1 rounded-sm border border-white/10 overflow-x-auto max-w-full scrollbar-none">
             {[
               { id: "overview", label: "Hub Overview" },
               { id: "tiers", label: "Membership Tiers", badge: memberships?.length },
@@ -348,7 +348,7 @@ export default function UserDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               
               {/* Next Booked Session Widget */}
-              <div className="bg-white/5 bg-opacity-10 backdrop-blur-md border border-white/10 rounded-sm p-6 space-y-4 shadow-lg">
+              <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-sm p-6 space-y-4 shadow-lg">
                 <div className="flex items-center justify-between text-xs font-mono uppercase tracking-widest text-[#8C8C8C]">
                   <span className="flex items-center gap-2 text-white">
                     <Clock className="w-3.5 h-3.5 text-white" /> Next Class
@@ -382,7 +382,7 @@ export default function UserDashboard() {
               </div>
 
               {/* Membership Tier Status */}
-              <div className="bg-white/5 bg-opacity-10 backdrop-blur-md border border-white/10 rounded-sm p-6 space-y-4 shadow-lg flex flex-col justify-between">
+              <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-sm p-6 space-y-4 shadow-lg flex flex-col justify-between">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between text-xs font-mono uppercase tracking-widest text-[#8C8C8C]">
                     <span className="flex items-center gap-2 text-white">
@@ -450,7 +450,7 @@ export default function UserDashboard() {
               </div>
 
               {/* Live Dispatch / Admin Response Pill */}
-              <div className="bg-white/5 bg-opacity-10 backdrop-blur-md border border-white/10 rounded-sm p-6 space-y-4 shadow-lg">
+              <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-sm p-6 space-y-4 shadow-lg">
                 <div className="flex items-center justify-between text-xs font-mono uppercase tracking-widest text-[#8C8C8C]">
                   <span className="flex items-center gap-2 text-white">
                     <Bell className="w-3.5 h-3.5 text-white" /> Admin Dispatches
@@ -489,7 +489,7 @@ export default function UserDashboard() {
             </div>
 
             {/* Daily Athletic Improvement Ratio Animated Graph */}
-            <div className="bg-white/5 bg-opacity-10 backdrop-blur-md border border-white/10 rounded-sm p-6 sm:p-8 space-y-6 shadow-xl">
+            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-sm p-6 sm:p-8 space-y-6 shadow-xl">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-5">
                 <div>
                   <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-[#8C8C8C] mb-1">
@@ -603,7 +603,7 @@ export default function UserDashboard() {
                 </Link>
               </div>
 
-              <div className="bg-white/5 bg-opacity-10 backdrop-blur-md border border-white/10 rounded-sm divide-y divide-white/10">
+              <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-sm divide-y divide-white/10">
                 {bookings && bookings.length > 0 ? (
                   bookings.map((b) => (
                     <div key={b.id} className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-white/[0.02]">
@@ -680,7 +680,7 @@ export default function UserDashboard() {
               </div>
             )}
 
-            <div className="bg-white/5 bg-opacity-10 backdrop-blur-md border border-white/10 rounded-sm divide-y divide-white/10">
+            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-sm divide-y divide-white/10">
               {bookings.length > 0 ? (
                 bookings.map((b) => (
                   <div key={b.id} className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-white/[0.02]">
@@ -753,7 +753,7 @@ export default function UserDashboard() {
                   return (
                     <div
                       key={plan.id}
-                      className={`p-6 sm:p-8 bg-white/5 bg-opacity-10 backdrop-blur-md rounded-sm space-y-6 flex flex-col justify-between border transition-all ${
+                      className={`p-6 sm:p-8 bg-white/5 backdrop-blur-md rounded-sm space-y-6 flex flex-col justify-between border transition-all ${
                         isCurrent
                           ? "border-amber-400 shadow-[0_0_30px_rgba(251,191,36,0.2)] -translate-y-1"
                           : "border-white/10 hover:border-white/30"
@@ -833,7 +833,7 @@ export default function UserDashboard() {
                   );
                 })
               ) : (
-                <div className="col-span-full p-10 text-center text-xs text-[#8C8C8C] bg-white/5 bg-opacity-10 backdrop-blur-md border border-white/10 rounded-sm">
+                <div className="col-span-full p-10 text-center text-xs text-[#8C8C8C] bg-white/5 backdrop-blur-md border border-white/10 rounded-sm">
                   No membership tiers currently defined by Brave HQ.
                 </div>
               )}
@@ -856,7 +856,7 @@ export default function UserDashboard() {
               </button>
             </div>
 
-            <div className="bg-white/5 bg-opacity-10 backdrop-blur-md border border-white/10 rounded-sm divide-y divide-white/10">
+            <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-sm divide-y divide-white/10">
               {userNotifications && userNotifications.map((n) => (
                 <div key={n.id} className={`p-6 flex items-start gap-4 transition-colors ${!n.read ? "bg-white/[0.03]" : ""}`}>
                   <div className={`p-2.5 rounded-full mt-1 ${
@@ -893,7 +893,7 @@ export default function UserDashboard() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {workoutLogs.map((log) => (
-                <div key={log.id} className="p-6 bg-white/5 bg-opacity-10 backdrop-blur-md border border-white/10 rounded-sm space-y-3 shadow-lg">
+                <div key={log.id} className="p-6 bg-white/5 backdrop-blur-md border border-white/10 rounded-sm space-y-3 shadow-lg">
                   <div className="flex justify-between items-baseline text-xs text-[#8C8C8C] font-mono">
                     <span>{log.date}</span>
                     <span className="text-white font-bold bg-white/10 px-2 py-0.5 rounded">{log.weight}</span>
@@ -985,7 +985,7 @@ export default function UserDashboard() {
             <div
               data-lenis-prevent
               onClick={(e) => e.stopPropagation()}
-              className="bg-white/5 bg-opacity-10 backdrop-blur-md border border-white/20 max-w-2xl w-full rounded-sm p-5 sm:p-8 space-y-6 shadow-2xl relative max-h-[90vh] overflow-y-auto overscroll-contain"
+              className="bg-white/5 backdrop-blur-md border border-white/20 max-w-2xl w-full rounded-sm p-5 sm:p-8 space-y-6 shadow-2xl relative max-h-[90vh] overflow-y-auto overscroll-contain"
             >
               <button
                 onClick={() => {
