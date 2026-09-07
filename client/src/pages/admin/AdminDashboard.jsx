@@ -63,6 +63,7 @@ export default function AdminDashboard() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedDossierAthlete, setSelectedDossierAthlete] = useState(null);
+  const [dossierTab, setDossierTab] = useState("profile"); // "profile" | "bookings" | "workouts" | "chat"
   const [athleteSearchQuery, setAthleteSearchQuery] = useState("");
   const [athleteFilterTier, setAthleteFilterTier] = useState("ALL");
   const [inspectRequest, setInspectRequest] = useState(null);
@@ -2100,331 +2101,399 @@ export default function AdminDashboard() {
         )}
 
         {/* Complete Athlete Dossier Monitoring Modal */}
-        {selectedDossierAthlete && (
-          <div
-            onClick={() => setSelectedDossierAthlete(null)}
-            onWheel={(e) => e.stopPropagation()}
-            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md animate-fade-in"
-          >
-            <div
-              onClick={(e) => e.stopPropagation()}
-              className="bg-[#121212] border border-white/20 p-5 sm:p-8 max-w-4xl w-full rounded-sm space-y-6 shadow-2xl relative max-h-[92vh] overflow-y-auto overscroll-contain"
-            >
-              {/* Close Button */}
-              <button
-                onClick={() => setSelectedDossierAthlete(null)}
-                className="absolute top-5 right-5 p-1.5 text-white/60 hover:text-white bg-white/5 rounded-full transition-colors"
-                title="Close Dossier"
-              >
-                <X className="w-5 h-5" />
-              </button>
+        {/* Complete Athlete Dossier Monitoring Modal */}
+        {selectedDossierAthlete && (() => {
+          const athleteBookings = (adminBookings || []).filter(
+            (b) =>
+              b.userId === selectedDossierAthlete.id ||
+              (selectedDossierAthlete.email &&
+                b.userEmail?.toLowerCase() === selectedDossierAthlete.email?.toLowerCase())
+          );
 
-              {/* Header: Athlete Identity & Membership Tier */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/10 pb-5">
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-amber-400 bg-white/5 flex items-center justify-center text-amber-400 font-display text-2xl font-bold shrink-0">
-                    {selectedDossierAthlete.avatar_url ? (
-                      <img
-                        src={selectedDossierAthlete.avatar_url}
-                        alt={selectedDossierAthlete.name}
-                        className="w-full h-full object-cover grayscale contrast-125"
-                      />
-                    ) : (
-                      (selectedDossierAthlete.name || "A").substring(0, 2).toUpperCase()
-                    )}
-                  </div>
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-[10px] font-mono uppercase tracking-widest text-amber-400">
-                        Athlete Surveillance Dossier
-                      </span>
-                      {selectedDossierAthlete.role === "admin" && (
-                        <span className="text-[9px] font-mono uppercase px-2 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/30 font-bold">
-                          Admin Role
-                        </span>
+          const athleteLogs = (allWorkoutLogs || []).filter(
+            (l) => (l.user_id && l.user_id === selectedDossierAthlete.id) || (l.userId && l.userId === selectedDossierAthlete.id)
+          );
+
+          const athleteOrders = (adminStats?.recentTransactions || []).filter(
+            (tx) => tx.userId === selectedDossierAthlete.id || tx.member?.toLowerCase() === selectedDossierAthlete.name?.toLowerCase()
+          );
+
+          const athleteConsultation = (consultationRequests || []).find(
+            (c) =>
+              c.userId === selectedDossierAthlete.id ||
+              c.id === `order-user-${selectedDossierAthlete.id}` ||
+              c.userName?.toLowerCase() === selectedDossierAthlete.name?.toLowerCase() ||
+              c.name?.toLowerCase() === selectedDossierAthlete.name?.toLowerCase()
+          );
+
+          const chatMsgs = athleteConsultation?.chatMessages || athleteConsultation?.chatHistory || [];
+
+          return (
+            <div
+              onClick={() => setSelectedDossierAthlete(null)}
+              onWheel={(e) => e.stopPropagation()}
+              className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md animate-fade-in"
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="bg-[#121212] border border-white/20 max-w-3xl w-full rounded-sm shadow-2xl relative max-h-[90vh] flex flex-col overflow-hidden"
+              >
+                {/* Clean Header Bar */}
+                <div className="p-6 border-b border-white/10 bg-[#161616] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-amber-400 bg-white/5 flex items-center justify-center text-amber-400 font-display text-xl font-bold shrink-0">
+                      {selectedDossierAthlete.avatar_url || selectedDossierAthlete.avatar ? (
+                        <img
+                          src={selectedDossierAthlete.avatar_url || selectedDossierAthlete.avatar}
+                          alt={selectedDossierAthlete.name}
+                          className="w-full h-full object-cover grayscale contrast-125"
+                        />
+                      ) : (
+                        (selectedDossierAthlete.name || "A").substring(0, 2).toUpperCase()
                       )}
                     </div>
-                    <h3 className="font-display text-2xl font-bold text-white uppercase">
-                      {selectedDossierAthlete.name || "Unnamed Athlete"}
-                    </h3>
-                    <p className="text-xs font-mono text-white/60">
-                      ID: {selectedDossierAthlete.id}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Active Tier Badge */}
-                <div className="flex flex-col sm:items-end">
-                  <span className="text-[10px] uppercase font-mono tracking-wider text-[#8C8C8C]">
-                    Active Package / Tier
-                  </span>
-                  <div className="font-display text-lg font-bold text-amber-400 uppercase">
-                    {selectedDossierAthlete.membership || selectedDossierAthlete.membership_tier || "Brave Trial"}
-                  </div>
-                  <span className={`text-[10px] font-mono px-2 py-0.5 rounded border uppercase font-bold ${
-                    selectedDossierAthlete.status === "Pending"
-                      ? "bg-amber-400/20 text-amber-300 border-amber-400/30"
-                      : "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
-                  }`}>
-                    Status: {selectedDossierAthlete.status || "Active"}
-                  </span>
-                </div>
-              </div>
-
-              {/* Dossier Grid Section 1: Biological & Athletic Metrics */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="p-3 bg-[#1A1A1A] border border-white/10 rounded-sm space-y-1">
-                  <span className="text-[10px] uppercase font-mono text-[#8C8C8C]">Discipline Focus</span>
-                  <div className="font-display text-sm font-bold text-white uppercase truncate">
-                    {selectedDossierAthlete.discipline || "All-Round MMA"}
-                  </div>
-                </div>
-                <div className="p-3 bg-[#1A1A1A] border border-white/10 rounded-sm space-y-1">
-                  <span className="text-[10px] uppercase font-mono text-[#8C8C8C]">Weight Class</span>
-                  <div className="font-display text-sm font-bold text-white uppercase truncate">
-                    {selectedDossierAthlete.weight_class || "Cruiserweight"}
-                  </div>
-                </div>
-                <div className="p-3 bg-[#1A1A1A] border border-white/10 rounded-sm space-y-1">
-                  <span className="text-[10px] uppercase font-mono text-[#8C8C8C]">Direct Contact</span>
-                  <div className="font-mono text-xs text-white truncate">
-                    {selectedDossierAthlete.phone || "No phone listed"}
-                  </div>
-                </div>
-                <div className="p-3 bg-[#1A1A1A] border border-white/10 rounded-sm space-y-1">
-                  <span className="text-[10px] uppercase font-mono text-[#8C8C8C]">Registered Email</span>
-                  <div className="font-mono text-xs text-white truncate">
-                    {selectedDossierAthlete.email || "No email listed"}
-                  </div>
-                </div>
-              </div>
-
-              {/* Athlete Bio */}
-              {selectedDossierAthlete.bio && (
-                <div className="p-3.5 bg-[#171717] border border-white/10 rounded-sm space-y-1">
-                  <span className="text-[10px] uppercase font-mono text-amber-400">Athlete Statement / Bio</span>
-                  <p className="text-xs text-white/80 leading-relaxed font-sans">
-                    "{selectedDossierAthlete.bio}"
-                  </p>
-                </div>
-              )}
-
-              {/* Dossier Section 2: Active & Reserved Classes */}
-              {(() => {
-                const athleteBookings = (adminBookings || []).filter(
-                  (b) =>
-                    b.userId === selectedDossierAthlete.id ||
-                    (selectedDossierAthlete.email &&
-                      b.userEmail?.toLowerCase() === selectedDossierAthlete.email?.toLowerCase())
-                );
-
-                return (
-                  <div className="space-y-3 pt-2">
-                    <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                    <div>
                       <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-amber-400" />
-                        <h4 className="font-display text-base font-bold text-white uppercase">
-                          Reserved Sessions & Classes
-                        </h4>
+                        <h3 className="font-display text-xl font-bold text-white uppercase">
+                          {selectedDossierAthlete.name || "Unnamed Athlete"}
+                        </h3>
+                        <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold uppercase ${
+                          selectedDossierAthlete.status === "Pending"
+                            ? "bg-amber-400/20 text-amber-300 border border-amber-400/30"
+                            : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                        }`}>
+                          {selectedDossierAthlete.status || "Active"}
+                        </span>
+                        {selectedDossierAthlete.role === "admin" && (
+                          <span className="text-[9px] font-mono uppercase px-2 py-0.5 rounded bg-red-500/20 text-red-400 border border-red-500/30 font-bold">
+                            Admin
+                          </span>
+                        )}
                       </div>
-                      <span className="text-xs font-mono text-white/60 bg-white/5 px-2 py-0.5 rounded border border-white/10">
-                        {athleteBookings.length} Active / Completed
-                      </span>
+                      <p className="text-xs text-[#8C8C8C] font-mono">
+                        {selectedDossierAthlete.email || "No email on record"} · ID: {selectedDossierAthlete.id}
+                      </p>
                     </div>
+                  </div>
 
-                    {athleteBookings.length > 0 ? (
-                      <div className="bg-[#181818] border border-white/10 rounded-sm divide-y divide-white/10 max-h-48 overflow-y-auto">
-                        {athleteBookings.map((b) => (
-                          <div key={b.id} className="p-3 flex items-center justify-between text-xs">
-                            <div>
-                              <div className="font-bold text-white uppercase font-display text-sm">
-                                {b.classTitle}
+                  <div className="flex items-center gap-2 self-end sm:self-center">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const threadId = athleteConsultation?.id || `order-user-${selectedDossierAthlete.id}`;
+                        setActiveNegotiationThread(athleteConsultation || {
+                          id: threadId,
+                          name: selectedDossierAthlete.name,
+                          email: selectedDossierAthlete.email,
+                          chatMessages: [],
+                          chatHistory: []
+                        });
+                        setSelectedDossierAthlete(null);
+                      }}
+                      className="px-3.5 py-2 bg-amber-400 hover:bg-amber-300 text-black font-bold text-xs uppercase tracking-wider rounded flex items-center gap-1.5 transition-colors"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5" />
+                      <span>Live Chat</span>
+                    </button>
+                    <button
+                      onClick={() => setSelectedDossierAthlete(null)}
+                      className="p-2 text-white/60 hover:text-white bg-white/5 rounded transition-colors"
+                      title="Close Dossier"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* KPI Overview Summary Strip */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-white/10 border-b border-white/10 bg-[#141414] text-center py-3">
+                  <div className="px-3">
+                    <span className="text-[10px] font-mono uppercase text-[#8C8C8C] block">Membership Tier</span>
+                    <strong className="text-amber-400 font-display text-sm uppercase truncate block">
+                      {selectedDossierAthlete.membership || selectedDossierAthlete.membership_tier || "Brave Trial"}
+                    </strong>
+                  </div>
+                  <div className="px-3">
+                    <span className="text-[10px] font-mono uppercase text-[#8C8C8C] block">Reserved Classes</span>
+                    <strong className="text-white font-mono text-sm block">
+                      {athleteBookings.length}
+                    </strong>
+                  </div>
+                  <div className="px-3">
+                    <span className="text-[10px] font-mono uppercase text-[#8C8C8C] block">Logged Workouts</span>
+                    <strong className="text-white font-mono text-sm block">
+                      {athleteLogs.length}
+                    </strong>
+                  </div>
+                  <div className="px-3">
+                    <span className="text-[10px] font-mono uppercase text-[#8C8C8C] block">Chat Messages</span>
+                    <strong className="text-white font-mono text-sm block">
+                      {chatMsgs.length}
+                    </strong>
+                  </div>
+                </div>
+
+                {/* Sub-Navigation Tabs */}
+                <div className="flex border-b border-white/10 bg-[#161616] px-6 gap-2">
+                  {[
+                    { id: "profile", label: "Profile & Attributes", count: null },
+                    { id: "bookings", label: "Classes & Schedule", count: athleteBookings.length },
+                    { id: "workouts", label: "Workout Output", count: athleteLogs.length },
+                    { id: "chat", label: "HQ Communication", count: chatMsgs.length }
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setDossierTab(tab.id)}
+                      className={`py-3 px-3.5 text-xs uppercase tracking-wider font-semibold border-b-2 transition-all flex items-center gap-1.5 ${
+                        dossierTab === tab.id
+                          ? "border-amber-400 text-white"
+                          : "border-transparent text-[#8C8C8C] hover:text-white"
+                      }`}
+                    >
+                      <span>{tab.label}</span>
+                      {tab.count !== null && (
+                        <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
+                          dossierTab === tab.id ? "bg-amber-400 text-black" : "bg-white/10 text-white"
+                        }`}>
+                          {tab.count}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Scrollable Content Body */}
+                <div className="p-6 overflow-y-auto flex-1 space-y-6">
+                  {/* TAB 1: Profile & Attributes */}
+                  {dossierTab === "profile" && (
+                    <div className="space-y-5">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                        <div className="p-4 bg-[#181818] rounded border border-white/10 space-y-1">
+                          <span className="text-[10px] font-mono uppercase text-[#8C8C8C]">Discipline Focus</span>
+                          <div className="font-display text-base font-bold text-white uppercase">
+                            {selectedDossierAthlete.discipline || "All-Round MMA & Boxing"}
+                          </div>
+                        </div>
+                        <div className="p-4 bg-[#181818] rounded border border-white/10 space-y-1">
+                          <span className="text-[10px] font-mono uppercase text-[#8C8C8C]">Weight Division</span>
+                          <div className="font-display text-base font-bold text-white uppercase">
+                            {selectedDossierAthlete.weight_class || "Cruiserweight (205 lbs)"}
+                          </div>
+                        </div>
+                        <div className="p-4 bg-[#181818] rounded border border-white/10 space-y-1">
+                          <span className="text-[10px] font-mono uppercase text-[#8C8C8C]">Contact Phone</span>
+                          <div className="font-mono text-sm text-white">
+                            {selectedDossierAthlete.phone || "No phone listed"}
+                          </div>
+                        </div>
+                        <div className="p-4 bg-[#181818] rounded border border-white/10 space-y-1">
+                          <span className="text-[10px] font-mono uppercase text-[#8C8C8C]">Renewal & Access</span>
+                          <div className="font-mono text-sm text-amber-400">
+                            {selectedDossierAthlete.renewalDate || selectedDossierAthlete.renewal_date || "Active Standard"}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Bio Statement */}
+                      <div className="p-4 bg-[#181818] rounded border border-white/10 space-y-1">
+                        <span className="text-[10px] font-mono uppercase text-amber-400 block">Athlete Statement & Goals</span>
+                        <p className="text-xs text-white/85 leading-relaxed italic">
+                          "{selectedDossierAthlete.bio || "No custom bio statement provided yet."}"
+                        </p>
+                      </div>
+
+                      {/* Orders on File */}
+                      {athleteOrders.length > 0 && (
+                        <div className="space-y-2">
+                          <span className="text-xs font-mono uppercase tracking-wider text-[#8C8C8C] block">
+                            Billing & Orders History
+                          </span>
+                          <div className="bg-[#181818] border border-white/10 rounded divide-y divide-white/10 text-xs">
+                            {athleteOrders.map((ord) => (
+                              <div key={ord.id} className="p-3 flex items-center justify-between">
+                                <div>
+                                  <strong className="text-white uppercase font-display">{ord.plan}</strong>
+                                  <div className="text-[11px] text-[#8C8C8C] font-mono">Order #{ord.id} · {ord.date}</div>
+                                </div>
+                                <div className="text-right">
+                                  <span className="text-amber-400 font-mono font-bold block">{ord.amount}</span>
+                                  <span className={`text-[10px] font-mono uppercase font-bold px-1.5 py-0.2 rounded ${
+                                    ord.status === "Confirmed" ? "text-emerald-400" : "text-amber-400"
+                                  }`}>
+                                    {ord.status}
+                                  </span>
+                                </div>
                               </div>
-                              <div className="text-[11px] text-[#8C8C8C] flex gap-3 pt-0.5">
-                                <span>Coach: {b.trainer}</span>
-                                <span>•</span>
-                                <span>Arena: {b.room}</span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* TAB 2: Booked Classes */}
+                  {dossierTab === "bookings" && (
+                    <div className="space-y-3">
+                      {athleteBookings.length > 0 ? (
+                        <div className="bg-[#181818] border border-white/10 rounded divide-y divide-white/10 text-xs">
+                          {athleteBookings.map((b) => (
+                            <div key={b.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                              <div className="space-y-0.5">
+                                <div className="flex items-center gap-2">
+                                  <h4 className="font-bold text-white uppercase font-display text-sm">
+                                    {b.classTitle}
+                                  </h4>
+                                  <span className="text-[10px] font-mono px-2 py-0.5 rounded font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                    {b.status}
+                                  </span>
+                                </div>
+                                <p className="text-[11px] text-[#8C8C8C]">Coach: {b.trainer} · Room: {b.room}</p>
                               </div>
-                            </div>
-                            <div className="flex items-center gap-3 font-mono text-right">
-                              <span className="text-white/70">{b.date}</span>
-                              <span className="text-[10px] uppercase px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                                {b.status}
+                              <span className="text-xs font-mono text-white/90 bg-white/5 px-3 py-1.5 rounded border border-white/10 self-start sm:self-center">
+                                {b.date}
                               </span>
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="p-4 bg-[#181818] rounded-sm text-center text-xs text-[#8C8C8C]">
-                        No class reservations currently recorded for this athlete.
-                      </div>
-                    )}
-                  </div>
-                );
-              })()}
-
-              {/* Dossier Section 3: Training & Daily Workout Logs */}
-              {(() => {
-                const athleteLogs = (allWorkoutLogs || []).filter(
-                  (l) => (l.user_id && l.user_id === selectedDossierAthlete.id) || (l.userId && l.userId === selectedDossierAthlete.id)
-                );
-
-                return (
-                  <div className="space-y-3 pt-2">
-                    <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                      <div className="flex items-center gap-2">
-                        <Dumbbell className="w-4 h-4 text-emerald-400" />
-                        <h4 className="font-display text-base font-bold text-white uppercase">
-                          Daily Training & Workout Logs
-                        </h4>
-                      </div>
-                      <span className="text-xs font-mono text-white/60 bg-white/5 px-2 py-0.5 rounded border border-white/10">
-                        {athleteLogs.length} Output Sessions Logged
-                      </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="p-12 text-center text-xs text-[#8C8C8C] bg-[#181818] rounded border border-white/10 space-y-1">
+                          <Calendar className="w-6 h-6 mx-auto text-[#8C8C8C]/50" />
+                          <p className="text-white font-semibold">No Class Bookings</p>
+                          <p className="text-[11px]">This athlete has not reserved spots in any upcoming timetable classes.</p>
+                        </div>
+                      )}
                     </div>
+                  )}
 
-                    {athleteLogs.length > 0 ? (
-                      <div className="bg-[#181818] border border-white/10 rounded-sm divide-y divide-white/10 max-h-48 overflow-y-auto">
-                        {athleteLogs.map((l) => (
-                          <div key={l.id} className="p-3 flex items-center justify-between text-xs">
-                            <div className="space-y-0.5">
-                              <div className="font-bold text-white uppercase font-display text-sm">
-                                {l.exercise}
+                  {/* TAB 3: Workout Logs */}
+                  {dossierTab === "workouts" && (
+                    <div className="space-y-3">
+                      {athleteLogs.length > 0 ? (
+                        <div className="bg-[#181818] border border-white/10 rounded divide-y divide-white/10 text-xs">
+                          {athleteLogs.map((l) => (
+                            <div key={l.id} className="p-4 flex items-center justify-between">
+                              <div className="space-y-0.5">
+                                <h4 className="font-bold text-white uppercase font-display text-sm">
+                                  {l.exercise}
+                                </h4>
+                                {l.notes && <p className="text-[11px] text-[#8C8C8C]">"{l.notes}"</p>}
                               </div>
-                              <div className="text-[11px] text-[#8C8C8C] flex gap-3">
-                                {l.notes && <span>Notes: "{l.notes}"</span>}
+                              <div className="flex items-center gap-3 font-mono text-right">
+                                <span className="text-white/60 text-[11px]">{l.date}</span>
+                                <span className="text-xs font-bold text-emerald-400 px-2 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/30">
+                                  {l.weight}
+                                </span>
                               </div>
                             </div>
-                            <div className="flex items-center gap-3 font-mono text-right">
-                              <span className="text-white/60 text-[11px]">{l.date}</span>
-                              <span className="text-xs font-bold text-emerald-400 px-2 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/30">
-                                {l.weight}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="p-4 bg-[#181818] rounded-sm text-center text-xs text-[#8C8C8C]">
-                        No workout logs entered yet by this athlete.
-                      </div>
-                    )}
-                  </div>
-                );
-              })()}
-
-              {/* Dossier Section 4: Consultation Requests & Intake Chat Transcripts */}
-              {(() => {
-                const athleteRequests = (consultationRequests || []).filter(
-                  (r) =>
-                    r.userId === selectedDossierAthlete.id ||
-                    (selectedDossierAthlete.email &&
-                      r.athleteEmail?.toLowerCase() === selectedDossierAthlete.email?.toLowerCase())
-                );
-
-                return (
-                  <div className="space-y-3 pt-2">
-                    <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                      <div className="flex items-center gap-2">
-                        <MessageSquare className="w-4 h-4 text-blue-400" />
-                        <h4 className="font-display text-base font-bold text-white uppercase">
-                          Consultation Orders & AI Chat Transcripts
-                        </h4>
-                      </div>
-                      <span className="text-xs font-mono text-white/60 bg-white/5 px-2 py-0.5 rounded border border-white/10">
-                        {athleteRequests.length} Transcripts
-                      </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="p-12 text-center text-xs text-[#8C8C8C] bg-[#181818] rounded border border-white/10 space-y-1">
+                          <Dumbbell className="w-6 h-6 mx-auto text-[#8C8C8C]/50" />
+                          <p className="text-white font-semibold">No Training Logs</p>
+                          <p className="text-[11px]">No workout performance entries have been logged by this athlete yet.</p>
+                        </div>
+                      )}
                     </div>
+                  )}
 
-                    {athleteRequests.length > 0 ? (
-                      <div className="space-y-3">
-                        {athleteRequests.map((req) => (
-                          <div
-                            key={req.id}
-                            className="p-4 bg-[#181818] border border-white/10 rounded-sm space-y-3"
+                  {/* TAB 4: HQ Communication & Chat */}
+                  {dossierTab === "chat" && (
+                    <div className="space-y-3">
+                      {chatMsgs.length > 0 ? (
+                        <div className="space-y-3">
+                          <div className="bg-[#141414] border border-white/10 rounded p-4 space-y-3 max-h-64 overflow-y-auto text-xs">
+                            {chatMsgs.map((msg, mIdx) => {
+                              const isAdmin = msg.sender === "admin" || msg.sender === "assistant";
+                              return (
+                                <div
+                                  key={mIdx}
+                                  className={`flex flex-col ${isAdmin ? "items-end" : "items-start"}`}
+                                >
+                                  <span className="text-[9px] font-mono text-[#8C8C8C] uppercase mb-1">
+                                    {isAdmin ? "Director HQ" : (selectedDossierAthlete.name || "Athlete")} · {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Live"}
+                                  </span>
+                                  <div
+                                    className={`px-3.5 py-2 rounded max-w-[85%] text-xs ${
+                                      isAdmin
+                                        ? "bg-amber-400 text-black font-semibold rounded-br-none"
+                                        : "bg-[#222222] text-white border border-white/15 rounded-bl-none"
+                                    }`}
+                                  >
+                                    {msg.text}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const threadId = athleteConsultation?.id || `order-user-${selectedDossierAthlete.id}`;
+                              setActiveNegotiationThread(athleteConsultation || {
+                                id: threadId,
+                                name: selectedDossierAthlete.name,
+                                email: selectedDossierAthlete.email,
+                                chatMessages: [],
+                                chatHistory: []
+                              });
+                              setSelectedDossierAthlete(null);
+                            }}
+                            className="w-full py-2.5 bg-amber-400 hover:bg-amber-300 text-black font-bold text-xs uppercase tracking-wider rounded transition-colors flex items-center justify-center gap-2 shadow"
                           >
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/5 pb-2 text-xs">
-                              <div>
-                                <span className="font-bold text-amber-400 uppercase font-mono">
-                                  Service: {req.serviceType || "General Assessment"}
-                                </span>
-                                <div className="text-[11px] text-[#8C8C8C] pt-0.5">
-                                  Date: {req.submittedAt} · Preferred: {req.preferredDate} ({req.preferredTime})
-                                </div>
-                              </div>
-                              <span className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded font-bold border ${
-                                req.status === "confirmed"
-                                  ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
-                                  : "bg-amber-500/20 text-amber-400 border-amber-500/30"
-                              }`}>
-                                {req.status}
-                              </span>
-                            </div>
-
-                            {req.details && (
-                              <div className="text-xs text-white/80">
-                                <span className="text-[10px] uppercase font-mono text-[#8C8C8C] block">Client Message:</span>
-                                "{req.details}"
-                              </div>
-                            )}
-
-                            {/* Chat Transcript */}
-                            {req.chatHistory && req.chatHistory.length > 0 && (
-                              <div className="space-y-1.5 pt-1">
-                                <span className="text-[10px] uppercase font-mono text-blue-400 block font-bold">
-                                  Conversation Transcript ({req.chatHistory.length} messages)
-                                </span>
-                                <div className="bg-[#121212] p-3 rounded border border-white/5 space-y-2 max-h-36 overflow-y-auto text-xs">
-                                  {req.chatHistory.map((msg, mIdx) => (
-                                    <div
-                                      key={mIdx}
-                                      className={`flex flex-col ${
-                                        msg.sender === "user" ? "items-end" : "items-start"
-                                      }`}
-                                    >
-                                      <span className="text-[9px] font-mono text-[#8C8C8C] uppercase">
-                                        {msg.sender === "user" ? "Athlete" : "Brave AI Coordinator"}
-                                      </span>
-                                      <div
-                                        className={`px-3 py-1.5 rounded max-w-[85%] text-xs ${
-                                          msg.sender === "user"
-                                            ? "bg-amber-400/10 text-amber-300 border border-amber-400/20"
-                                            : "bg-white/10 text-white border border-white/15"
-                                        }`}
-                                      >
-                                        {msg.text}
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
+                            <MessageSquare className="w-4 h-4" />
+                            <span>Reply to Athlete in Live Chat Window</span>
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="p-12 text-center text-xs text-[#8C8C8C] bg-[#181818] rounded border border-white/10 space-y-3">
+                          <MessageSquare className="w-6 h-6 mx-auto text-[#8C8C8C]/50" />
+                          <div>
+                            <p className="text-white font-semibold">No Messages Exchanged</p>
+                            <p className="text-[11px]">There is no negotiation or inquiry history with this athlete.</p>
                           </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="p-4 bg-[#181818] rounded-sm text-center text-xs text-[#8C8C8C]">
-                        No intake chat orders on file for this athlete.
-                      </div>
-                    )}
-                  </div>
-                );
-              })()}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const threadId = athleteConsultation?.id || `order-user-${selectedDossierAthlete.id}`;
+                              setActiveNegotiationThread({
+                                id: threadId,
+                                name: selectedDossierAthlete.name,
+                                email: selectedDossierAthlete.email,
+                                chatMessages: [],
+                                chatHistory: []
+                              });
+                              setSelectedDossierAthlete(null);
+                            }}
+                            className="inline-flex items-center gap-1.5 px-4 py-2 bg-amber-400 text-black font-bold text-xs uppercase tracking-wider rounded hover:bg-amber-300"
+                          >
+                            <MessageSquare className="w-3.5 h-3.5" /> Start Conversation
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
 
-              {/* Dossier Modal Footer */}
-              <div className="flex justify-end pt-4 border-t border-white/10">
-                <button
-                  type="button"
-                  onClick={() => setSelectedDossierAthlete(null)}
-                  className="px-5 py-2 bg-white text-black font-bold uppercase text-xs rounded hover:bg-[#F5F5F3] transition-colors"
-                >
-                  Close Dossier
-                </button>
+                {/* Dossier Modal Footer */}
+                <div className="p-4 border-t border-white/10 bg-[#161616] flex items-center justify-between">
+                  <span className="text-[11px] font-mono text-[#8C8C8C]">
+                    Brave Gym Official Dossier Surveillance System
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedDossierAthlete(null)}
+                    className="px-5 py-2 bg-white text-black font-bold uppercase text-xs rounded hover:bg-[#F5F5F3] transition-colors"
+                  >
+                    Close Dossier
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* Real-time Athlete & Admin Negotiation Chat Modal */}
         {activeNegotiationThread && (
