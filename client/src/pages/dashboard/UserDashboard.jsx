@@ -26,7 +26,9 @@ import {
   Award,
   X,
   Camera,
-  Upload
+  Upload,
+  Send,
+  Minimize2
 } from "lucide-react";
 import { useGym } from "../../context/GymContext";
 import confetti from "canvas-confetti";
@@ -53,6 +55,8 @@ export default function UserDashboard() {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const chatEndRef = React.useRef(null);
   
   const [profileForm, setProfileForm] = useState({
     name: currentUser?.name || "",
@@ -125,9 +129,16 @@ export default function UserDashboard() {
     confetti({ particleCount: 60, spread: 60, origin: { y: 0.7 } });
   };
 
-  const [activeTab, setActiveTab] = useState("overview"); // "overview" | "schedule" | "notifications" | "logs" | "tiers" | "negotiate"
+  const [activeTab, setActiveTab] = useState("overview"); // "overview" | "schedule" | "notifications" | "logs" | "tiers"
   const [chatMessageInput, setChatMessageInput] = useState("");
   const isPending = currentUser?.status === "Pending";
+
+  // Auto scroll chat
+  React.useEffect(() => {
+    if (isChatOpen && chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [isChatOpen, consultationRequests]);
 
   // Find user's negotiation consultation thread
   const userConsultation = (consultationRequests || []).find(
@@ -276,7 +287,7 @@ export default function UserDashboard() {
             <div className="flex items-center gap-3 self-start md:self-center shrink-0">
               <button
                 type="button"
-                onClick={() => setActiveTab("negotiate")}
+                onClick={() => setIsChatOpen(true)}
                 className="px-4 py-2.5 bg-amber-400 hover:bg-amber-300 text-black font-bold text-xs uppercase tracking-wider rounded transition-colors flex items-center gap-2 shadow"
               >
                 <MessageSquare className="w-3.5 h-3.5" />
@@ -292,7 +303,6 @@ export default function UserDashboard() {
             {[
               { id: "overview", label: "Hub Overview" },
               { id: "tiers", label: "Membership Tiers", badge: memberships?.length },
-              { id: "negotiate", label: "Live HQ Chat", badge: isPending ? "Pending" : undefined },
               { id: "schedule", label: "My Bookings", badge: bookings?.length },
               { id: "notifications", label: "Admin Dispatch", badge: unreadCount },
               { id: "logs", label: "Training Logs", badge: workoutLogs?.length }
@@ -423,7 +433,7 @@ export default function UserDashboard() {
                   {isPending && (
                     <button
                       type="button"
-                      onClick={() => setActiveTab("negotiate")}
+                      onClick={() => setIsChatOpen(true)}
                       className="block w-full py-2.5 text-center text-xs uppercase tracking-widest font-semibold bg-amber-400 text-black hover:bg-amber-300 rounded transition-colors shadow"
                     >
                       Negotiate / Chat with Admin
@@ -632,131 +642,6 @@ export default function UserDashboard() {
               </div>
             </div>
 
-          </div>
-        )}
-
-        {/* Live HQ Chat / Negotiation Tab */}
-        {activeTab === "negotiate" && (
-          <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-white/10">
-              <div className="space-y-1">
-                <span className="text-xs font-mono uppercase tracking-widest text-amber-400">
-                  Direct Line to Brave HQ Operations
-                </span>
-                <h2 className="font-display text-2xl font-bold text-white uppercase">
-                  Membership Negotiation & Support
-                </h2>
-              </div>
-              <div className="flex items-center gap-2 text-xs font-mono">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-[#8C8C8C]">Director Desk:</span>
-                <strong className="text-white">Marcus Vance (Online)</strong>
-              </div>
-            </div>
-
-            {/* Chat Container */}
-            <div className="bg-[#141414] border border-white/10 rounded-sm overflow-hidden flex flex-col h-[520px] shadow-xl">
-              {/* Context bar */}
-              <div className="p-4 bg-[#1a1a1a] border-b border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-amber-400/20 border border-amber-400/30 flex items-center justify-center text-amber-400 font-bold">
-                    HQ
-                  </div>
-                  <div>
-                    <span className="text-white font-bold block uppercase font-display">
-                      Tier Discussion: {currentUser?.membership || "Membership Plan"}
-                    </span>
-                    <span className="text-[11px] text-[#8C8C8C] font-mono">
-                      Status: {currentUser?.status || "Pending Verification"}
-                    </span>
-                  </div>
-                </div>
-
-                {isPending && (
-                  <span className="px-3 py-1 rounded bg-amber-400/10 text-amber-300 border border-amber-400/30 font-mono text-[11px]">
-                    Pending Admin Approval
-                  </span>
-                )}
-              </div>
-
-              {/* Chat Thread */}
-              <div className="flex-1 p-5 overflow-y-auto space-y-4 bg-[#0D0D0D]">
-                <div className="text-center">
-                  <span className="text-[10px] font-mono uppercase tracking-widest text-[#8C8C8C] bg-white/5 px-3 py-1 rounded-full border border-white/10">
-                    Live Channel Open with Brave Gym Admin
-                  </span>
-                </div>
-
-                {/* Introductory message */}
-                <div className="flex flex-col items-start">
-                  <span className="text-[9px] font-mono text-[#8C8C8C] uppercase mb-1">
-                    Director Marcus Vance · HQ
-                  </span>
-                  <div className="bg-[#1C1C1C] text-white/90 border border-white/15 px-4 py-3 rounded text-xs max-w-[85%] leading-relaxed">
-                    Welcome to Brave Gym. Your membership order for <strong>{currentUser?.membership}</strong> is currently on my desk for verification. If you have questions regarding customized payment plans, scheduling needs, or session upgrades, discuss them directly here.
-                  </div>
-                </div>
-
-                {/* Conversation messages */}
-                {(() => {
-                  const messages = userConsultation?.chatMessages || userConsultation?.chatHistory || [];
-                  if (messages.length === 0) return null;
-                  return messages.map((msg, mIdx) => {
-                    const isMe = msg.sender === "user";
-                    return (
-                      <div
-                        key={mIdx}
-                        className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}
-                      >
-                        <span className="text-[9px] font-mono text-[#8C8C8C] uppercase mb-1">
-                          {isMe ? "You (Athlete)" : "Brave Gym Director"} · {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Live"}
-                        </span>
-                        <div
-                          className={`px-4 py-2.5 rounded text-xs max-w-[85%] leading-relaxed ${
-                            isMe
-                              ? "bg-amber-400 text-black font-semibold shadow-md rounded-br-none"
-                              : "bg-[#202020] text-white border border-white/15 rounded-bl-none"
-                          }`}
-                        >
-                          {msg.text}
-                        </div>
-                      </div>
-                    );
-                  });
-                })()}
-              </div>
-
-              {/* Message Input Box */}
-              <form
-                onSubmit={async (e) => {
-                  e.preventDefault();
-                  if (!chatMessageInput.trim()) return;
-                  const text = chatMessageInput.trim();
-                  setChatMessageInput("");
-                  try {
-                    const consultationId = userConsultation?.id || "order-user-" + currentUser?.id;
-                    await sendNegotiationMessage(consultationId, text, "user");
-                  } catch (err) {
-                    console.error("Failed to send message:", err);
-                  }
-                }}
-                className="p-4 bg-[#161616] border-t border-white/10 flex items-center gap-2"
-              >
-                <input
-                  type="text"
-                  value={chatMessageInput}
-                  onChange={(e) => setChatMessageInput(e.target.value)}
-                  placeholder="Discuss payment terms, ask questions, or request tier changes..."
-                  className="flex-1 px-4 py-2.5 bg-[#0D0D0D] border border-white/15 rounded text-white text-xs placeholder:text-[#8C8C8C] focus:outline-none focus:border-amber-400 transition-colors"
-                />
-                <button
-                  type="submit"
-                  className="px-6 py-2.5 bg-amber-400 hover:bg-amber-300 text-black font-bold text-xs uppercase tracking-wider rounded transition-colors"
-                >
-                  Send
-                </button>
-              </form>
-            </div>
           </div>
         )}
 
@@ -1345,6 +1230,130 @@ export default function UserDashboard() {
         )}
 
       </div>
+      {/* Floating Chat Widget */}
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+        {isChatOpen && (
+          <div className="bg-black/60 backdrop-blur-xl border border-white/10 shadow-2xl rounded-2xl w-[350px] sm:w-[400px] h-[550px] max-h-[80vh] flex flex-col mb-4 overflow-hidden origin-bottom-right animate-in slide-in-from-bottom-5 fade-in duration-200">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-amber-500/20 to-black/40 border-b border-white/10 p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-white/10 flex items-center justify-center overflow-hidden">
+                    <img src="/media/david-guliciuc-o2zrjlM5s5o-unsplash.jpg" alt="HQ" className="w-full h-full object-cover grayscale opacity-80" />
+                  </div>
+                  <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-400 border-2 border-black rounded-full"></div>
+                </div>
+                <div>
+                  <h3 className="text-white font-display font-bold uppercase tracking-wide text-sm">Brave Gym HQ</h3>
+                  <p className="text-[10px] text-amber-400 font-mono uppercase">Director Marcus Vance</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsChatOpen(false)}
+                className="text-white/60 hover:text-white transition-colors p-1"
+              >
+                <Minimize2 className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Chat Area */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-transparent to-black/40 scrollbar-thin scrollbar-thumb-white/10">
+              <div className="text-center mb-6">
+                <span className="text-[10px] font-mono text-white/40 bg-white/5 px-3 py-1 rounded-full border border-white/5">
+                  End-to-End Encrypted Session
+                </span>
+              </div>
+
+              {/* Initial message */}
+              <div className="flex flex-col items-start group">
+                <div className="bg-[#1C1C1C]/80 backdrop-blur-md text-white/90 border border-white/10 px-4 py-3 rounded-2xl rounded-tl-sm text-sm max-w-[85%] leading-relaxed shadow-lg">
+                  Welcome to Brave Gym. Your membership order for <strong className="text-amber-400">{currentUser?.membership}</strong> is on my desk. How can I help you today?
+                </div>
+                <span className="text-[10px] text-white/30 mt-1 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  System · HQ
+                </span>
+              </div>
+
+              {/* Thread messages */}
+              {(() => {
+                const messages = userConsultation?.chatMessages || userConsultation?.chatHistory || [];
+                return messages.map((msg, mIdx) => {
+                  const isMe = msg.sender === "user";
+                  return (
+                    <div key={mIdx} className={`flex flex-col group ${isMe ? "items-end" : "items-start"}`}>
+                      <div className={`px-4 py-2.5 rounded-2xl text-sm max-w-[85%] leading-relaxed shadow-lg ${
+                        isMe
+                          ? "bg-gradient-to-br from-amber-500 to-amber-600 text-black font-medium rounded-tr-sm"
+                          : "bg-[#1C1C1C]/80 backdrop-blur-md text-white/90 border border-white/10 rounded-tl-sm"
+                      }`}>
+                        {msg.text}
+                      </div>
+                      <span className={`text-[10px] text-white/30 mt-1 mx-1 opacity-0 group-hover:opacity-100 transition-opacity ${isMe ? "text-right" : "text-left"}`}>
+                        {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Just now"}
+                      </span>
+                    </div>
+                  );
+                });
+              })()}
+              <div ref={chatEndRef} />
+            </div>
+
+            {/* Input Area */}
+            <div className="p-3 bg-black/60 backdrop-blur-xl border-t border-white/10">
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (!chatMessageInput.trim()) return;
+                  const text = chatMessageInput.trim();
+                  setChatMessageInput("");
+                  try {
+                    const consultationId = userConsultation?.id || "order-user-" + currentUser?.id;
+                    await sendNegotiationMessage(consultationId, text, "user");
+                  } catch (err) {
+                    console.error("Failed to send message:", err);
+                  }
+                }}
+                className="flex items-end gap-2"
+              >
+                <textarea
+                  value={chatMessageInput}
+                  onChange={(e) => setChatMessageInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      e.currentTarget.form.requestSubmit();
+                    }
+                  }}
+                  placeholder="Message HQ..."
+                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-amber-500/50 focus:bg-white/10 transition-all resize-none min-h-[44px] max-h-[120px]"
+                  rows={1}
+                />
+                <button
+                  type="submit"
+                  disabled={!chatMessageInput.trim()}
+                  className="w-11 h-11 shrink-0 bg-amber-500 hover:bg-amber-400 disabled:bg-white/5 disabled:text-white/20 text-black flex items-center justify-center rounded-xl transition-all shadow-lg"
+                >
+                  <Send className="w-5 h-5" />
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Toggle Button */}
+        {!isChatOpen && (
+          <button
+            onClick={() => setIsChatOpen(true)}
+            className="w-14 h-14 rounded-full bg-amber-500 hover:bg-amber-400 text-black shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:shadow-[0_0_25px_rgba(245,158,11,0.5)] flex items-center justify-center transition-all hover:scale-105 active:scale-95 group relative"
+          >
+            <MessageSquare className="w-6 h-6" />
+            {isPending && (
+              <span className="absolute top-0 right-0 w-4 h-4 bg-red-500 border-2 border-[#0D0D0D] rounded-full animate-bounce" />
+            )}
+          </button>
+        )}
+      </div>
+
     </div>
   );
 }

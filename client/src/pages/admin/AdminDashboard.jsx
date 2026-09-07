@@ -32,7 +32,8 @@ import {
   Dumbbell,
   Award,
   Camera,
-  Upload
+  Upload,
+  Send
 } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useGym } from "../../context/GymContext";
@@ -74,6 +75,14 @@ export default function AdminDashboard() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [adminChatInput, setAdminChatInput] = useState("");
   const [activeNegotiationThread, setActiveNegotiationThread] = useState(null);
+  const chatEndRef = React.useRef(null);
+
+  // Auto-scroll admin chat
+  useEffect(() => {
+    if (activeNegotiationThread && chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [activeNegotiationThread, consultationRequests]);
 
   const [isEditingAdminProfile, setIsEditingAdminProfile] = useState(false);
   const [adminProfileForm, setAdminProfileForm] = useState({
@@ -2515,12 +2524,22 @@ export default function AdminDashboard() {
           );
         })()}
 
-        {/* Real-time Athlete & Admin Negotiation Chat Modal */}
+        {/* Real-time Athlete & Admin Negotiation Chat Slide-out Drawer */}
         {activeNegotiationThread && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
-            <div className="bg-[#141414] border border-amber-500/40 w-full max-w-xl rounded-sm shadow-2xl flex flex-col max-h-[85vh] overflow-hidden">
+          <div className="fixed inset-0 z-50 flex bg-black/60 backdrop-blur-sm animate-fadeIn">
+            {/* Clickable backdrop to close */}
+            <div 
+              className="flex-1"
+              onClick={() => {
+                setActiveNegotiationThread(null);
+                setSelectedOrder(null);
+                setAdminChatInput("");
+              }}
+            />
+            {/* Drawer Panel */}
+            <div className="w-full sm:w-[450px] h-full bg-[#141414] border-l border-white/10 shadow-2xl flex flex-col animate-in slide-in-from-right fade-in duration-200">
               {/* Header */}
-              <div className="p-4 border-b border-white/10 flex items-center justify-between bg-[#1A1A1A]">
+              <div className="p-4 border-b border-white/10 flex items-center justify-between bg-gradient-to-r from-[#1A1A1A] to-[#141414]">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-full bg-amber-400/20 border border-amber-400/40 flex items-center justify-center text-amber-400">
                     <MessageSquare className="w-5 h-5" />
@@ -2572,28 +2591,29 @@ export default function AdminDashboard() {
                     return (
                       <div
                         key={mIdx}
-                        className={`flex flex-col ${isAdmin ? "items-end" : "items-start"}`}
+                        className={`flex flex-col group ${isAdmin ? "items-end" : "items-start"}`}
                       >
-                        <span className="text-[9px] font-mono text-[#8C8C8C] uppercase mb-1">
-                          {isAdmin ? "Brave Gym Director (HQ)" : (activeNegotiationThread.name || "Athlete")} · {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Live"}
-                        </span>
                         <div
-                          className={`px-4 py-2.5 rounded text-xs max-w-[85%] leading-relaxed ${
+                          className={`px-4 py-2.5 rounded-2xl text-sm max-w-[85%] leading-relaxed shadow-lg ${
                             isAdmin
-                              ? "bg-amber-400 text-black font-medium shadow-md rounded-br-none"
-                              : "bg-[#202020] text-white border border-white/15 rounded-bl-none"
+                              ? "bg-gradient-to-br from-[#202020] to-[#1a1a1a] text-white border border-white/10 font-medium rounded-tr-sm"
+                              : "bg-[#1C1C1C]/80 backdrop-blur-md text-amber-400 border border-amber-500/20 rounded-tl-sm"
                           }`}
                         >
                           {msg.text}
                         </div>
+                        <span className={`text-[10px] text-white/30 mt-1 mx-1 opacity-0 group-hover:opacity-100 transition-opacity ${isAdmin ? "text-right" : "text-left"}`}>
+                           {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Just now"}
+                        </span>
                       </div>
                     );
                   });
                 })()}
+                <div ref={chatEndRef} />
               </div>
 
               {/* Input Footer */}
-              <div className="p-4 border-t border-white/10 bg-[#161616] space-y-3">
+              <div className="p-4 border-t border-white/10 bg-[#161616]">
                 <form
                   onSubmit={async (e) => {
                     e.preventDefault();
@@ -2636,20 +2656,27 @@ export default function AdminDashboard() {
                       });
                     }
                   }}
-                  className="flex items-center gap-2"
+                  className="flex items-end gap-2"
                 >
-                  <input
-                    type="text"
+                  <textarea
                     value={adminChatInput}
                     onChange={(e) => setAdminChatInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        e.currentTarget.form.requestSubmit();
+                      }
+                    }}
                     placeholder="Type message to athlete..."
-                    className="flex-1 px-4 py-2.5 bg-[#0D0D0D] border border-white/15 rounded text-white text-xs placeholder:text-[#8C8C8C] focus:outline-none focus:border-amber-400 transition-colors"
+                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/40 focus:outline-none focus:border-amber-500/50 focus:bg-white/10 transition-all resize-none min-h-[44px] max-h-[120px]"
+                    rows={1}
                   />
                   <button
                     type="submit"
-                    className="px-5 py-2.5 bg-amber-400 hover:bg-amber-300 text-black font-bold text-xs uppercase tracking-wider rounded transition-colors"
+                    disabled={!adminChatInput.trim()}
+                    className="w-11 h-11 shrink-0 bg-white/10 hover:bg-white disabled:bg-white/5 disabled:text-white/20 text-white hover:text-black flex items-center justify-center rounded-xl transition-all shadow-lg"
                   >
-                    Send
+                    <Send className="w-5 h-5" />
                   </button>
                 </form>
 
