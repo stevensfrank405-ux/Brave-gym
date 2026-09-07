@@ -209,7 +209,7 @@ export function GymProvider({ children }) {
           setBookings((prev) => {
             if (prev.some(b => b.id === booking.id)) return prev;
             // Remove optimistic temp booking if it matches the new real booking
-            const filtered = prev.filter(b => !(b.id.startsWith("bk-") && b.classTitle === booking.classTitle && b.date === booking.date));
+            const filtered = prev.filter(b => !(String(b.id || "").startsWith("bk-") && b.classTitle === booking.classTitle && b.date === booking.date));
             return [booking, ...filtered];
           });
         }
@@ -231,7 +231,7 @@ export function GymProvider({ children }) {
         const activeUserRole = currentUserRef.current?.role;
         
         // Remove strict userId === activeUserId check because prev.map already safely maps by b.id
-        setBookings((prev) => prev.map((b) => (b.id === updatedBooking.id || (b.id.startsWith("bk-") && b.classTitle === updatedBooking.classTitle && b.date === updatedBooking.date) ? updatedBooking : b)));
+        setBookings((prev) => prev.map((b) => (b.id === updatedBooking.id || (String(b.id || "").startsWith("bk-") && b.classTitle === updatedBooking.classTitle && b.date === updatedBooking.date) ? updatedBooking : b)));
         
         if (activeUserRole === "admin") {
           setAdminBookings((prev) => prev.map((b) => (b.id === updatedBooking.id ? updatedBooking : b)));

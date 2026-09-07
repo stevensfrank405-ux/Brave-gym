@@ -610,8 +610,14 @@ export default function UserDashboard() {
                       <div>
                         <div className="flex items-center gap-2">
                           <h4 className="font-display text-lg font-bold text-white uppercase">{b.classTitle}</h4>
-                          <span className="text-[10px] font-mono px-2 py-0.5 rounded font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                            {b.status || "Confirmed"}
+                          <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold border ${
+                            (b.status || "").toLowerCase() === "pending"
+                              ? "bg-amber-400/20 text-amber-300 border-amber-400/30 animate-pulse"
+                              : (b.status || "").toLowerCase() === "rejected" || (b.status || "").toLowerCase() === "declined"
+                              ? "bg-rose-500/20 text-rose-400 border-rose-500/30"
+                              : "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+                          }`}>
+                            {b.status || "Pending"}
                           </span>
                         </div>
                         <span className="text-xs text-[#8C8C8C]">Lead Coach: {b.trainer} · Arena: {b.room}</span>
@@ -681,8 +687,14 @@ export default function UserDashboard() {
                     <div className="space-y-1">
                       <div className="flex items-center gap-3">
                         <h4 className="font-display text-xl font-bold text-white uppercase">{b.classTitle}</h4>
-                        <span className="px-2.5 py-0.5 rounded text-[10px] font-mono bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">
-                          {b.status}
+                        <span className={`px-2.5 py-0.5 rounded text-[10px] font-mono font-bold border ${
+                          (b.status || "").toLowerCase() === "pending"
+                            ? "bg-amber-400/20 text-amber-300 border-amber-400/30 animate-pulse"
+                            : (b.status || "").toLowerCase() === "rejected" || (b.status || "").toLowerCase() === "declined"
+                            ? "bg-rose-500/20 text-rose-400 border-rose-500/30"
+                            : "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+                        }`}>
+                          {b.status || "Pending"}
                         </span>
                       </div>
                       <p className="text-xs text-[#8C8C8C]">Assigned Instructor: {b.trainer} · Room: {b.room}</p>
