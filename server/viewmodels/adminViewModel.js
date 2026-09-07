@@ -12,16 +12,24 @@ export class AdminViewModel {
     const bookings = await BookingModel.findAll();
     const workoutLogs = WorkoutLogModel.findAll();
 
-    const monthlyRevenue = (transactions || []).reduce((sum, tx) => {
+    const athleteUsers = (users || []).filter(
+      (u) => u.role !== "admin" && u.id !== "usr-admin"
+    );
+    const athleteUserIds = new Set(athleteUsers.map(u => u.id));
+    
+    // Filter out orders that belong to admin users
+    const athleteTransactions = (transactions || []).filter(tx => 
+      athleteUserIds.has(tx.userId) || 
+      athleteUsers.some(u => u.name?.toLowerCase() === tx.member?.toLowerCase())
+    );
+
+    const monthlyRevenue = athleteTransactions.reduce((sum, tx) => {
       // Only count confirmed/paid transactions towards settled revenue
       if (tx.status === "Declined") return sum;
       const num = parseFloat(String(tx.amount).replace(/[^0-9.-]+/g, "")) || 0;
       return sum + num;
     }, 0);
 
-    const athleteUsers = (users || []).filter(
-      (u) => u.role !== "admin" && u.id !== "usr-admin"
-    );
     const activeMembers = athleteUsers.length;
     const totalSpots = (classes || []).reduce((sum, c) => sum + (c.total || 0), 0);
     const bookedSpots = (classes || []).reduce((sum, c) => sum + ((c.total || 0) - (c.spotsLeft || 0)), 0);
@@ -37,7 +45,7 @@ export class AdminViewModel {
       activeMembers,
       todayOccupancy,
       newSignupsThisWeek: activeMembers,
-      recentTransactions: (transactions || []).slice().reverse(),
+      recentTransactions: athleteTransactions.slice().reverse(),
       allUsersRoster: safeUsers,
       allWorkoutLogs: workoutLogs || [],
       adminBookings: bookings || []
