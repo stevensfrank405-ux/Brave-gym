@@ -1,28 +1,28 @@
 import { MembershipViewModel } from "../viewmodels/membershipViewModel.js";
 
 export class MembershipController {
-  static getTiers(req, res) {
+  static async getTiers(req, res) {
     try {
-      const tiers = MembershipViewModel.getTiers();
+      const tiers = await MembershipViewModel.getTiers();
       return res.status(200).json({ success: true, data: tiers });
     } catch (err) {
       return res.status(500).json({ success: false, message: err.message });
     }
   }
 
-  static createTier(req, res) {
+  static async createTier(req, res) {
     try {
-      const created = MembershipViewModel.createTier(req.body);
+      const created = await MembershipViewModel.createTier(req.body);
       return res.status(201).json({ success: true, data: created });
     } catch (err) {
       return res.status(400).json({ success: false, message: err.message });
     }
   }
 
-  static deleteTier(req, res) {
+  static async deleteTier(req, res) {
     try {
       const { id } = req.params;
-      const success = MembershipViewModel.deleteTier(id);
+      const success = await MembershipViewModel.deleteTier(id);
       return res.status(200).json({ success, message: success ? "Tier deleted" : "Tier not found" });
     } catch (err) {
       return res.status(500).json({ success: false, message: err.message });

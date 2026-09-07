@@ -4,18 +4,18 @@ import { UserModel } from "../models/User.js";
 import { NotificationModel } from "../models/Notification.js";
 
 export class MembershipViewModel {
-  static getTiers() {
+  static async getTiers() {
     return MembershipTierModel.findAll();
   }
 
-  static createTier(data) {
+  static async createTier(data) {
     if (!data.name || data.price === undefined) {
       throw new Error("Tier name and price are required");
     }
     return MembershipTierModel.create(data);
   }
 
-  static deleteTier(id) {
+  static async deleteTier(id) {
     return MembershipTierModel.delete(id);
   }
 
@@ -42,7 +42,7 @@ export class MembershipViewModel {
     const athleteName = userMeta?.name || updatedUser?.name || "Athlete";
 
     // 2. Record transaction with Pending status
-    const transaction = await TransactionModel.create({
+    const transaction = await MembershipOrderModel.create({
       userId: userId || null,
       member: athleteName,
       plan: plan.name,
@@ -86,7 +86,7 @@ export class MembershipViewModel {
     }
 
     // 1. Update Transaction
-    await TransactionModel.updateStatus(orderId, "Confirmed");
+    await MembershipOrderModel.updateStatus(orderId, "Confirmed");
 
     // 2. Activate User
     let updatedUser = null;
@@ -120,7 +120,7 @@ export class MembershipViewModel {
       throw new Error("Order ID is required");
     }
 
-    await TransactionModel.updateStatus(orderId, "Declined");
+    await MembershipOrderModel.updateStatus(orderId, "Declined");
 
     if (userId) {
       await UserModel.update(userId, {
