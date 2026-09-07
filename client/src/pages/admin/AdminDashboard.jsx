@@ -239,12 +239,24 @@ export default function AdminDashboard() {
 
   const pendingOrdersCount = (adminStats?.recentTransactions || []).filter(t => t.status === "Pending").length;
 
+  // Filter out any admin users from client/athlete monitoring and live chats
+  const athleteRoster = (allUsersRoster || []).filter(
+    (u) => u.role !== "admin" && u.id !== "usr-admin"
+  );
+  const athleteConsultationRequests = (consultationRequests || []).filter(
+    (req) =>
+      req.userId !== "usr-admin" &&
+      !(allUsersRoster || []).some(
+        (u) => (u.id === req.userId || (req.userName && u.name?.toLowerCase() === req.userName?.toLowerCase())) && u.role === "admin"
+      )
+  );
+
   const sidebarNavItems = [
     { id: "overview", label: "Dashboard Overview", icon: LayoutDashboard, desc: "Live KPI Telemetry" },
     { id: "orders", label: "Membership Orders", icon: ShieldCheck, badge: pendingOrdersCount, desc: "Verify Athlete Subscriptions" },
-    { id: "athletes", label: "Athlete Monitoring", icon: UserCheck, badge: allUsersRoster?.length, desc: "Full Client Dossier Monitoring" },
+    { id: "athletes", label: "Athlete Monitoring", icon: UserCheck, badge: athleteRoster.length, desc: "Full Client Dossier Monitoring" },
     { id: "bookings", label: "Athlete Bookings", icon: Users, badge: adminBookings?.length, desc: "Reserved Spots Roster" },
-    { id: "requests", label: "Live Athlete Chats", icon: MessageSquare, badge: consultationRequests?.length, desc: "Real-Time Direct Negotiations" },
+    { id: "requests", label: "Live Athlete Chats", icon: MessageSquare, badge: athleteConsultationRequests.length, desc: "Real-Time Direct Negotiations" },
     { id: "schedule", label: "Timetable & Classes", icon: Calendar, desc: "Arena Scheduling" },
     { id: "finances", label: "Finances & Spatial", icon: DollarSign, desc: "Revenue & Zone Share" },
     { id: "tiers", label: "Membership Tiers", icon: Flame, desc: "Manage & Create Tiers" }
@@ -905,7 +917,7 @@ export default function AdminDashboard() {
                     Athlete Dossiers & Client Monitoring
                   </h2>
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-amber-400 text-black shadow-sm">
-                    {allUsersRoster?.length || 0} Registered Clients
+                    {athleteRoster.length} Registered Athletes
                   </span>
                 </div>
               </div>
@@ -945,7 +957,7 @@ export default function AdminDashboard() {
             {/* Roster Cards / Table */}
             <div className="bg-[#141414] border border-white/10 rounded-sm divide-y divide-white/10">
               {(() => {
-                const filteredAthletes = (allUsersRoster || []).filter((ath) => {
+                const filteredAthletes = athleteRoster.filter((ath) => {
                   const q = athleteSearchQuery.toLowerCase();
                   const matchesQuery =
                     !q ||
@@ -967,7 +979,7 @@ export default function AdminDashboard() {
                 if (filteredAthletes.length === 0) {
                   return (
                     <div className="p-8 text-center text-xs text-[#8C8C8C]">
-                      {allUsersRoster?.length === 0
+                      {athleteRoster.length === 0
                         ? "No registered athletes recorded yet. As athletes register and book, their dossiers will populate here."
                         : "No athletes match the current search or tier filter."}
                     </div>
@@ -986,7 +998,7 @@ export default function AdminDashboard() {
                   );
 
                   // Compute athlete's consultation requests & chats
-                  const athleteRequests = (consultationRequests || []).filter(
+                  const athleteRequests = (athleteConsultationRequests || []).filter(
                     (r) =>
                       r.userId === ath.id ||
                       (ath.email && r.athleteEmail?.toLowerCase() === ath.email?.toLowerCase())
@@ -1027,11 +1039,6 @@ export default function AdminDashboard() {
                             <span className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded border font-semibold ${tierColor}`}>
                               {tierName}
                             </span>
-                            {ath.role === "admin" && (
-                              <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded border border-red-500/40 bg-red-500/10 text-red-400 font-bold">
-                                Admin
-                              </span>
-                            )}
                           </div>
 
                           <div className="flex flex-wrap items-center gap-3 text-xs text-[#8C8C8C]">
@@ -1159,7 +1166,7 @@ export default function AdminDashboard() {
                     Live Athlete Chats & Support
                   </h2>
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-amber-400 text-black shadow-sm">
-                    {consultationRequests?.length || 0} Active Threads
+                    {athleteConsultationRequests.length} Active Threads
                   </span>
                 </div>
               </div>
@@ -1169,9 +1176,9 @@ export default function AdminDashboard() {
             </div>
 
             <div className="bg-[#141414] border border-white/10 rounded-sm divide-y divide-white/10">
-              {consultationRequests && consultationRequests.length > 0 ? (
-                consultationRequests.map((req) => {
-                  const athleteUser = (allUsersRoster || []).find(
+              {athleteConsultationRequests && athleteConsultationRequests.length > 0 ? (
+                athleteConsultationRequests.map((req) => {
+                  const athleteUser = athleteRoster.find(
                     (u) => u.id === req.userId || u.name?.toLowerCase() === (req.userName || req.name)?.toLowerCase()
                   );
                   const matchingOrder = (adminStats?.recentTransactions || []).find(

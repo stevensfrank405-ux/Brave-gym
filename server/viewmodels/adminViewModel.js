@@ -19,12 +19,15 @@ export class AdminViewModel {
       return sum + num;
     }, 0);
 
-    const activeMembers = (users || []).length;
+    const athleteUsers = (users || []).filter(
+      (u) => u.role !== "admin" && u.id !== "usr-admin"
+    );
+    const activeMembers = athleteUsers.length;
     const totalSpots = (classes || []).reduce((sum, c) => sum + (c.total || 0), 0);
     const bookedSpots = (classes || []).reduce((sum, c) => sum + ((c.total || 0) - (c.spotsLeft || 0)), 0);
     const todayOccupancy = totalSpots > 0 ? Math.round((bookedSpots / totalSpots) * 100) : 0;
 
-    const safeUsers = (users || []).map((u) => {
+    const safeUsers = athleteUsers.map((u) => {
       const { passwordHash, ...safe } = u;
       return safe;
     });
