@@ -75,12 +75,12 @@ export default function AdminDashboard() {
 
   const [isEditingAdminProfile, setIsEditingAdminProfile] = useState(false);
   const [adminProfileForm, setAdminProfileForm] = useState({
-    name: currentUser?.name || "Marcus Vance HQ",
+    name: currentUser?.name || "Admin Officer",
     email: currentUser?.email || "admin@bravegym.com",
-    roleTitle: "Director & Head of Operations",
-    accessLevel: "Tier-4 Sovereign Master",
+    roleTitle: currentUser?.role === "admin" ? "Director & Head of Operations" : "Facility Staff",
+    accessLevel: currentUser?.role === "admin" ? "Tier-4 Sovereign Master" : "Staff",
     facility: "Brave Gym HQ · Main Arena",
-    bio: "Full jurisdiction over facility security protocols, coaches timetable scheduling, athlete subscriptions, and financial audits."
+    bio: currentUser?.bio || "Full jurisdiction over facility security protocols, coaches timetable scheduling, athlete subscriptions, and financial audits."
   });
 
   // Keep admin profile in sync with currentUser
@@ -89,7 +89,8 @@ export default function AdminDashboard() {
       setAdminProfileForm((prev) => ({
         ...prev,
         name: currentUser.name || prev.name,
-        email: currentUser.email || prev.email
+        email: currentUser.email || prev.email,
+        bio: currentUser.bio || prev.bio
       }));
     }
   }, [currentUser]);
@@ -118,12 +119,17 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleSaveAdminProfile = (e) => {
+  const handleSaveAdminProfile = async (e) => {
     e.preventDefault();
-    updateProfile({
-      name: adminProfileForm.name
-    });
-    setIsEditingAdminProfile(false);
+    try {
+      await updateProfile({
+        name: adminProfileForm.name,
+        bio: adminProfileForm.bio
+      });
+      setIsEditingAdminProfile(false);
+    } catch (err) {
+      console.error("Failed to save admin profile:", err);
+    }
   };
 
   // Listen for ?view=profile or ?tab=... from Topbar / mobile drawer
@@ -493,7 +499,9 @@ export default function AdminDashboard() {
               <div className="font-display text-2xl xl:text-3xl font-extrabold text-white">
                 {adminStats.todayOccupancy}%
               </div>
-              <p className="text-[10px] text-[#8C8C8C] whitespace-nowrap">86 / 100 safe capacity</p>
+              <p className="text-[10px] text-[#8C8C8C] whitespace-nowrap">
+                {totalBookingsCount > 0 ? `${totalBookingsCount} arena bookings scheduled` : "Live arena floor status"}
+              </p>
             </div>
 
             {/* Circular Gauge */}
@@ -940,7 +948,7 @@ export default function AdminDashboard() {
                     ath.weight_class?.toLowerCase().includes(q) ||
                     ath.id?.toLowerCase().includes(q);
 
-                  const tier = ath.membership || ath.membership_tier || "Iron Standard";
+                  const tier = ath.membership || ath.membership_tier || "Brave Trial";
                   const matchesTier =
                     athleteFilterTier === "ALL" ||
                     (athleteFilterTier === "Free Tier" && (tier.toLowerCase().includes("free") || tier.toLowerCase().includes("trial") || tier.toLowerCase().includes("standard"))) ||
@@ -967,7 +975,7 @@ export default function AdminDashboard() {
 
                   // Compute athlete's workout logs
                   const athleteLogs = (allWorkoutLogs || []).filter(
-                    (l) => l.user_id === ath.id
+                    (l) => (l.user_id && l.user_id === ath.id) || (l.userId && l.userId === ath.id)
                   );
 
                   // Compute athlete's consultation requests & chats
@@ -977,7 +985,7 @@ export default function AdminDashboard() {
                       (ath.email && r.athleteEmail?.toLowerCase() === ath.email?.toLowerCase())
                   );
 
-                  const tierName = ath.membership_tier || "Iron Standard";
+                  const tierName = ath.membership || ath.membership_tier || "Brave Trial";
                   const tierColor = tierName.toLowerCase().includes("obsidian")
                     ? "bg-purple-500/20 text-purple-300 border-purple-500/30"
                     : tierName.toLowerCase().includes("black")
@@ -1413,7 +1421,7 @@ export default function AdminDashboard() {
               <div className="p-6 bg-[#141414] border border-white/10 rounded-sm space-y-4 shadow-lg flex flex-col justify-between">
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono uppercase tracking-widest text-[#8C8C8C]">Supabase Ledger</span>
+                    <span className="text-xs font-mono uppercase tracking-widest text-[#8C8C8C]">PostgreSQL Live Ledger</span>
                     <ShieldCheck className="w-4 h-4 text-emerald-400" />
                   </div>
                   <h3 className="font-display text-xl font-bold text-white uppercase">Financial Settlement Status</h3>
@@ -2103,10 +2111,14 @@ export default function AdminDashboard() {
                     Active Package / Tier
                   </span>
                   <div className="font-display text-lg font-bold text-amber-400 uppercase">
-                    {selectedDossierAthlete.membership_tier || "Iron Standard"}
+                    {selectedDossierAthlete.membership || selectedDossierAthlete.membership_tier || "Brave Trial"}
                   </div>
-                  <span className="text-[10px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                    Status: Active Member
+                  <span className={`text-[10px] font-mono px-2 py-0.5 rounded border uppercase font-bold ${
+                    selectedDossierAthlete.status === "Pending"
+                      ? "bg-amber-400/20 text-amber-300 border-amber-400/30"
+                      : "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
+                  }`}>
+                    Status: {selectedDossierAthlete.status || "Active"}
                   </span>
                 </div>
               </div>
@@ -2207,7 +2219,7 @@ export default function AdminDashboard() {
               {/* Dossier Section 3: Training & Daily Workout Logs */}
               {(() => {
                 const athleteLogs = (allWorkoutLogs || []).filter(
-                  (l) => l.user_id === selectedDossierAthlete.id
+                  (l) => (l.user_id && l.user_id === selectedDossierAthlete.id) || (l.userId && l.userId === selectedDossierAthlete.id)
                 );
 
                 return (

@@ -108,7 +108,7 @@ export class UserModel {
     if (db.isConfigured()) {
       try {
         const res = await db.query("SELECT * FROM users ORDER BY created_at DESC");
-        if (res.rows.length > 0) {
+        if (res && res.rows) {
           return res.rows.map(mapPgRowToUser);
         }
       } catch (err) {
@@ -201,6 +201,8 @@ export class UserModel {
         if (updates.discipline !== undefined) { setClauses.push(`discipline = $${idx++}`); values.push(updates.discipline); }
         if (updates.membership !== undefined) { setClauses.push(`membership = $${idx++}`); values.push(updates.membership); }
         if (updates.status !== undefined) { setClauses.push(`status = $${idx++}`); values.push(updates.status); }
+        if (updates.renewalDate !== undefined) { setClauses.push(`renewal_date = $${idx++}`); values.push(updates.renewalDate); }
+        if (updates.role !== undefined) { setClauses.push(`role = $${idx++}`); values.push(updates.role); }
 
         if (setClauses.length > 0) {
           setClauses.push(`updated_at = NOW()`);

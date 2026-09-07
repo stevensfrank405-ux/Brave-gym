@@ -1,39 +1,55 @@
 import { JsonStore } from "./JsonStore.js";
+import { db } from "../config/db.js";
 import { v4 as uuidv4 } from "uuid";
 
-const defaultLogs = [
-  {
-    id: "log-1",
-    userId: "usr-athlete-1",
-    exercise: "Clean & Jerk",
-    weight: "225 lbs",
-    notes: "Triple at RPE 8. Explosive bar speed.",
-    date: "Today",
-    createdAt: new Date().toISOString()
-  },
-  {
-    id: "log-2",
-    userId: "usr-athlete-1",
-    exercise: "Heavy Bag Sparring",
-    weight: "6 Rounds",
-    notes: "Combinations sharp, heart rate recovery sub-60s.",
-    date: "Yesterday",
-    createdAt: new Date().toISOString()
-  }
-];
+const defaultLogs = [];
 
 export const workoutStore = new JsonStore("workouts", defaultLogs);
 
+function mapPgRowToLog(r) {
+  if (!r) return null;
+  return {
+    id: r.id,
+    userId: r.user_id,
+    user_id: r.user_id,
+    exercise: r.exercise,
+    weight: r.weight,
+    notes: r.notes,
+    date: r.date,
+    createdAt: r.created_at
+  };
+}
+
 export class WorkoutLogModel {
-  static findAll() {
+  static async findAll() {
+    if (db.isConfigured()) {
+      try {
+        const res = await db.query("SELECT * FROM workout_logs ORDER BY created_at DESC");
+        if (res && res.rows) {
+          return res.rows.map(mapPgRowToLog);
+        }
+      } catch (err) {
+        console.warn("PostgreSQL workout_logs findAll error, falling back to local:", err.message);
+      }
+    }
     return workoutStore.findAll();
   }
 
-  static findByUserId(userId) {
+  static async findByUserId(userId) {
+    if (db.isConfigured()) {
+      try {
+        const res = await db.query("SELECT * FROM workout_logs WHERE user_id = $1 ORDER BY created_at DESC", [userId]);
+        if (res && res.rows) {
+          return res.rows.map(mapPgRowToLog);
+        }
+      } catch (err) {
+        console.warn("PostgreSQL workout_logs findByUserId error:", err.message);
+      }
+    }
     return workoutStore.findAll((l) => String(l.userId) === String(userId));
   }
 
-  static create(data) {
+  static async create(data) {
     const newLog = {
       id: data.id || `log-${uuidv4().slice(0, 8)}`,
       userId: data.userId,
@@ -43,11 +59,38 @@ export class WorkoutLogModel {
       date: data.date || "Today",
       createdAt: new Date().toISOString()
     };
+
+    if (db.isConfigured()) {
+      try {
+        await db.query(
+          `INSERT INTO workout_logs (id, user_id, exercise, weight, notes, date, created_at)
+           VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
+          [
+            newLog.id,
+            newLog.userId,
+            newLog.exercise,
+            newLog.weight,
+            newLog.notes,
+            newLog.date
+          ]
+        );
+      } catch (err) {
+        console.error("PostgreSQL workout_logs insert error:", err.message);
+      }
+    }
+
     workoutStore.insert(newLog);
     return newLog;
   }
 
-  static delete(id) {
+  static async delete(id) {
+    if (db.isConfigured()) {
+      try {
+        await db.query("DELETE FROM workout_logs WHERE id = $1", [id]);
+      } catch (err) {
+        console.warn("PostgreSQL workout_logs delete error:", err.message);
+      }
+    }
     return workoutStore.delete(id);
   }
 }

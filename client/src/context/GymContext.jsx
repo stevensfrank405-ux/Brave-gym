@@ -50,12 +50,12 @@ export function GymProvider({ children }) {
   // Consultation Requests sent to Admin
   const [consultationRequests, setConsultationRequests] = useState([]);
 
-  // Admin stats
+  // Admin stats (Live Database Telemetry)
   const [adminStats, setAdminStats] = useState({
-    monthlyRevenue: 2850,
-    activeMembers: 12,
-    todayOccupancy: 84,
-    newSignupsThisWeek: 4,
+    monthlyRevenue: 0,
+    activeMembers: 0,
+    todayOccupancy: 0,
+    newSignupsThisWeek: 0,
     recentTransactions: []
   });
 
@@ -166,13 +166,14 @@ export function GymProvider({ children }) {
       const user = await api.getCurrentUser().catch(() => null);
       if (user) {
         setCurrentUser(user);
+        localStorage.setItem("brave_user", JSON.stringify(user));
         loadRemoteData(user.id, user.role);
       } else {
         loadRemoteData(currentUser?.id, currentUser?.role);
       }
     };
     initAuth();
-  }, [loadRemoteData, currentUser?.id, currentUser?.role]);
+  }, [loadRemoteData]);
 
   // ==========================================
   // AUTH METHODS (NODE.JS BACKEND)
@@ -182,7 +183,8 @@ export function GymProvider({ children }) {
     try {
       const { user } = await api.login(email, password, role);
       setCurrentUser(user);
-      loadRemoteData(user.id, user.role);
+      localStorage.setItem("brave_user", JSON.stringify(user));
+      await loadRemoteData(user.id, user.role);
       return user;
     } catch (err) {
       console.error("Backend login error:", err.message);
@@ -194,7 +196,8 @@ export function GymProvider({ children }) {
     try {
       const { user } = await api.register(name, email, password, role, initialMembership);
       setCurrentUser(user);
-      loadRemoteData(user.id, user.role);
+      localStorage.setItem("brave_user", JSON.stringify(user));
+      await loadRemoteData(user.id, user.role);
       return user;
     } catch (err) {
       console.error("Backend register error:", err.message);
@@ -205,6 +208,7 @@ export function GymProvider({ children }) {
 
   const logout = async () => {
     api.logout();
+    localStorage.removeItem("brave_user");
     setCurrentUser(null);
   };
 
