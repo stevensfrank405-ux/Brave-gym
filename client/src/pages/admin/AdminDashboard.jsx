@@ -728,9 +728,6 @@ export default function AdminDashboard() {
           <div className="space-y-6 pt-4">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-white/10">
               <div className="space-y-1">
-                <span className="text-xs font-mono uppercase tracking-widest text-amber-400 block">
-                  Gatekeeper Subscriptions & Real-Time Approval
-                </span>
                 <div className="flex flex-wrap items-center gap-3">
                   <h2 className="font-display text-2xl font-bold text-white uppercase">
                     Membership Orders & Payment Plans
@@ -919,9 +916,6 @@ export default function AdminDashboard() {
           <div className="space-y-6 pt-4">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-white/10">
               <div className="space-y-1">
-                <span className="text-xs font-mono uppercase tracking-widest text-amber-400 block">
-                  Comprehensive Client Surveillance & Management
-                </span>
                 <div className="flex flex-wrap items-center gap-3">
                   <h2 className="font-display text-2xl font-bold text-white uppercase">
                     Athlete Dossiers & Client Monitoring
@@ -1114,9 +1108,6 @@ export default function AdminDashboard() {
           <div className="space-y-6 pt-4">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-white/10">
               <div className="space-y-1">
-                <span className="text-xs font-mono uppercase tracking-widest text-[#8C8C8C] block">
-                  Class Attendance & Reservations
-                </span>
                 <div className="flex flex-wrap items-center gap-3">
                   <h2 className="font-display text-2xl font-bold text-white uppercase">
                     Athlete Bookings Roster
@@ -1180,9 +1171,6 @@ export default function AdminDashboard() {
           <div className="space-y-6 pt-4">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-white/10">
               <div className="space-y-1">
-                <span className="text-xs font-mono uppercase tracking-widest text-amber-400 block">
-                  Direct Two-Way Communication
-                </span>
                 <div className="flex flex-wrap items-center gap-3">
                   <h2 className="font-display text-2xl font-bold text-white uppercase">
                     Live Athlete Chats & Support
@@ -1316,7 +1304,6 @@ export default function AdminDashboard() {
           <div className="space-y-6 pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <span className="text-xs font-mono uppercase tracking-widest text-[#8C8C8C]">Timetable Control</span>
                 <h2 className="font-display text-2xl font-bold text-white uppercase">Weekly Session Roster</h2>
               </div>
               <button
@@ -1384,7 +1371,6 @@ export default function AdminDashboard() {
               <div className="p-6 bg-[#141414] border border-white/10 rounded-sm space-y-4 shadow-lg">
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="text-xs font-mono uppercase tracking-widest text-[#8C8C8C]">Revenue Stream</span>
                     <h3 className="font-display text-xl font-bold text-white uppercase">Membership Tier Share</h3>
                   </div>
                   <PieChart className="w-4 h-4 text-white/60" />
@@ -1498,8 +1484,7 @@ export default function AdminDashboard() {
               {/* Verified Financial Health Status */}
               <div className="p-6 bg-[#141414] border border-white/10 rounded-sm space-y-4 shadow-lg flex flex-col justify-between">
                 <div className="space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono uppercase tracking-widest text-[#8C8C8C]">PostgreSQL Live Ledger</span>
+                  <div className="flex items-end justify-end">
                     <ShieldCheck className="w-4 h-4 text-emerald-400" />
                   </div>
                   <h3 className="font-display text-xl font-bold text-white uppercase">Financial Settlement Status</h3>
@@ -1529,7 +1514,6 @@ export default function AdminDashboard() {
 
             <div className="flex items-center justify-between pt-4">
               <div>
-                <span className="text-xs font-mono uppercase tracking-widest text-[#8C8C8C]">Audit Trail</span>
                 <h2 className="font-display text-2xl font-bold text-white uppercase">Recent Transactions</h2>
               </div>
               <button className="text-xs uppercase tracking-wider font-semibold text-white/80 hover:text-white flex items-center gap-1.5 border border-white/20 px-3 py-1.5 rounded">
@@ -1571,7 +1555,6 @@ export default function AdminDashboard() {
           <div className="space-y-6 pt-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-white/10">
               <div>
-                <span className="text-xs font-mono uppercase tracking-widest text-[#8C8C8C]">Subscription Architecture</span>
                 <h2 className="font-display text-2xl font-bold text-white uppercase">Membership Tiers & Access Plans</h2>
               </div>
               <button

@@ -596,7 +596,6 @@ export default function UserDashboard() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="text-xs font-mono uppercase tracking-widest text-[#8C8C8C]">Confirmed Roster</span>
                   <h2 className="font-display text-2xl font-bold text-white uppercase">Your Upcoming Classes</h2>
                 </div>
                 <Link to="/programs" className="text-xs uppercase tracking-wider text-white hover:underline flex items-center gap-1">
@@ -650,7 +649,6 @@ export default function UserDashboard() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <span className="text-xs font-mono uppercase tracking-widest text-[#8C8C8C]">Active Reservations</span>
                 <h2 className="font-display text-2xl font-bold text-white uppercase">Class Schedule & Reservations</h2>
               </div>
               {isPending ? (
@@ -720,9 +718,6 @@ export default function UserDashboard() {
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-white/10">
               <div className="space-y-1">
-                <span className="text-xs font-mono uppercase tracking-widest text-[#8C8C8C]">
-                  Official Facility Tiers
-                </span>
                 <div className="flex flex-wrap items-center gap-3">
                   <h2 className="font-display text-2xl font-bold text-white uppercase">
                     Available Membership Tiers
@@ -839,7 +834,6 @@ export default function UserDashboard() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <span className="text-xs font-mono uppercase tracking-widest text-[#8C8C8C]">Communications</span>
                 <h2 className="font-display text-2xl font-bold text-white uppercase">Admin Responses & Alerts</h2>
               </div>
               <button
@@ -881,7 +875,6 @@ export default function UserDashboard() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <span className="text-xs font-mono uppercase tracking-widest text-[#8C8C8C]">Discipline Ledger</span>
                 <h2 className="font-display text-2xl font-bold text-white uppercase">Daily Workout Progression</h2>
               </div>
             </div>
