@@ -55,6 +55,18 @@ export class AuthViewModel {
       status: userStatus
     });
 
+    if (!isAdmin) {
+      const { MembershipOrderModel } = await import("../models/MembershipOrder.js");
+      await MembershipOrderModel.create({
+        userId: createdUser.id,
+        member: createdUser.name,
+        plan: userTier,
+        amount: userTier.toLowerCase().includes("trial") ? "$0.00" : "$99.00", // placeholder or map to tier price
+        status: "Pending",
+        date: new Date().toISOString().split("T")[0]
+      });
+    }
+
     const token = this.generateToken(createdUser);
     return {
       user: this.shapeUser(createdUser),
