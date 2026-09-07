@@ -152,7 +152,7 @@ class ApiService {
         userMeta
       })
     });
-    return res.data;
+    return res;
   }
 
   async cancelBooking(bookingId) {

@@ -3,25 +3,34 @@ import { ClassModel } from "../models/Class.js";
 import { NotificationModel } from "../models/Notification.js";
 
 export class BookingViewModel {
-  static getUserBookings(userId) {
+  static async getUserBookings(userId) {
     return BookingModel.findByUserId(userId);
   }
 
-  static getAllBookings() {
+  static async getAllBookings() {
     return BookingModel.findAll();
   }
 
-  static createBooking({ userId, scheduleItem, userMeta }) {
+  static async createBooking({ userId, scheduleItem, userMeta }) {
     if (!scheduleItem || !scheduleItem.classTitle) {
       throw new Error("Class details are required for booking");
     }
 
-    // Decrement class spots if matching schedule item exists
+    // Decrement class spots in PostgreSQL & memory
+    let updatedClass = null;
     if (scheduleItem.id) {
-      ClassModel.decrementSpots(scheduleItem.id);
+      updatedClass = await ClassModel.decrementSpots(scheduleItem.id);
+    } else {
+      const classes = await ClassModel.findAll();
+      const matched = classes.find(
+        (c) => c.classTitle === scheduleItem.classTitle && c.trainer === scheduleItem.trainer
+      );
+      if (matched) {
+        updatedClass = await ClassModel.decrementSpots(matched.id);
+      }
     }
 
-    const booking = BookingModel.create({
+    const booking = await BookingModel.create({
       userId,
       userName: userMeta?.name || "Athlete",
       userEmail: userMeta?.email || "",
@@ -32,29 +41,37 @@ export class BookingViewModel {
       status: "Confirmed"
     });
 
-    // Notify user
+    // Generate real-time confirmation notification for athlete
     if (userId) {
-      NotificationModel.create({
+      await NotificationModel.create({
         userId,
-        title: "Reservation Secured",
-        message: `Your spot in ${scheduleItem.classTitle} with ${scheduleItem.trainer} is confirmed.`,
+        title: "Class Reservation Confirmed",
+        message: `Your spot in ${scheduleItem.classTitle} with coach ${scheduleItem.trainer} is secured (${booking.date}). Room: ${booking.room}.`,
         type: "admin_response"
       });
     }
 
-    return booking;
+    // Generate admin notification so HQ monitors class enrollment in real time
+    await NotificationModel.create({
+      userId: null,
+      title: "New Athlete Class Enrollment",
+      message: `${userMeta?.name || "An athlete"} enrolled in ${scheduleItem.classTitle} (${booking.date}). Remaining spots: ${updatedClass?.spotsLeft ?? "updated"}.`,
+      type: "admin_response"
+    });
+
+    return { booking, updatedClass };
   }
 
-  static cancelBooking(bookingId) {
-    const booking = BookingModel.findById(bookingId);
+  static async cancelBooking(bookingId) {
+    const booking = await BookingModel.findById(bookingId);
     if (booking) {
-      // Find class and increment spots if possible
-      const classes = ClassModel.findAll();
+      // Find class and increment spots
+      const classes = await ClassModel.findAll();
       const matched = classes.find(
         (c) => c.classTitle === booking.classTitle && c.trainer === booking.trainer
       );
       if (matched) {
-        ClassModel.incrementSpots(matched.id);
+        await ClassModel.incrementSpots(matched.id);
       }
     }
     return BookingModel.delete(bookingId);

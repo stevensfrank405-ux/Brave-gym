@@ -8,8 +8,8 @@ export class AdminViewModel {
   static async getStats() {
     const transactions = await TransactionModel.findAll();
     const users = await UserModel.findAll();
-    const classes = ClassModel.findAll();
-    const bookings = BookingModel.findAll();
+    const classes = await ClassModel.findAll();
+    const bookings = await BookingModel.findAll();
     const workoutLogs = WorkoutLogModel.findAll();
 
     const monthlyRevenue = (transactions || []).reduce((sum, tx) => {

@@ -595,26 +595,40 @@ export default function UserDashboard() {
               </div>
 
               <div className="bg-[#141414] border border-white/10 rounded-sm divide-y divide-white/10">
-                {bookings.map((b) => (
-                  <div key={b.id} className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-white/[0.02]">
-                    <div>
-                      <h4 className="font-display text-lg font-bold text-white uppercase">{b.classTitle}</h4>
-                      <span className="text-xs text-[#8C8C8C]">Lead Coach: {b.trainer} · Arena: {b.room}</span>
-                    </div>
+                {bookings && bookings.length > 0 ? (
+                  bookings.map((b) => (
+                    <div key={b.id} className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-white/[0.02]">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-display text-lg font-bold text-white uppercase">{b.classTitle}</h4>
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                            {b.status || "Confirmed"}
+                          </span>
+                        </div>
+                        <span className="text-xs text-[#8C8C8C]">Lead Coach: {b.trainer} · Arena: {b.room}</span>
+                      </div>
 
-                    <div className="flex items-center gap-4">
-                      <span className="text-xs font-mono text-white/90 bg-white/5 px-3 py-1.5 rounded border border-white/10">
-                        {b.date}
-                      </span>
-                      <button
-                        onClick={() => cancelBooking(b.id)}
-                        className="text-xs text-rose-400 hover:text-rose-300 flex items-center gap-1 uppercase tracking-wider"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" /> Cancel
-                      </button>
+                      <div className="flex items-center gap-4">
+                        <span className="text-xs font-mono text-white/90 bg-white/5 px-3 py-1.5 rounded border border-white/10">
+                          {b.date}
+                        </span>
+                        <button
+                          onClick={() => cancelBooking(b.id)}
+                          className="text-xs text-rose-400 hover:text-rose-300 flex items-center gap-1 uppercase tracking-wider"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" /> Cancel
+                        </button>
+                      </div>
                     </div>
+                  ))
+                ) : (
+                  <div className="p-8 text-center text-xs text-[#8C8C8C] space-y-2">
+                    <p>No active class reservations found.</p>
+                    <Link to="/programs" className="inline-block px-4 py-2 bg-white text-black font-bold uppercase rounded text-xs">
+                      Reserve Your Spot on Floor
+                    </Link>
                   </div>
-                ))}
+                )}
               </div>
             </div>
 

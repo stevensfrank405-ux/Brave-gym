@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { Clock, Flame, Users, Calendar, ArrowRight, CheckCircle2, AlertCircle, ShieldAlert } from "lucide-react";
+import { Clock, Flame, Users, Calendar, ArrowRight, CheckCircle2, AlertCircle, ShieldAlert, Check } from "lucide-react";
 import { useGym } from "../../context/GymContext";
 import confetti from "canvas-confetti";
 
 export default function Programs() {
-  const { currentUser, programs, schedule, bookClass } = useGym();
+  const { currentUser, programs, schedule, bookings, bookClass } = useGym();
   const [selectedCategory, setSelectedCategory] = useState("ALL");
   const [bookingSuccess, setBookingSuccess] = useState(null);
   const [bookingError, setBookingError] = useState(null);
@@ -113,16 +113,33 @@ export default function Programs() {
           ))}
         </div>
 
-        {/* Notification Toast */}
+        {/* Booking Notification Banner & Markup */}
         {bookingSuccess && (
-          <div className="p-4 bg-white/10 border border-white/30 rounded flex items-center justify-between text-xs uppercase tracking-widest text-white animate-fade-in">
+          <div className="p-4 bg-emerald-500/15 border border-emerald-500/40 rounded flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs uppercase tracking-widest text-white shadow-xl animate-fadeIn">
             <div className="flex items-center gap-3">
-              <CheckCircle2 className="w-5 h-5 text-white" />
-              <span>
-                Reserved: <strong>{bookingSuccess.classTitle}</strong> for {bookingSuccess.date}
-              </span>
+              <div className="w-8 h-8 rounded-full bg-emerald-400/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-400/30">
+                <CheckCircle2 className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="font-display font-bold text-sm block normal-case text-white">
+                  Spot Reserved: <strong>{bookingSuccess.classTitle}</strong>
+                </span>
+                <span className="font-mono text-[11px] text-emerald-400">
+                  {bookingSuccess.date} · Coach {bookingSuccess.trainer} · Room: {bookingSuccess.room || "Main Arena Floor"}
+                </span>
+              </div>
             </div>
-            <span className="font-mono text-white/60">CONFIRMED</span>
+            <div className="flex items-center gap-2 self-end sm:self-center">
+              <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-400 text-black">
+                CONFIRMED & SYNCED
+              </span>
+              <Link
+                to="/dashboard?tab=schedule"
+                className="px-3 py-1.5 bg-white text-black font-bold font-mono text-[10px] uppercase rounded hover:bg-[#F5F5F3] transition-colors"
+              >
+                View in Dashboard
+              </Link>
+            </div>
           </div>
         )}
 
@@ -185,49 +202,72 @@ export default function Programs() {
           </div>
 
           <div className="bg-[#141414] border border-white/10 rounded-sm divide-y divide-white/10 overflow-x-auto">
-            {schedule.map((sc) => (
-              <div
-                key={sc.id}
-                className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-white/[0.02] transition-colors"
-              >
-                <div className="flex items-center gap-6">
-                  <div className="w-28 shrink-0">
-                    <span className="font-display font-bold text-sm text-white block uppercase">{sc.day}</span>
-                    <span className="text-xs font-mono text-[#8C8C8C]">{sc.time}</span>
+            {schedule.map((sc) => {
+              const isAlreadyBooked = (bookings || []).some(
+                (b) =>
+                  b.classTitle?.toLowerCase() === sc.classTitle?.toLowerCase() &&
+                  (b.date?.toLowerCase().includes(sc.day.toLowerCase()) || b.trainer?.toLowerCase() === sc.trainer.toLowerCase())
+              );
+
+              return (
+                <div
+                  key={sc.id}
+                  className={`p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors ${
+                    isAlreadyBooked ? "bg-emerald-500/[0.04] border-l-2 border-l-emerald-400" : "hover:bg-white/[0.02]"
+                  }`}
+                >
+                  <div className="flex items-center gap-6">
+                    <div className="w-28 shrink-0">
+                      <span className="font-display font-bold text-sm text-white block uppercase">{sc.day}</span>
+                      <span className="text-xs font-mono text-[#8C8C8C]">{sc.time}</span>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-display text-lg font-bold text-white uppercase">{sc.classTitle}</h4>
+                        {isAlreadyBooked && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                            <Check className="w-3 h-3" /> Booked
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-xs text-[#8C8C8C]">Coach: {sc.trainer}</span>
+                    </div>
                   </div>
 
-                  <div>
-                    <h4 className="font-display text-lg font-bold text-white uppercase">{sc.classTitle}</h4>
-                    <span className="text-xs text-[#8C8C8C]">Coach: {sc.trainer}</span>
+                  <div className="flex items-center justify-between sm:justify-end gap-6">
+                    <div className="text-right">
+                      <span className="text-xs font-mono block">
+                        {sc.spotsLeft > 0 ? (
+                          <span className="text-emerald-400 font-semibold">{sc.spotsLeft} spots available</span>
+                        ) : (
+                          <span className="text-rose-400 font-semibold">Sold Out</span>
+                        )}
+                      </span>
+                      <span className="text-[11px] text-[#8C8C8C]">{sc.total} athlete max</span>
+                    </div>
+
+                    {isAlreadyBooked ? (
+                      <span className="px-5 py-2.5 rounded-sm text-xs uppercase tracking-widest font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
+                        <Check className="w-3.5 h-3.5" /> Enrolled
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => handleBook(sc)}
+                        disabled={sc.spotsLeft <= 0}
+                        className={`px-5 py-2.5 rounded-sm text-xs uppercase tracking-widest font-bold transition-all ${
+                          sc.spotsLeft > 0
+                            ? "bg-white text-black hover:bg-[#F5F5F3] hover:scale-105"
+                            : "bg-white/10 text-white/30 cursor-not-allowed"
+                        }`}
+                      >
+                        {sc.spotsLeft > 0 ? "Reserve Spot" : "Waitlist"}
+                      </button>
+                    )}
                   </div>
                 </div>
-
-                <div className="flex items-center justify-between sm:justify-end gap-6">
-                  <div className="text-right">
-                    <span className="text-xs font-mono block">
-                      {sc.spotsLeft > 0 ? (
-                        <span className="text-emerald-400 font-semibold">{sc.spotsLeft} spots available</span>
-                      ) : (
-                        <span className="text-rose-400 font-semibold">Sold Out</span>
-                      )}
-                    </span>
-                    <span className="text-[11px] text-[#8C8C8C]">{sc.total} athlete max</span>
-                  </div>
-
-                  <button
-                    onClick={() => handleBook(sc)}
-                    disabled={sc.spotsLeft <= 0}
-                    className={`px-5 py-2.5 rounded-sm text-xs uppercase tracking-widest font-bold transition-all ${
-                      sc.spotsLeft > 0
-                        ? "bg-white text-black hover:bg-[#F5F5F3] hover:scale-105"
-                        : "bg-white/10 text-white/30 cursor-not-allowed"
-                    }`}
-                  >
-                    {sc.spotsLeft > 0 ? "Reserve Spot" : "Waitlist"}
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 

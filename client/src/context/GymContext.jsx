@@ -226,30 +226,63 @@ export function GymProvider({ children }) {
       throw new Error("Your membership is currently pending Admin verification. Please wait for confirmation or use the Chat below to reach HQ.");
     }
 
+    const tempId = "bk-" + Date.now();
     const newBookingData = {
-      id: "bk-" + Date.now(),
+      id: tempId,
+      userId: currentUser?.id,
       classTitle: scheduleItem.classTitle,
       trainer: scheduleItem.trainer,
-      date: `${scheduleItem.day}, ${scheduleItem.time}`,
+      date: scheduleItem.date || `${scheduleItem.day}, ${scheduleItem.time}`,
       status: "Confirmed",
-      room: "Main Athletic Floor",
+      room: scheduleItem.room || "Main Athletic Floor",
       userName: currentUser?.name || "Athlete",
       userEmail: currentUser?.email || ""
     };
 
+    // Optimistic state updates
     setBookings((prev) => [newBookingData, ...prev]);
     setAdminBookings((prev) => [newBookingData, ...prev]);
 
+    // Instantly reduce spots left in schedule view
     setSchedule((prev) =>
-      prev.map((sc) => (sc.id === scheduleItem.id ? { ...sc, spotsLeft: Math.max(0, sc.spotsLeft - 1) } : sc))
+      prev.map((sc) => {
+        const isMatch = sc.id === scheduleItem.id || 
+          (sc.classTitle === scheduleItem.classTitle && sc.trainer === scheduleItem.trainer && sc.day === scheduleItem.day);
+        return isMatch ? { ...sc, spotsLeft: Math.max(0, (sc.spotsLeft ?? sc.total) - 1) } : sc;
+      })
     );
 
+    // Add immediate confirmation notification to user notifications
+    const newNotif = {
+      id: "notif-" + Date.now(),
+      userId: currentUser?.id,
+      title: "Class Spot Reserved",
+      message: `Your reservation in ${scheduleItem.classTitle} with coach ${scheduleItem.trainer} is confirmed (${newBookingData.date}).`,
+      type: "admin_response",
+      read: false,
+      createdAt: new Date().toISOString()
+    };
+    setUserNotifications((prev) => [newNotif, ...prev]);
+
     try {
-      const savedBooking = await api.createBooking(scheduleItem, {
+      const res = await api.createBooking(scheduleItem, {
         name: currentUser?.name,
         email: currentUser?.email
       });
-      return savedBooking || newBookingData;
+
+      const serverBooking = res?.data || res;
+      if (serverBooking?.id) {
+        setBookings((prev) => prev.map((b) => (b.id === tempId ? serverBooking : b)));
+        setAdminBookings((prev) => prev.map((b) => (b.id === tempId ? serverBooking : b)));
+      }
+
+      if (res?.updatedClass) {
+        setSchedule((prev) =>
+          prev.map((sc) => (sc.id === res.updatedClass.id ? { ...sc, spotsLeft: res.updatedClass.spotsLeft } : sc))
+        );
+      }
+
+      return serverBooking || newBookingData;
     } catch (err) {
       console.warn("Saved booking locally:", err.message);
       return newBookingData;
