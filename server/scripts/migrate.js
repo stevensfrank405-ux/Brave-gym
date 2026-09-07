@@ -23,7 +23,7 @@ async function runMigration() {
     console.log("   - consultations");
     console.log("   - notifications");
     console.log("   - membership_tiers");
-    console.log("   - transactions");
+    console.log("   - membership_orders");
     console.log("=========================================");
     process.exit(0);
   } else {

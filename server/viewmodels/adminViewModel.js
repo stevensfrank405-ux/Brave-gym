@@ -1,4 +1,4 @@
-import { TransactionModel } from "../models/Transaction.js";
+import { MembershipOrderModel } from "../models/MembershipOrder.js";
 import { UserModel } from "../models/User.js";
 import { BookingModel } from "../models/Booking.js";
 import { ClassModel } from "../models/Class.js";
@@ -6,7 +6,7 @@ import { WorkoutLogModel } from "../models/WorkoutLog.js";
 
 export class AdminViewModel {
   static async getStats() {
-    const transactions = await TransactionModel.findAll();
+    const transactions = await MembershipOrderModel.findAll();
     const users = await UserModel.findAll();
     const classes = await ClassModel.findAll();
     const bookings = await BookingModel.findAll();

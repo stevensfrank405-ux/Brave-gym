@@ -2,6 +2,7 @@ import { JsonStore } from "./JsonStore.js";
 import { db } from "../config/db.js";
 import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
+import { membershipOrderStore } from "./MembershipOrder.js";
 
 const defaultUsers = [
   {
@@ -249,9 +250,9 @@ export class UserModel {
       const bookings = bookingStore.findAll((b) => b.userId === id);
       for (const b of bookings) { bookingStore.delete(b.id); }
 
-      // Remove related transactions
-      const transactions = transactionStore.findAll((t) => t.userId === id);
-      for (const t of transactions) { transactionStore.delete(t.id); }
+      // Remove related membership_orders
+      const transactions = membershipOrderStore.findAll((t) => t.userId === id);
+      for (const t of transactions) { membershipOrderStore.delete(t.id); }
 
       // Remove related consultations
       const consultations = consultationStore.findAll((c) => c.userId === id);

@@ -105,7 +105,7 @@ export async function initPostgresTables() {
     CREATE INDEX IF NOT EXISTS idx_bookings_user_id ON bookings (user_id);
     CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings (status);
 
-    CREATE TABLE IF NOT EXISTS transactions (
+    CREATE TABLE IF NOT EXISTS membership_orders (
       id VARCHAR(50) PRIMARY KEY,
       user_id VARCHAR(50) REFERENCES users(id) ON DELETE CASCADE,
       member VARCHAR(255) NOT NULL,
@@ -116,8 +116,8 @@ export async function initPostgresTables() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 
-    CREATE INDEX IF NOT EXISTS idx_transactions_user_id ON transactions (user_id);
-    CREATE INDEX IF NOT EXISTS idx_transactions_status ON transactions (status);
+    CREATE INDEX IF NOT EXISTS idx_membership_orders_user_id ON membership_orders (user_id);
+    CREATE INDEX IF NOT EXISTS idx_membership_orders_status ON membership_orders (status);
 
     CREATE TABLE IF NOT EXISTS consultations (
       id VARCHAR(50) PRIMARY KEY,

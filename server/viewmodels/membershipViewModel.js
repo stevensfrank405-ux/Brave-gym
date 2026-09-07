@@ -1,5 +1,5 @@
 import { MembershipTierModel } from "../models/MembershipTier.js";
-import { TransactionModel } from "../models/Transaction.js";
+import { MembershipOrderModel } from "../models/MembershipOrder.js";
 import { UserModel } from "../models/User.js";
 import { NotificationModel } from "../models/Notification.js";
 
@@ -20,7 +20,7 @@ export class MembershipViewModel {
   }
 
   static async getOrders() {
-    const transactions = await TransactionModel.findAll();
+    const transactions = await MembershipOrderModel.findAll();
     return transactions;
   }
 
