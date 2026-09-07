@@ -636,7 +636,7 @@ export function GymProvider({ children }) {
       await api.deleteUser(userId);
       // Refresh admin data to pull updated stats, bookings, etc.
       if (currentUser?.role === "admin") {
-        await loadAdminData();
+        await loadRemoteData(currentUser.id, currentUser.role);
       }
       return true;
     } catch (err) {

@@ -179,13 +179,27 @@ export class UserModel {
     if (!id) return false;
     if (db.isConfigured()) {
       try {
+        await db.query("BEGIN");
+        
+        // Cascading deletes for all related data
+        await db.query("DELETE FROM bookings WHERE user_id = $1", [id]);
+        await db.query("DELETE FROM consultations WHERE user_id = $1", [id]);
+        await db.query("DELETE FROM membership_orders WHERE user_id = $1", [id]);
+        await db.query("DELETE FROM notifications WHERE user_id = $1", [id]);
+        await db.query("DELETE FROM workout_logs WHERE user_id = $1", [id]);
+
         const res = await db.query("DELETE FROM users WHERE id = $1 RETURNING id", [id]);
+        
         if (res.rows.length === 0) {
+          await db.query("ROLLBACK");
           console.warn(`User ${id} not found in PostgreSQL`);
           return false;
         }
+        
+        await db.query("COMMIT");
         return true;
       } catch (err) {
+        await db.query("ROLLBACK");
         console.error("PostgreSQL user delete error:", err.message);
         throw err;
       }
