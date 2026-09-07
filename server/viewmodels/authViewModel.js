@@ -44,13 +44,15 @@ export class AuthViewModel {
     const isAdmin = cleanEmail.includes("admin") || role === "admin";
     const userRole = isAdmin ? "admin" : (role || "user");
     const userTier = isAdmin ? "Staff Command" : (membership || "Brave Trial");
+    const userStatus = isAdmin ? "Active" : "Pending";
 
     const createdUser = await UserModel.create({
       name: name || (isAdmin ? "Admin Director" : cleanEmail.split("@")[0]),
       email: cleanEmail,
       password,
       role: userRole,
-      membership: userTier
+      membership: userTier,
+      status: userStatus
     });
 
     const token = this.generateToken(createdUser);

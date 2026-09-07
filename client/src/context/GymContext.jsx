@@ -159,20 +159,35 @@ export function GymProvider({ children }) {
     }
   }, [currentUser?.role]);
 
-  // Initial load
+  // Initial load & Polling for real-time updates
   useEffect(() => {
+    let pollingInterval;
+
     // Attempt auto-login if token exists
     const initAuth = async () => {
+      let activeUserId = currentUser?.id;
+      let activeUserRole = currentUser?.role;
+
       const user = await api.getCurrentUser().catch(() => null);
       if (user) {
         setCurrentUser(user);
         localStorage.setItem("brave_user", JSON.stringify(user));
-        loadRemoteData(user.id, user.role);
-      } else {
-        loadRemoteData(currentUser?.id, currentUser?.role);
+        activeUserId = user.id;
+        activeUserRole = user.role;
       }
+      
+      await loadRemoteData(activeUserId, activeUserRole);
+
+      // Start polling every 5 seconds for real-time chat and data updates
+      pollingInterval = setInterval(() => {
+        loadRemoteData(activeUserId, activeUserRole);
+      }, 5000);
     };
     initAuth();
+
+    return () => {
+      if (pollingInterval) clearInterval(pollingInterval);
+    };
   }, [loadRemoteData]);
 
   // ==========================================
@@ -399,6 +414,11 @@ export function GymProvider({ children }) {
   // ==========================================
 
   const addWorkoutLog = async (entry) => {
+    // 🛡️ Restrict logging if user membership is Pending
+    if (currentUser && currentUser.role !== "admin" && (currentUser.status === "Pending" || currentUser.status?.toLowerCase().includes("pending"))) {
+      throw new Error("Your membership is currently pending Admin verification. You cannot log workouts until your profile is active.");
+    }
+
     const newLog = { id: "log-" + Date.now(), ...entry };
     setWorkoutLogs((prev) => [newLog, ...prev]);
 
