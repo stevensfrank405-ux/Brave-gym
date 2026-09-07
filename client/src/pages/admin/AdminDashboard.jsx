@@ -243,7 +243,7 @@ export default function AdminDashboard() {
     { id: "orders", label: "Membership Orders", icon: ShieldCheck, badge: pendingOrdersCount, desc: "Verify Athlete Subscriptions" },
     { id: "athletes", label: "Athlete Monitoring", icon: UserCheck, badge: allUsersRoster?.length, desc: "Full Client Dossier Monitoring" },
     { id: "bookings", label: "Athlete Bookings", icon: Users, badge: adminBookings?.length, desc: "Reserved Spots Roster" },
-    { id: "requests", label: "Consultation Orders", icon: MessageSquare, badge: consultationRequests?.length, desc: "Athlete Intake Leads" },
+    { id: "requests", label: "Live Athlete Chats", icon: MessageSquare, badge: consultationRequests?.length, desc: "Real-Time Direct Negotiations" },
     { id: "schedule", label: "Timetable & Classes", icon: Calendar, desc: "Arena Scheduling" },
     { id: "finances", label: "Finances & Spatial", icon: DollarSign, desc: "Revenue & Zone Share" },
     { id: "tiers", label: "Membership Tiers", icon: Flame, desc: "Manage & Create Tiers" }
@@ -1145,94 +1145,136 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Tab Content: Consultation Requests & Orders */}
+        {/* Tab Content: Live Athlete Chats & Real-Time Negotiation */}
         {(activeTab === "overview" || activeTab === "requests") && (
           <div className="space-y-6 pt-4">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-white/10">
               <div className="space-y-1">
-                <span className="text-xs font-mono uppercase tracking-widest text-[#8C8C8C] block">
-                  Athletic Inquiries & Leads
+                <span className="text-xs font-mono uppercase tracking-widest text-amber-400 block">
+                  Direct Two-Way Communication
                 </span>
                 <div className="flex flex-wrap items-center gap-3">
                   <h2 className="font-display text-2xl font-bold text-white uppercase">
-                    Consultation Orders & Intake Requests
+                    Live Athlete Chats & Support
                   </h2>
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-amber-400 text-black shadow-sm">
-                    {consultationRequests?.length || 0} Total
+                    {consultationRequests?.length || 0} Active Threads
                   </span>
                 </div>
               </div>
               <p className="text-xs text-[#8C8C8C] max-w-sm">
-                Review athlete intake requirements, address, contact numbers, and AI chatbot conversation logs.
+                Real-time negotiation and direct assistance for athlete membership payments, training questions, and customized plans.
               </p>
             </div>
 
             <div className="bg-[#141414] border border-white/10 rounded-sm divide-y divide-white/10">
               {consultationRequests && consultationRequests.length > 0 ? (
-                consultationRequests.map((req) => (
-                  <div
-                    key={req.id}
-                    className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-white/[0.02] transition-colors"
-                  >
-                    <div className="space-y-1">
-                      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                        <h4 className="font-display text-base sm:text-lg font-bold text-white uppercase">
-                          {req.userName}
-                        </h4>
-                        <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded border border-white/15 bg-white/5 text-white/80">
-                          Coach: {req.trainerName}
-                        </span>
-                        <span className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded font-bold ${
-                          req.status === "Pending"
-                            ? "bg-amber-400/20 text-amber-300 border border-amber-400/30"
-                            : req.status === "Contacted"
-                            ? "bg-blue-500/20 text-blue-300 border border-blue-500/30"
-                            : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
-                        }`}>
-                          {req.status}
-                        </span>
+                consultationRequests.map((req) => {
+                  const athleteUser = (allUsersRoster || []).find(
+                    (u) => u.id === req.userId || u.name?.toLowerCase() === (req.userName || req.name)?.toLowerCase()
+                  );
+                  const matchingOrder = (adminStats?.recentTransactions || []).find(
+                    (tx) => tx.userId === req.userId || tx.member?.toLowerCase() === (req.userName || req.name)?.toLowerCase()
+                  );
+                  const msgCount = (req.chatMessages || req.chatHistory || []).length;
+                  const latestMsg = (req.chatMessages || req.chatHistory || [])[msgCount - 1];
+
+                  return (
+                    <div
+                      key={req.id}
+                      className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-white/[0.02] transition-colors"
+                    >
+                      <div className="space-y-2 max-w-xl">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                          <div className="w-8 h-8 rounded-full bg-amber-400/20 text-amber-400 flex items-center justify-center font-bold text-xs uppercase border border-amber-400/30">
+                            {(req.userName || req.name || "A")[0]}
+                          </div>
+                          <h4 className="font-display text-base sm:text-lg font-bold text-white uppercase">
+                            {req.userName || req.name || "Athlete"}
+                          </h4>
+                          {athleteUser?.email && (
+                            <span className="text-xs font-mono text-[#8C8C8C]">
+                              {athleteUser.email}
+                            </span>
+                          )}
+                          <span className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded font-bold ${
+                            req.status === "Pending"
+                              ? "bg-amber-400/20 text-amber-300 border border-amber-400/30"
+                              : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                          }`}>
+                            {req.status || "Active"}
+                          </span>
+                        </div>
+
+                        {latestMsg ? (
+                          <div className="text-xs bg-[#1A1A1A] p-2.5 rounded border border-white/10 text-white/90">
+                            <span className="text-[10px] font-mono uppercase text-[#8C8C8C] block mb-0.5">
+                              Latest Message ({latestMsg.sender === "admin" ? "Director HQ" : "Athlete"}):
+                            </span>
+                            <p className="line-clamp-1 italic">"{latestMsg.text}"</p>
+                          </div>
+                        ) : (
+                          <div className="text-xs text-[#8C8C8C] italic">
+                            No messages exchanged yet in this thread.
+                          </div>
+                        )}
+
+                        <div className="flex flex-wrap items-center gap-3 text-xs text-[#8C8C8C] font-mono">
+                          <span>Channel: {req.serviceType || "Membership Discussion"}</span>
+                          <span>•</span>
+                          <span>{msgCount} {msgCount === 1 ? "Message" : "Messages"}</span>
+                          {matchingOrder && (
+                            <>
+                              <span>•</span>
+                              <span className="text-amber-400">Order: {matchingOrder.plan} ({matchingOrder.status})</span>
+                            </>
+                          )}
+                        </div>
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-4 text-xs text-[#8C8C8C]">
-                        <span>📞 {req.phone}</span>
-                        <span>•</span>
-                        <span>📍 {req.address}</span>
-                        <span>•</span>
-                        <span className="text-white/70">🎯 {req.serviceType}</span>
+                      <div className="flex items-center gap-3 self-end md:self-auto shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedOrder(matchingOrder || null);
+                            setActiveNegotiationThread(req);
+                          }}
+                          className="px-4 py-2 bg-amber-400 hover:bg-amber-300 text-black font-bold text-xs uppercase tracking-wider rounded transition-colors flex items-center gap-2 shadow"
+                        >
+                          <MessageSquare className="w-3.5 h-3.5" />
+                          <span>Open Live Chat</span>
+                        </button>
+
+                        {athleteUser && (
+                          <button
+                            type="button"
+                            onClick={() => setSelectedDossierAthlete(athleteUser)}
+                            className="px-3.5 py-2 bg-white/5 hover:bg-white/10 text-white/90 border border-white/10 rounded text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 transition-colors"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>Dossier</span>
+                          </button>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => removeConsultationRequest(req.id)}
+                          className="p-2 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded transition-colors"
+                          title="Close/Delete Chat Thread"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
-
-                    <div className="flex items-center gap-3 self-end md:self-auto">
-                      <select
-                        value={req.status}
-                        onChange={(e) => updateConsultationStatus(req.id, e.target.value)}
-                        className="px-3 py-1.5 bg-[#1F1F1F] border border-white/15 rounded text-xs font-mono text-white focus:outline-none"
-                      >
-                        <option value="Pending">Pending</option>
-                        <option value="Contacted">Contacted User</option>
-                        <option value="Approved">Approved & Scheduled</option>
-                      </select>
-
-                      <button
-                        onClick={() => setInspectRequest(req)}
-                        className="px-3.5 py-1.5 bg-white text-black font-semibold text-xs uppercase tracking-wider rounded hover:bg-[#F5F5F3] transition-colors"
-                      >
-                        Inspect Dossier
-                      </button>
-
-                      <button
-                        onClick={() => removeConsultationRequest(req.id)}
-                        className="p-1.5 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded transition-colors"
-                        title="Delete consultation record"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               ) : (
-                <div className="p-8 text-center text-xs text-[#8C8C8C]">
-                  No consultation requests currently pending.
+                <div className="p-12 text-center text-xs text-[#8C8C8C] space-y-2">
+                  <MessageSquare className="w-8 h-8 mx-auto text-[#8C8C8C]/40" />
+                  <p className="text-white/80 font-semibold">No Active Chat Threads</p>
+                  <p className="text-[11px] max-w-sm mx-auto">
+                    When athletes start a negotiation from their dashboard or inquire regarding a membership order, their real-time channel will appear here instantly.
+                  </p>
                 </div>
               )}
             </div>
