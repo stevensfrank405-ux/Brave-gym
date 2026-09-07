@@ -225,11 +225,21 @@ export default function Programs() {
 
           <div className="bg-[#141414] border border-white/10 rounded-sm divide-y divide-white/10 overflow-x-auto">
             {schedule.map((sc) => {
-              const isAlreadyBooked = (bookings || []).some(
-                (b) =>
-                  b.classTitle?.toLowerCase() === sc.classTitle?.toLowerCase() &&
-                  b.date?.toLowerCase().includes(sc.day.toLowerCase())
-              );
+              const isAlreadyBooked = (bookings || []).some((b) => {
+                if (b.classTitle?.toLowerCase() !== sc.classTitle?.toLowerCase()) return false;
+                
+                // Fallback for older formats ("Monday, 09:00 AM")
+                if (b.date?.toLowerCase().includes(sc.day.toLowerCase())) return true;
+                
+                // For new formats ("2023-11-20 09:00")
+                const parsedDate = new Date(b.date);
+                if (!isNaN(parsedDate)) {
+                  const weekday = parsedDate.toLocaleDateString('en-US', { weekday: 'long' });
+                  return weekday.toLowerCase() === sc.day.toLowerCase();
+                }
+                
+                return false;
+              });
 
               return (
                 <div
