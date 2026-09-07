@@ -232,6 +232,9 @@ export default function Programs() {
                 // Fallback for older formats ("Monday, 09:00 AM")
                 if (sc.day && b.date?.toLowerCase().includes(sc.day.toLowerCase())) return true;
                 
+                // Also check if time is explicitly in the date (since date picker formattedDate includes time)
+                if (sc.time && b.date?.toLowerCase().includes(sc.time.toLowerCase())) return true;
+                
                 // For new formats ("2023-11-20 09:00")
                 const parsedDate = new Date(b.date);
                 if (!isNaN(parsedDate) && sc.day) {

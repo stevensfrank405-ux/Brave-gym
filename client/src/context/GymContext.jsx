@@ -200,7 +200,9 @@ export function GymProvider({ children }) {
         if (booking.userId === activeUserId) {
           setBookings((prev) => {
             if (prev.some(b => b.id === booking.id)) return prev;
-            return [booking, ...prev];
+            // Remove optimistic temp booking if it matches the new real booking
+            const filtered = prev.filter(b => !(b.id.startsWith("bk-") && b.classTitle === booking.classTitle && b.date === booking.date));
+            return [booking, ...filtered];
           });
         }
         if (activeUserRole === "admin") {
@@ -217,9 +219,9 @@ export function GymProvider({ children }) {
       });
 
       socket.on("bookingUpdated", (updatedBooking) => {
-        if (updatedBooking.userId === activeUserId) {
-          setBookings((prev) => prev.map((b) => (b.id === updatedBooking.id ? updatedBooking : b)));
-        }
+        // Remove strict userId === activeUserId check because prev.map already safely maps by b.id
+        setBookings((prev) => prev.map((b) => (b.id === updatedBooking.id ? updatedBooking : b)));
+        
         if (activeUserRole === "admin") {
           setAdminBookings((prev) => prev.map((b) => (b.id === updatedBooking.id ? updatedBooking : b)));
         }
@@ -228,6 +230,13 @@ export function GymProvider({ children }) {
       socket.on("bookingDeleted", ({ id }) => {
         setBookings((prev) => prev.filter((b) => b.id !== id));
         setAdminBookings((prev) => prev.filter((b) => b.id !== id));
+      });
+
+      socket.on("refreshNotifications", async ({ userId }) => {
+        if (userId === activeUserId) {
+          const myNotifs = await api.getNotifications(activeUserId).catch(() => []);
+          setUserNotifications(myNotifs);
+        }
       });
     };
     initAuth();

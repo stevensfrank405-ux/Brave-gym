@@ -48,6 +48,7 @@ export class BookingController {
       const io = req.app.get("io");
       if (io) {
         io.emit("bookingUpdated", updatedBooking);
+        io.emit("refreshNotifications", { userId: updatedBooking.userId });
       }
       
       return res.status(200).json({ success: true, data: updatedBooking });
