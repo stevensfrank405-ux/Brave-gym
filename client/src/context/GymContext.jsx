@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { INITIAL_PROGRAMS, INITIAL_TRAINERS, INITIAL_MEMBERSHIPS, INITIAL_SCHEDULE } from "../lib/mockData";
 import { api, SERVER_BASE_URL } from "../services/api";
+import { io } from "socket.io-client";
 
 const GymContext = createContext(null);
 
@@ -159,9 +160,9 @@ export function GymProvider({ children }) {
     }
   }, [currentUser?.role]);
 
-  // Initial load & Polling for real-time updates
+  // Initial load & WebSocket for real-time updates
   useEffect(() => {
-    let pollingInterval;
+    let socket;
 
     // Attempt auto-login if token exists
     const initAuth = async () => {
@@ -178,15 +179,29 @@ export function GymProvider({ children }) {
       
       await loadRemoteData(activeUserId, activeUserRole);
 
-      // Start polling every 5 seconds for real-time chat and data updates
-      pollingInterval = setInterval(() => {
-        loadRemoteData(activeUserId, activeUserRole);
-      }, 5000);
+      // Initialize WebSocket connection
+      socket = io(SERVER_BASE_URL);
+      
+      socket.on("connect", () => {
+        console.log("[Socket] Connected for real-time updates");
+      });
+
+      socket.on("consultationUpdated", (updatedConsultation) => {
+        setConsultationRequests((prev) => {
+          const exists = prev.some((c) => c.id === updatedConsultation.id);
+          if (exists) {
+            return prev.map((c) => (c.id === updatedConsultation.id ? updatedConsultation : c));
+          }
+          return [updatedConsultation, ...prev];
+        });
+      });
     };
     initAuth();
 
     return () => {
-      if (pollingInterval) clearInterval(pollingInterval);
+      if (socket) {
+        socket.disconnect();
+      }
     };
   }, [loadRemoteData]);
 

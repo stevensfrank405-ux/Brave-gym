@@ -43,6 +43,13 @@ export class ConsultationController {
         userId: req.user?.id || userId,
         userName: req.user?.name || userName
       });
+
+      // Broadcast real-time update via Socket.io
+      const io = req.app.get("io");
+      if (io) {
+        io.emit("consultationUpdated", updated);
+      }
+
       return res.status(200).json({ success: !!updated, data: updated });
     } catch (err) {
       return res.status(400).json({ success: false, message: err.message });

@@ -5,11 +5,30 @@ import { fileURLToPath } from "url";
 import { config } from "./config/config.js";
 import routes from "./routes/index.js";
 import { errorHandler } from "./middleware/errorHandler.js";
+import { createServer } from "http";
+import { Server } from "socket.io";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    credentials: true
+  }
+});
+
+app.set("io", io);
+
+io.on("connection", (socket) => {
+  console.log(`[Socket] Client connected: ${socket.id}`);
+  socket.on("disconnect", () => {
+    console.log(`[Socket] Client disconnected: ${socket.id}`);
+  });
+});
 
 // Middlewares
 app.use(cors({
@@ -31,7 +50,7 @@ app.use(errorHandler);
 import { db, initPostgresTables } from "./config/db.js";
 
 // Start server
-app.listen(config.port, async () => {
+httpServer.listen(config.port, async () => {
   console.log(`=========================================`);
   console.log(`🥊 Brave Gym MVVM Node.js Server Running`);
   console.log(`📡 Port: http://localhost:${config.port}`);
