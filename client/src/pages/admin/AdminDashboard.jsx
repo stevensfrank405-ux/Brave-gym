@@ -1285,11 +1285,11 @@ export default function AdminDashboard() {
                             </span>
                           )}
                           <span className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded font-bold ${
-                            req.status === "Pending"
+                            (athleteUser?.status || req.status) === "Pending"
                               ? "bg-amber-400/20 text-amber-300 border border-amber-400/30"
                               : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
                           }`}>
-                            {req.status || "Active"}
+                            {athleteUser?.status || req.status || "Active"}
                           </span>
                         </div>
 
@@ -1326,30 +1326,30 @@ export default function AdminDashboard() {
                             setSelectedOrder(matchingOrder || null);
                             setActiveNegotiationThread(req);
                           }}
-                          className="px-4 py-2 bg-amber-400 hover:bg-amber-300 text-black font-bold text-xs uppercase tracking-wider rounded transition-colors flex items-center gap-2 shadow"
+                          className="px-3 py-2 bg-amber-400 hover:bg-amber-300 text-black font-bold text-xs uppercase rounded transition-colors flex items-center justify-center shadow"
+                          title="Open Live Chat"
                         >
-                          <MessageSquare className="w-3.5 h-3.5" />
-                          <span>Open Live Chat</span>
+                          <MessageSquare className="w-4 h-4" />
                         </button>
 
                         {athleteUser && (
                           <button
                             type="button"
                             onClick={() => setSelectedDossierAthlete(athleteUser)}
-                            className="px-3.5 py-2 bg-white/5 hover:bg-white/10 text-white/90 border border-white/10 rounded text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 transition-colors"
+                            className="px-3 py-2 bg-white/5 hover:bg-white/10 text-white/90 border border-white/10 rounded flex items-center justify-center transition-colors"
+                            title="Dossier"
                           >
-                            <Eye className="w-3.5 h-3.5" />
-                            <span>Dossier</span>
+                            <Eye className="w-4 h-4" />
                           </button>
                         )}
 
                         <button
                           type="button"
                           onClick={() => removeConsultationRequest(req.id)}
-                          className="p-2 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded transition-colors"
-                          title="Close/Delete Chat Thread"
+                          className="px-3 py-2 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded font-mono text-[10px] uppercase font-bold transition-colors"
+                          title="Delete Chat Thread"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          Delete
                         </button>
                       </div>
                     </div>
