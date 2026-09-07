@@ -63,7 +63,13 @@ export function GymProvider({ children }) {
   // Real-time notifications
   const [userNotifications, setUserNotifications] = useState(() => {
     const saved = localStorage.getItem("brave_notifications");
-    return saved ? JSON.parse(saved) : [];
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      } catch { /* corrupted localStorage */ }
+    }
+    return [];
   });
 
   // Sync to local cache as fallback
@@ -246,7 +252,7 @@ export function GymProvider({ children }) {
       socket.on("refreshNotifications", async ({ userId }) => {
         if (userId === currentUserRef.current?.id) {
           const myNotifs = await api.getNotifications(userId).catch(() => []);
-          setUserNotifications(myNotifs);
+          if (Array.isArray(myNotifs)) setUserNotifications(myNotifs);
         }
       });
     };
@@ -346,7 +352,7 @@ export function GymProvider({ children }) {
       read: false,
       createdAt: new Date().toISOString()
     };
-    setUserNotifications((prev) => [newNotif, ...prev]);
+    setUserNotifications((prev) => [newNotif, ...(Array.isArray(prev) ? prev : [])]);
 
     try {
       const res = await api.createBooking(newBookingData, {

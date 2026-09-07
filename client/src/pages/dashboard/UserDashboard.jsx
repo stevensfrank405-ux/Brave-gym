@@ -185,7 +185,7 @@ export default function UserDashboard() {
     };
   });
 
-  const unreadCount = userNotifications?.filter((n) => !n.read).length || 0;
+  const unreadCount = (Array.isArray(userNotifications) ? userNotifications : []).filter((n) => !n.read).length || 0;
 
   return (
     <div className="pt-24 sm:pt-28 pb-32 bg-[#0D0D0D] min-h-screen px-4 sm:px-6">
