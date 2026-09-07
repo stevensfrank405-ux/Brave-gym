@@ -1,4 +1,3 @@
-import { JsonStore } from "./JsonStore.js";
 import { db } from "../config/db.js";
 import { v4 as uuidv4 } from "uuid";
 
@@ -14,8 +13,6 @@ const defaultClasses = [
   { id: "sc-9", day: "Friday", time: "05:30 PM", classTitle: "Friday Night Sparring & Conditioning", trainer: "Marcus Vance", spotsLeft: 6, total: 16 },
   { id: "sc-10", day: "Saturday", time: "09:00 AM", classTitle: "Brave Community Combine", trainer: "All Coaches", spotsLeft: 8, total: 30 }
 ];
-
-export const classStore = new JsonStore("classes", defaultClasses);
 
 function mapPgRowToClass(r) {
   if (!r) return null;
@@ -49,11 +46,14 @@ export class ClassModel {
         }
         const seeded = await db.query("SELECT * FROM classes ORDER BY id ASC");
         if (seeded && seeded.rows) return seeded.rows.map(mapPgRowToClass);
+        return [];
       } catch (err) {
-        console.warn("PostgreSQL classes findAll error, fallback to local:", err.message);
+        console.error("PostgreSQL classes findAll error:", err.message);
+        throw err;
       }
+    } else {
+      throw new Error("Database is not configured.");
     }
-    return classStore.findAll();
   }
 
   static async findById(id) {
@@ -63,11 +63,14 @@ export class ClassModel {
         if (res && res.rows && res.rows.length > 0) {
           return mapPgRowToClass(res.rows[0]);
         }
+        return null;
       } catch (err) {
-        console.warn("PostgreSQL classes findById error:", err.message);
+        console.error("PostgreSQL classes findById error:", err.message);
+        throw err;
       }
+    } else {
+      throw new Error("Database is not configured.");
     }
-    return classStore.findById(id);
   }
 
   static async create(data) {
@@ -89,13 +92,14 @@ export class ClassModel {
            VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
           [newClass.id, newClass.day, newClass.time, newClass.classTitle, newClass.trainer, newClass.spotsLeft, newClass.total]
         );
+        return newClass;
       } catch (err) {
         console.error("PostgreSQL class insert error:", err.message);
+        throw err;
       }
+    } else {
+      throw new Error("Database is not configured.");
     }
-
-    classStore.insert(newClass);
-    return newClass;
   }
 
   static async update(id, updates) {
@@ -104,22 +108,28 @@ export class ClassModel {
         if (updates.spotsLeft !== undefined) {
           await db.query("UPDATE classes SET spots_left = $1 WHERE id = $2", [updates.spotsLeft, id]);
         }
+        return await this.findById(id);
       } catch (err) {
-        console.warn("PostgreSQL class update error:", err.message);
+        console.error("PostgreSQL class update error:", err.message);
+        throw err;
       }
+    } else {
+      throw new Error("Database is not configured.");
     }
-    return classStore.update(id, updates);
   }
 
   static async delete(id) {
     if (db.isConfigured()) {
       try {
         await db.query("DELETE FROM classes WHERE id = $1", [id]);
+        return true;
       } catch (err) {
-        console.warn("PostgreSQL class delete error:", err.message);
+        console.error("PostgreSQL class delete error:", err.message);
+        throw err;
       }
+    } else {
+      throw new Error("Database is not configured.");
     }
-    return classStore.delete(id);
   }
 
   static async decrementSpots(id) {

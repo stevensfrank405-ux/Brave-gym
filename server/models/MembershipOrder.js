@@ -1,10 +1,5 @@
-import { JsonStore } from "./JsonStore.js";
 import { db } from "../config/db.js";
 import { v4 as uuidv4 } from "uuid";
-
-const defaultMembershipOrders = [];
-
-export const membershipOrderStore = new JsonStore("membership_orders", defaultMembershipOrders);
 
 function mapPgRowToTx(r) {
   if (!r) return null;
@@ -28,11 +23,14 @@ export class MembershipOrderModel {
         if (res.rows.length > 0) {
           return res.rows.map(mapPgRowToTx);
         }
+        return [];
       } catch (err) {
-        console.warn("PostgreSQL membership_orders findAll error, falling back to local:", err.message);
+        console.error("PostgreSQL membership_orders findAll error:", err.message);
+        throw err;
       }
+    } else {
+      throw new Error("Database is not configured.");
     }
-    return membershipOrderStore.findAll();
   }
 
   static async findById(id) {
@@ -42,11 +40,14 @@ export class MembershipOrderModel {
         if (res.rows.length > 0) {
           return mapPgRowToTx(res.rows[0]);
         }
+        return null;
       } catch (err) {
-        console.warn("PostgreSQL membership_orders findById error:", err.message);
+        console.error("PostgreSQL membership_orders findById error:", err.message);
+        throw err;
       }
+    } else {
+      throw new Error("Database is not configured.");
     }
-    return membershipOrderStore.findById(id);
   }
 
   static async create(data) {
@@ -68,23 +69,27 @@ export class MembershipOrderModel {
            VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
           [newTx.id, newTx.userId, newTx.member, newTx.plan, newTx.amount, newTx.status, newTx.date]
         );
+        return newTx;
       } catch (err) {
         console.error("PostgreSQL membership_orders insert error:", err.message);
+        throw err;
       }
+    } else {
+      throw new Error("Database is not configured.");
     }
-
-    membershipOrderStore.insert(newTx);
-    return newTx;
   }
 
   static async updateStatus(id, status) {
     if (db.isConfigured()) {
       try {
         await db.query("UPDATE membership_orders SET status = $1 WHERE id = $2", [status, id]);
+        return await this.findById(id);
       } catch (err) {
         console.error("PostgreSQL membership_orders update error:", err.message);
+        throw err;
       }
+    } else {
+      throw new Error("Database is not configured.");
     }
-    return membershipOrderStore.update(id, { status });
   }
 }

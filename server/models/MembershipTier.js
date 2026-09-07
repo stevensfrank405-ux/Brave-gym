@@ -1,4 +1,3 @@
-import { JsonStore } from "./JsonStore.js";
 import { db } from "../config/db.js";
 import { v4 as uuidv4 } from "uuid";
 
@@ -58,8 +57,6 @@ const defaultTiers = [
   }
 ];
 
-export const tierStore = new JsonStore("membership_tiers", defaultTiers);
-
 function mapPgRowToTier(r) {
   if (!r) return null;
   let parsedFeatures = [];
@@ -94,11 +91,28 @@ export class MembershipTierModel {
         if (res && res.rows && res.rows.length > 0) {
           return res.rows.map(mapPgRowToTier);
         }
+        
+        // If DB table is empty, seed defaults into PostgreSQL
+        for (const tier of defaultTiers) {
+          await db.query(
+            `INSERT INTO membership_tiers (id, name, price, interval, billing, description, features, popular, cta, created_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW()) ON CONFLICT (id) DO NOTHING`,
+            [
+              tier.id, tier.name, tier.price, tier.interval, tier.billing,
+              tier.description, JSON.stringify(tier.features), tier.popular, tier.cta
+            ]
+          );
+        }
+        const seeded = await db.query("SELECT * FROM membership_tiers ORDER BY price ASC");
+        if (seeded && seeded.rows) return seeded.rows.map(mapPgRowToTier);
+        return [];
       } catch (err) {
-        console.warn("PostgreSQL membership_tiers findAll error, falling back to local:", err.message);
+        console.error("PostgreSQL membership_tiers findAll error:", err.message);
+        throw err;
       }
+    } else {
+      throw new Error("Database is not configured.");
     }
-    return tierStore.findAll();
   }
 
   static async findById(id) {
@@ -108,11 +122,14 @@ export class MembershipTierModel {
         if (res && res.rows && res.rows.length > 0) {
           return mapPgRowToTier(res.rows[0]);
         }
+        return null;
       } catch (err) {
-        console.warn("PostgreSQL membership_tiers findById error:", err.message);
+        console.error("PostgreSQL membership_tiers findById error:", err.message);
+        throw err;
       }
+    } else {
+      throw new Error("Database is not configured.");
     }
-    return tierStore.findById(id);
   }
 
   static async create(data) {
@@ -135,34 +152,31 @@ export class MembershipTierModel {
           `INSERT INTO membership_tiers (id, name, price, interval, billing, description, features, popular, cta, created_at)
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())`,
           [
-            newTier.id,
-            newTier.name,
-            newTier.price,
-            newTier.interval,
-            newTier.billing,
-            newTier.description,
-            JSON.stringify(newTier.features),
-            newTier.popular,
-            newTier.cta
+            newTier.id, newTier.name, newTier.price, newTier.interval, newTier.billing,
+            newTier.description, JSON.stringify(newTier.features), newTier.popular, newTier.cta
           ]
         );
+        return newTier;
       } catch (err) {
         console.error("PostgreSQL membership_tiers insert error:", err.message);
+        throw err;
       }
+    } else {
+      throw new Error("Database is not configured.");
     }
-
-    tierStore.insert(newTier);
-    return newTier;
   }
 
   static async delete(id) {
     if (db.isConfigured()) {
       try {
         await db.query("DELETE FROM membership_tiers WHERE id = $1", [id]);
+        return true;
       } catch (err) {
-        console.warn("PostgreSQL membership_tiers delete error:", err.message);
+        console.error("PostgreSQL membership_tiers delete error:", err.message);
+        throw err;
       }
+    } else {
+      throw new Error("Database is not configured.");
     }
-    return tierStore.delete(id);
   }
 }

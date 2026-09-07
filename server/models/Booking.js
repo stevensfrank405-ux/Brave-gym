@@ -1,10 +1,5 @@
-import { JsonStore } from "./JsonStore.js";
 import { db } from "../config/db.js";
 import { v4 as uuidv4 } from "uuid";
-
-const defaultBookings = [];
-
-export const bookingStore = new JsonStore("bookings", defaultBookings);
 
 function mapPgRowToBooking(r) {
   if (!r) return null;
@@ -23,22 +18,25 @@ function mapPgRowToBooking(r) {
 }
 
 export class BookingModel {
-  static async findAll(predicate) {
+  static async findAll() {
     if (db.isConfigured()) {
       try {
         const res = await db.query("SELECT * FROM bookings ORDER BY created_at DESC");
         if (res && res.rows) {
-          const mapped = res.rows.map(mapPgRowToBooking);
-          return predicate ? mapped.filter(predicate) : mapped;
+          return res.rows.map(mapPgRowToBooking);
         }
       } catch (err) {
-        console.warn("PostgreSQL bookings findAll error, falling back to local:", err.message);
+        console.error("PostgreSQL bookings findAll error:", err.message);
+        throw err;
       }
+    } else {
+      throw new Error("Database is not configured.");
     }
-    return bookingStore.findAll(predicate);
+    return [];
   }
 
   static async findById(id) {
+    if (!id) return null;
     if (db.isConfigured()) {
       try {
         const res = await db.query("SELECT * FROM bookings WHERE id = $1 LIMIT 1", [id]);
@@ -46,13 +44,17 @@ export class BookingModel {
           return mapPgRowToBooking(res.rows[0]);
         }
       } catch (err) {
-        console.warn("PostgreSQL bookings findById error:", err.message);
+        console.error("PostgreSQL bookings findById error:", err.message);
+        throw err;
       }
+    } else {
+      throw new Error("Database is not configured.");
     }
-    return bookingStore.findById(id);
+    return null;
   }
 
   static async findByUserId(userId) {
+    if (!userId) return [];
     if (db.isConfigured()) {
       try {
         const res = await db.query("SELECT * FROM bookings WHERE user_id = $1 ORDER BY created_at DESC", [userId]);
@@ -60,10 +62,13 @@ export class BookingModel {
           return res.rows.map(mapPgRowToBooking);
         }
       } catch (err) {
-        console.warn("PostgreSQL bookings findByUserId error:", err.message);
+        console.error("PostgreSQL bookings findByUserId error:", err.message);
+        throw err;
       }
+    } else {
+      throw new Error("Database is not configured.");
     }
-    return bookingStore.findAll((b) => String(b.userId) === String(userId));
+    return [];
   }
 
   static async create(data) {
@@ -97,23 +102,28 @@ export class BookingModel {
             newBooking.status
           ]
         );
+        return newBooking;
       } catch (err) {
         console.error("PostgreSQL booking insert error:", err.message);
+        throw err;
       }
+    } else {
+      throw new Error("Database is not configured.");
     }
-
-    bookingStore.insert(newBooking);
-    return newBooking;
   }
 
   static async delete(id) {
+    if (!id) return false;
     if (db.isConfigured()) {
       try {
         await db.query("DELETE FROM bookings WHERE id = $1", [id]);
+        return true;
       } catch (err) {
-        console.warn("PostgreSQL booking delete error:", err.message);
+        console.error("PostgreSQL booking delete error:", err.message);
+        throw err;
       }
+    } else {
+      throw new Error("Database is not configured.");
     }
-    return bookingStore.delete(id);
   }
 }

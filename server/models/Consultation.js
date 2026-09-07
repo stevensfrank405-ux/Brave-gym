@@ -1,10 +1,5 @@
-import { JsonStore } from "./JsonStore.js";
 import { db } from "../config/db.js";
 import { v4 as uuidv4 } from "uuid";
-
-const defaultConsultations = [];
-
-export const consultationStore = new JsonStore("consultations", defaultConsultations);
 
 function mapPgRowToConsultation(r) {
   if (!r) return null;
@@ -43,15 +38,14 @@ export class ConsultationModel {
         if (res.rows.length > 0) {
           return res.rows.map(mapPgRowToConsultation);
         }
+        return [];
       } catch (err) {
-        console.warn("PostgreSQL consultations findAll error:", err.message);
+        console.error("PostgreSQL consultations findAll error:", err.message);
+        throw err;
       }
+    } else {
+      throw new Error("Database is not configured.");
     }
-    return consultationStore.findAll().map(c => ({
-      ...c,
-      chatMessages: c.chatMessages || c.chatHistory || [],
-      chatHistory: c.chatMessages || c.chatHistory || []
-    }));
   }
 
   static async findById(id) {
@@ -61,35 +55,32 @@ export class ConsultationModel {
         if (res.rows.length > 0) {
           return mapPgRowToConsultation(res.rows[0]);
         }
+        return null;
       } catch (err) {
-        console.warn("PostgreSQL consultations findById error:", err.message);
+        console.error("PostgreSQL consultations findById error:", err.message);
+        throw err;
       }
+    } else {
+      throw new Error("Database is not configured.");
     }
-    const local = consultationStore.findById(id);
-    if (!local) return null;
-    return {
-      ...local,
-      chatMessages: local.chatMessages || local.chatHistory || [],
-      chatHistory: local.chatMessages || local.chatHistory || []
-    };
   }
 
   static async findByUserId(userId) {
-    if (db.isConfigured() && userId) {
+    if (!userId) return [];
+    if (db.isConfigured()) {
       try {
         const res = await db.query("SELECT * FROM consultations WHERE user_id = $1 ORDER BY created_at DESC", [userId]);
         if (res.rows.length > 0) {
           return res.rows.map(mapPgRowToConsultation);
         }
+        return [];
       } catch (err) {
-        console.warn("PostgreSQL consultations findByUserId error:", err.message);
+        console.error("PostgreSQL consultations findByUserId error:", err.message);
+        throw err;
       }
+    } else {
+      throw new Error("Database is not configured.");
     }
-    return consultationStore.findAll((c) => String(c.userId) === String(userId)).map(c => ({
-      ...c,
-      chatMessages: c.chatMessages || c.chatHistory || [],
-      chatHistory: c.chatMessages || c.chatHistory || []
-    }));
   }
 
   static async create(data) {
@@ -104,7 +95,6 @@ export class ConsultationModel {
       serviceType: data.serviceType || "Membership Negotiation",
       customRequirements: data.customRequirements || "",
       chatMessages: data.chatMessages || data.chatHistory || [],
-      chatHistory: data.chatMessages || data.chatHistory || [],
       status: data.status || "Pending",
       createdAt: new Date().toISOString()
     };
@@ -117,37 +107,33 @@ export class ConsultationModel {
             service_type, custom_requirements, chat_messages, status, created_at
           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())`,
           [
-            newReq.id,
-            newReq.userId,
-            newReq.trainerId,
-            newReq.trainerName,
-            newReq.userName,
-            newReq.phone,
-            newReq.address,
-            newReq.serviceType,
-            newReq.customRequirements,
-            JSON.stringify(newReq.chatMessages),
-            newReq.status
+            newReq.id, newReq.userId, newReq.trainerId, newReq.trainerName,
+            newReq.userName, newReq.phone, newReq.address, newReq.serviceType,
+            newReq.customRequirements, JSON.stringify(newReq.chatMessages), newReq.status
           ]
         );
+        return newReq;
       } catch (err) {
         console.error("PostgreSQL consultation insert error:", err.message);
+        throw err;
       }
+    } else {
+      throw new Error("Database is not configured.");
     }
-
-    consultationStore.insert(newReq);
-    return newReq;
   }
 
   static async updateStatus(id, status) {
     if (db.isConfigured()) {
       try {
         await db.query("UPDATE consultations SET status = $1 WHERE id = $2", [status, id]);
+        return await this.findById(id);
       } catch (err) {
         console.error("PostgreSQL consultation updateStatus error:", err.message);
+        throw err;
       }
+    } else {
+      throw new Error("Database is not configured.");
     }
-    return consultationStore.update(id, { status });
   }
 
   static async addMessage(id, message) {
@@ -184,9 +170,7 @@ export class ConsultationModel {
       };
     }
 
-    const messages = Array.isArray(current.chatMessages) 
-      ? [...current.chatMessages] 
-      : (Array.isArray(current.chatHistory) ? [...current.chatHistory] : []);
+    const messages = Array.isArray(current.chatMessages) ? [...current.chatMessages] : [];
     messages.push(newMsg);
 
     if (db.isConfigured()) {
@@ -195,23 +179,27 @@ export class ConsultationModel {
           JSON.stringify(messages),
           id
         ]);
+        return { ...current, chatMessages: messages, chatHistory: messages };
       } catch (err) {
         console.error("PostgreSQL consultation addMessage error:", err.message);
+        throw err;
       }
+    } else {
+      throw new Error("Database is not configured.");
     }
-
-    consultationStore.update(id, { chatMessages: messages, chatHistory: messages });
-    return { ...current, chatMessages: messages, chatHistory: messages };
   }
 
   static async delete(id) {
     if (db.isConfigured()) {
       try {
         await db.query("DELETE FROM consultations WHERE id = $1", [id]);
+        return true;
       } catch (err) {
         console.error("PostgreSQL consultation delete error:", err.message);
+        throw err;
       }
+    } else {
+      throw new Error("Database is not configured.");
     }
-    return consultationStore.delete(id);
   }
 }

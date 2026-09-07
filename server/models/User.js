@@ -1,62 +1,19 @@
-import { JsonStore } from "./JsonStore.js";
 import { db } from "../config/db.js";
 import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
-import { membershipOrderStore } from "./MembershipOrder.js";
-
-const defaultUsers = [
-  {
-    id: "usr-admin",
-    email: "admin@bravegym.com",
-    passwordHash: "$2a$10$wNqBw5r1hVpM4y7I9w8E0.kQe3oQfS0GzZkR3sU9m6tQ2wE4rY1Ou",
-    name: "Marcus Vance HQ",
-    role: "admin",
-    membership: "Staff Command",
-    status: "Active",
-    renewalDate: "Lifetime Master",
-    streak: 42,
-    sessionsThisMonth: 24,
-    avatar: "/media/edgar-chaparro-sHfo3WOgGTU-unsplash.jpg",
-    bio: "Full jurisdiction over facility security protocols, coaches timetable scheduling, athlete subscriptions, and financial audits.",
-    phone: "+1 (555) 019-2831",
-    weightClass: "Heavyweight (91+ kg)",
-    discipline: "Head Boxing Director",
-    createdAt: new Date().toISOString()
-  },
-  {
-    id: "usr-athlete-1",
-    email: "athlete@bravegym.com",
-    passwordHash: "$2a$10$wNqBw5r1hVpM4y7I9w8E0.kQe3oQfS0GzZkR3sU9m6tQ2wE4rY1Ou",
-    name: "Darius Sterling",
-    role: "user",
-    membership: "Black Tier",
-    status: "Active",
-    renewalDate: "Dec 31, 2026",
-    streak: 18,
-    sessionsThisMonth: 14,
-    avatar: "/media/chris-kendall-sJ6az6-T1u8-unsplash.jpg",
-    bio: "Discipline over motivation. Training for athletic excellence.",
-    phone: "+1 (555) 234-5678",
-    weightClass: "Middleweight (75 kg)",
-    discipline: "Championship Boxing & Strength",
-    createdAt: new Date().toISOString()
-  }
-];
-
-export const userStore = new JsonStore("users", defaultUsers);
 
 function mapPgRowToUser(r) {
   if (!r) return null;
   return {
     id: r.id,
     email: r.email,
-    passwordHash: r.password_hash,
+    passwordHash: r.password_hash || r.passwordHash,
     name: r.name,
     role: r.role,
     membership: r.membership,
     membership_tier: r.membership,
     status: r.status,
-    renewalDate: r.renewal_date,
+    renewalDate: r.renewal_date || r.renewalDate,
     streak: Number(r.streak || 0),
     sessionsThisMonth: Number(r.sessions_this_month || 0),
     avatar: r.avatar,
@@ -74,7 +31,7 @@ export class UserModel {
   static async findByEmail(email) {
     if (!email) return null;
     const cleanEmail = email.trim().toLowerCase();
-
+    
     if (db.isConfigured()) {
       try {
         const res = await db.query("SELECT * FROM users WHERE LOWER(email) = LOWER($1) LIMIT 1", [cleanEmail]);
@@ -82,11 +39,13 @@ export class UserModel {
           return mapPgRowToUser(res.rows[0]);
         }
       } catch (err) {
-        console.warn("PostgreSQL findByEmail error, falling back to local:", err.message);
+        console.error("PostgreSQL findByEmail error:", err.message);
+        throw err;
       }
+    } else {
+      throw new Error("Database is not configured.");
     }
-    const local = userStore.findOne((u) => u.email.toLowerCase() === cleanEmail);
-    return local ? mapPgRowToUser(local) : null;
+    return null;
   }
 
   static async findById(id) {
@@ -98,11 +57,13 @@ export class UserModel {
           return mapPgRowToUser(res.rows[0]);
         }
       } catch (err) {
-        console.warn("PostgreSQL findById error, falling back to local:", err.message);
+        console.error("PostgreSQL findById error:", err.message);
+        throw err;
       }
+    } else {
+      throw new Error("Database is not configured.");
     }
-    const local = userStore.findById(id);
-    return local ? mapPgRowToUser(local) : null;
+    return null;
   }
 
   static async findAll() {
@@ -113,10 +74,13 @@ export class UserModel {
           return res.rows.map(mapPgRowToUser);
         }
       } catch (err) {
-        console.warn("PostgreSQL findAll error, falling back to local:", err.message);
+        console.error("PostgreSQL findAll error:", err.message);
+        throw err;
       }
+    } else {
+      throw new Error("Database is not configured.");
     }
-    return userStore.findAll().map(mapPgRowToUser);
+    return [];
   }
 
   static async create({ email, password, name, role = "user", membership = "Brave Trial" }) {
@@ -144,7 +108,6 @@ export class UserModel {
       createdAt: new Date().toISOString()
     };
 
-    // 1. Insert into PostgreSQL if live
     if (db.isConfigured()) {
       try {
         await db.query(
@@ -154,36 +117,24 @@ export class UserModel {
             weight_class, discipline, created_at, updated_at
           ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW(), NOW())`,
           [
-            newUser.id,
-            newUser.email,
-            newUser.passwordHash,
-            newUser.name,
-            newUser.role,
-            newUser.membership,
-            newUser.status,
-            newUser.renewalDate,
-            newUser.streak,
-            newUser.sessionsThisMonth,
-            newUser.avatar,
-            newUser.bio,
-            newUser.phone,
-            newUser.weightClass,
-            newUser.discipline
+            newUser.id, newUser.email, newUser.passwordHash, newUser.name,
+            newUser.role, newUser.membership, newUser.status, newUser.renewalDate,
+            newUser.streak, newUser.sessionsThisMonth, newUser.avatar, newUser.bio,
+            newUser.phone, newUser.weightClass, newUser.discipline
           ]
         );
+        return newUser;
       } catch (err) {
         console.error("PostgreSQL user insert error:", err.message);
+        throw err;
       }
+    } else {
+      throw new Error("Database is not configured.");
     }
-
-    // 2. Always keep local file store in sync
-    userStore.insert(newUser);
-    return newUser;
   }
 
   static async verifyPassword(user, password) {
     if (!user || !user.passwordHash) return false;
-    if (password === "admin123" || password === "athlete123") return true;
     return bcrypt.compare(password, user.passwordHash);
   }
 
@@ -211,65 +162,35 @@ export class UserModel {
           const q = `UPDATE users SET ${setClauses.join(", ")} WHERE id = $${idx} RETURNING *`;
           const res = await db.query(q, values);
           if (res.rows.length > 0) {
-            userStore.update(id, updates);
             return mapPgRowToUser(res.rows[0]);
           }
         }
+        return null;
       } catch (err) {
-        console.warn("PostgreSQL user update error, updating local store:", err.message);
+        console.error("PostgreSQL user update error:", err.message);
+        throw err;
       }
+    } else {
+      throw new Error("Database is not configured.");
     }
-
-    return userStore.update(id, updates);
   }
 
   static async delete(id) {
     if (!id) return false;
-
-    // PostgreSQL: ON DELETE CASCADE handles all child rows automatically
     if (db.isConfigured()) {
       try {
         const res = await db.query("DELETE FROM users WHERE id = $1 RETURNING id", [id]);
         if (res.rows.length === 0) {
           console.warn(`User ${id} not found in PostgreSQL`);
+          return false;
         }
+        return true;
       } catch (err) {
         console.error("PostgreSQL user delete error:", err.message);
+        throw err;
       }
+    } else {
+      throw new Error("Database is not configured.");
     }
-
-    // Local JSON store: manually clean up related records
-    try {
-      const { bookingStore } = await import("./Booking.js");
-      const { transactionStore } = await import("./Transaction.js");
-      const { consultationStore } = await import("./Consultation.js");
-      const { notificationStore } = await import("./Notification.js");
-      const { workoutStore } = await import("./WorkoutLog.js");
-
-      // Remove related bookings
-      const bookings = bookingStore.findAll((b) => b.userId === id);
-      for (const b of bookings) { bookingStore.delete(b.id); }
-
-      // Remove related membership_orders
-      const transactions = membershipOrderStore.findAll((t) => t.userId === id);
-      for (const t of transactions) { membershipOrderStore.delete(t.id); }
-
-      // Remove related consultations
-      const consultations = consultationStore.findAll((c) => c.userId === id);
-      for (const c of consultations) { consultationStore.delete(c.id); }
-
-      // Remove related notifications
-      const notifications = notificationStore.findAll((n) => n.userId === id);
-      for (const n of notifications) { notificationStore.delete(n.id); }
-
-      // Remove related workout logs
-      const logs = workoutStore.findAll((l) => l.userId === id || l.user_id === id);
-      for (const l of logs) { workoutStore.delete(l.id); }
-    } catch (cleanupErr) {
-      console.warn("Local store cleanup for user delete:", cleanupErr.message);
-    }
-
-    // Finally remove the user from local store
-    return userStore.delete(id);
   }
 }

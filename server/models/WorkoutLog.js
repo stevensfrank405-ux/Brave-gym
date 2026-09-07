@@ -1,10 +1,5 @@
-import { JsonStore } from "./JsonStore.js";
 import { db } from "../config/db.js";
 import { v4 as uuidv4 } from "uuid";
-
-const defaultLogs = [];
-
-export const workoutStore = new JsonStore("workouts", defaultLogs);
 
 function mapPgRowToLog(r) {
   if (!r) return null;
@@ -28,25 +23,32 @@ export class WorkoutLogModel {
         if (res && res.rows) {
           return res.rows.map(mapPgRowToLog);
         }
+        return [];
       } catch (err) {
-        console.warn("PostgreSQL workout_logs findAll error, falling back to local:", err.message);
+        console.error("PostgreSQL workout_logs findAll error:", err.message);
+        throw err;
       }
+    } else {
+      throw new Error("Database is not configured.");
     }
-    return workoutStore.findAll();
   }
 
   static async findByUserId(userId) {
+    if (!userId) return [];
     if (db.isConfigured()) {
       try {
         const res = await db.query("SELECT * FROM workout_logs WHERE user_id = $1 ORDER BY created_at DESC", [userId]);
         if (res && res.rows) {
           return res.rows.map(mapPgRowToLog);
         }
+        return [];
       } catch (err) {
-        console.warn("PostgreSQL workout_logs findByUserId error:", err.message);
+        console.error("PostgreSQL workout_logs findByUserId error:", err.message);
+        throw err;
       }
+    } else {
+      throw new Error("Database is not configured.");
     }
-    return workoutStore.findAll((l) => String(l.userId) === String(userId));
   }
 
   static async create(data) {
@@ -74,23 +76,28 @@ export class WorkoutLogModel {
             newLog.date
           ]
         );
+        return newLog;
       } catch (err) {
         console.error("PostgreSQL workout_logs insert error:", err.message);
+        throw err;
       }
+    } else {
+      throw new Error("Database is not configured.");
     }
-
-    workoutStore.insert(newLog);
-    return newLog;
   }
 
   static async delete(id) {
+    if (!id) return false;
     if (db.isConfigured()) {
       try {
         await db.query("DELETE FROM workout_logs WHERE id = $1", [id]);
+        return true;
       } catch (err) {
-        console.warn("PostgreSQL workout_logs delete error:", err.message);
+        console.error("PostgreSQL workout_logs delete error:", err.message);
+        throw err;
       }
+    } else {
+      throw new Error("Database is not configured.");
     }
-    return workoutStore.delete(id);
   }
 }
