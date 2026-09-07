@@ -582,6 +582,21 @@ export function GymProvider({ children }) {
     }
   };
 
+  const removeAthlete = async (userId) => {
+    try {
+      await api.deleteUser(userId);
+      // Refresh admin data to pull updated stats, bookings, etc.
+      if (currentUser?.role === "admin") {
+        await loadAdminData();
+      }
+      return true;
+    } catch (err) {
+      console.error("Failed to delete user:", err.message);
+      throw err;
+    }
+  };
+
+
   return (
     <GymContext.Provider
       value={{
@@ -613,6 +628,8 @@ export function GymProvider({ children }) {
         removeMembershipTier,
         addScheduleClass,
         removeScheduleClass,
+        removeAthlete,
+
         allUsersRoster,
         allWorkoutLogs,
         purchasePlan,

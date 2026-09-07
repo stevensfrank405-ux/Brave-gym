@@ -73,7 +73,7 @@ CREATE INDEX IF NOT EXISTS idx_classes_day ON classes (day);
 -- ==========================================================
 CREATE TABLE IF NOT EXISTS bookings (
   id VARCHAR(50) PRIMARY KEY,
-  user_id VARCHAR(50) REFERENCES users(id) ON DELETE SET NULL,
+  user_id VARCHAR(50) REFERENCES users(id) ON DELETE CASCADE,
   user_name VARCHAR(255),
   user_email VARCHAR(255),
   class_title VARCHAR(255) NOT NULL,
@@ -93,7 +93,7 @@ CREATE INDEX IF NOT EXISTS idx_bookings_status ON bookings (status);
 -- ==========================================================
 CREATE TABLE IF NOT EXISTS transactions (
   id VARCHAR(50) PRIMARY KEY,
-  user_id VARCHAR(50) REFERENCES users(id) ON DELETE SET NULL,
+  user_id VARCHAR(50) REFERENCES users(id) ON DELETE CASCADE,
   member VARCHAR(255) NOT NULL,
   plan VARCHAR(255) NOT NULL,
   amount VARCHAR(50) NOT NULL,
@@ -111,7 +111,7 @@ CREATE INDEX IF NOT EXISTS idx_transactions_status ON transactions (status);
 -- ==========================================================
 CREATE TABLE IF NOT EXISTS consultations (
   id VARCHAR(50) PRIMARY KEY,
-  user_id VARCHAR(50) REFERENCES users(id) ON DELETE SET NULL,
+  user_id VARCHAR(50) REFERENCES users(id) ON DELETE CASCADE,
   trainer_id VARCHAR(50),
   trainer_name VARCHAR(255) NOT NULL,
   user_name VARCHAR(255) NOT NULL,

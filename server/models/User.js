@@ -221,4 +221,54 @@ export class UserModel {
 
     return userStore.update(id, updates);
   }
+
+  static async delete(id) {
+    if (!id) return false;
+
+    // PostgreSQL: ON DELETE CASCADE handles all child rows automatically
+    if (db.isConfigured()) {
+      try {
+        const res = await db.query("DELETE FROM users WHERE id = $1 RETURNING id", [id]);
+        if (res.rows.length === 0) {
+          console.warn(`User ${id} not found in PostgreSQL`);
+        }
+      } catch (err) {
+        console.error("PostgreSQL user delete error:", err.message);
+      }
+    }
+
+    // Local JSON store: manually clean up related records
+    try {
+      const { bookingStore } = await import("./Booking.js");
+      const { transactionStore } = await import("./Transaction.js");
+      const { consultationStore } = await import("./Consultation.js");
+      const { notificationStore } = await import("./Notification.js");
+      const { workoutStore } = await import("./WorkoutLog.js");
+
+      // Remove related bookings
+      const bookings = bookingStore.findAll((b) => b.userId === id);
+      for (const b of bookings) { bookingStore.delete(b.id); }
+
+      // Remove related transactions
+      const transactions = transactionStore.findAll((t) => t.userId === id);
+      for (const t of transactions) { transactionStore.delete(t.id); }
+
+      // Remove related consultations
+      const consultations = consultationStore.findAll((c) => c.userId === id);
+      for (const c of consultations) { consultationStore.delete(c.id); }
+
+      // Remove related notifications
+      const notifications = notificationStore.findAll((n) => n.userId === id);
+      for (const n of notifications) { notificationStore.delete(n.id); }
+
+      // Remove related workout logs
+      const logs = workoutStore.findAll((l) => l.userId === id || l.user_id === id);
+      for (const l of logs) { workoutStore.delete(l.id); }
+    } catch (cleanupErr) {
+      console.warn("Local store cleanup for user delete:", cleanupErr.message);
+    }
+
+    // Finally remove the user from local store
+    return userStore.delete(id);
+  }
 }

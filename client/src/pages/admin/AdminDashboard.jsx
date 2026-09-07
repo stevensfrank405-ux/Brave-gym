@@ -58,7 +58,8 @@ export default function AdminDashboard() {
     allWorkoutLogs,
     approveMembershipOrder,
     rejectMembershipOrder,
-    sendNegotiationMessage
+    sendNegotiationMessage,
+    removeAthlete
   } = useGym();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("overview");
@@ -1077,6 +1078,18 @@ export default function AdminDashboard() {
                         >
                           <Eye className="w-3.5 h-3.5" />
                           <span>Inspect Dossier</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (window.confirm(`Are you sure you want to completely remove ${ath.name || ath.email}? This will delete all their bookings and data.`)) {
+                              removeAthlete(ath.id);
+                            }
+                          }}
+                          className="inline-flex items-center gap-2 px-3 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-mono font-bold text-xs uppercase tracking-wider rounded transition-colors border border-red-500/20"
+                          title="Remove Athlete Profile"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>

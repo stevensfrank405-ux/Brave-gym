@@ -297,6 +297,13 @@ class ApiService {
     const res = await this.request("/admin/stats");
     return res.data;
   }
+
+  async deleteUser(userId) {
+    const res = await this.request(`/admin/users/${userId}`, {
+      method: "DELETE"
+    });
+    return res;
+  }
 }
 
 export const api = new ApiService();
