@@ -329,13 +329,22 @@ export function GymProvider({ children }) {
 
   const sendNegotiationMessage = async (consultationId, text, sender = "user") => {
     try {
-      const res = await api.sendConsultationMessage(consultationId, text, sender);
-      if (res?.data) {
-        setConsultationRequests((prev) =>
-          prev.map((c) => (c.id === consultationId ? res.data : c))
-        );
+      const userMeta = {
+        userId: currentUser?.id,
+        userName: currentUser?.name
+      };
+      const res = await api.sendConsultationMessage(consultationId, text, sender, userMeta);
+      const updatedData = res?.data || res;
+      if (updatedData && updatedData.id) {
+        setConsultationRequests((prev) => {
+          const exists = prev.some((c) => c.id === updatedData.id);
+          if (exists) {
+            return prev.map((c) => (c.id === updatedData.id ? updatedData : c));
+          }
+          return [updatedData, ...prev];
+        });
       }
-      return res?.data;
+      return updatedData;
     } catch (err) {
       console.error("Failed to send message:", err.message);
       throw err;

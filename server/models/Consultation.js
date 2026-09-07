@@ -29,6 +29,7 @@ function mapPgRowToConsultation(r) {
     serviceType: r.service_type,
     customRequirements: r.custom_requirements,
     chatMessages: parsedMessages,
+    chatHistory: parsedMessages,
     status: r.status,
     createdAt: r.created_at
   };
@@ -46,7 +47,11 @@ export class ConsultationModel {
         console.warn("PostgreSQL consultations findAll error:", err.message);
       }
     }
-    return consultationStore.findAll();
+    return consultationStore.findAll().map(c => ({
+      ...c,
+      chatMessages: c.chatMessages || c.chatHistory || [],
+      chatHistory: c.chatMessages || c.chatHistory || []
+    }));
   }
 
   static async findById(id) {
@@ -60,7 +65,13 @@ export class ConsultationModel {
         console.warn("PostgreSQL consultations findById error:", err.message);
       }
     }
-    return consultationStore.findById(id);
+    const local = consultationStore.findById(id);
+    if (!local) return null;
+    return {
+      ...local,
+      chatMessages: local.chatMessages || local.chatHistory || [],
+      chatHistory: local.chatMessages || local.chatHistory || []
+    };
   }
 
   static async findByUserId(userId) {
@@ -74,7 +85,11 @@ export class ConsultationModel {
         console.warn("PostgreSQL consultations findByUserId error:", err.message);
       }
     }
-    return consultationStore.findAll((c) => String(c.userId) === String(userId));
+    return consultationStore.findAll((c) => String(c.userId) === String(userId)).map(c => ({
+      ...c,
+      chatMessages: c.chatMessages || c.chatHistory || [],
+      chatHistory: c.chatMessages || c.chatHistory || []
+    }));
   }
 
   static async create(data) {
@@ -83,12 +98,13 @@ export class ConsultationModel {
       userId: data.userId || null,
       trainerId: data.trainerId || null,
       trainerName: data.trainerName || "Marcus Vance",
-      userName: data.userName || "Athlete",
-      phone: data.phone || "",
+      userName: data.userName || data.name || "Athlete",
+      phone: data.phone || "N/A",
       address: data.address || "",
-      serviceType: data.serviceType || "Coaching Consultation",
+      serviceType: data.serviceType || "Membership Negotiation",
       customRequirements: data.customRequirements || "",
-      chatMessages: data.chatMessages || [],
+      chatMessages: data.chatMessages || data.chatHistory || [],
+      chatHistory: data.chatMessages || data.chatHistory || [],
       status: data.status || "Pending",
       createdAt: new Date().toISOString()
     };
@@ -135,15 +151,42 @@ export class ConsultationModel {
   }
 
   static async addMessage(id, message) {
-    const current = await this.findById(id);
-    if (!current) return null;
-
-    const messages = Array.isArray(current.chatMessages) ? [...current.chatMessages] : [];
+    let current = await this.findById(id);
     const newMsg = {
       sender: message.sender || "user",
       text: message.text || "",
       timestamp: new Date().toISOString()
     };
+
+    if (!current) {
+      // Auto-provision consultation thread for this athlete/order
+      const derivedUserId = id.startsWith("order-user-") 
+        ? id.replace("order-user-", "") 
+        : (message.userId || null);
+
+      const newThreadData = {
+        id,
+        userId: derivedUserId,
+        trainerName: "Brave Gym Director",
+        userName: message.userName || "Athlete",
+        phone: "N/A",
+        serviceType: "Membership Negotiation",
+        customRequirements: "Direct athlete negotiation regarding membership order.",
+        chatMessages: [newMsg],
+        status: "Pending"
+      };
+
+      const created = await this.create(newThreadData);
+      return {
+        ...created,
+        chatMessages: [newMsg],
+        chatHistory: [newMsg]
+      };
+    }
+
+    const messages = Array.isArray(current.chatMessages) 
+      ? [...current.chatMessages] 
+      : (Array.isArray(current.chatHistory) ? [...current.chatHistory] : []);
     messages.push(newMsg);
 
     if (db.isConfigured()) {
@@ -157,8 +200,8 @@ export class ConsultationModel {
       }
     }
 
-    consultationStore.update(id, { chatMessages: messages });
-    return { ...current, chatMessages: messages };
+    consultationStore.update(id, { chatMessages: messages, chatHistory: messages });
+    return { ...current, chatMessages: messages, chatHistory: messages };
   }
 
   static async delete(id) {

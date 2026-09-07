@@ -279,10 +279,15 @@ class ApiService {
     return res.data;
   }
 
-  async sendConsultationMessage(threadId, text, sender = "user") {
+  async sendConsultationMessage(threadId, text, sender = "user", userMeta = {}) {
     const res = await this.request(`/consultations/${threadId}/message`, {
       method: "POST",
-      body: JSON.stringify({ text, sender })
+      body: JSON.stringify({
+        text,
+        sender,
+        userId: userMeta.userId,
+        userName: userMeta.userName
+      })
     });
     return res.data;
   }

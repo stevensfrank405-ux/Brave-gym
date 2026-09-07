@@ -36,10 +36,12 @@ export class ConsultationController {
   static async addMessage(req, res) {
     try {
       const { id } = req.params;
-      const { text, sender } = req.body;
+      const { text, sender, userId, userName } = req.body;
       const updated = await ConsultationViewModel.addMessage(id, {
         text,
-        sender: sender || (req.user?.role === "admin" ? "admin" : "user")
+        sender: sender || (req.user?.role === "admin" ? "admin" : "user"),
+        userId: req.user?.id || userId,
+        userName: req.user?.name || userName
       });
       return res.status(200).json({ success: !!updated, data: updated });
     } catch (err) {

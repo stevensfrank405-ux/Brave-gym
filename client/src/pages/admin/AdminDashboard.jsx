@@ -736,7 +736,11 @@ export default function AdminDashboard() {
 
                   // Find or associate consultation negotiation thread
                   const userConsultation = (consultationRequests || []).find(
-                    (c) => c.userId === order.userId || c.name?.toLowerCase() === order.member?.toLowerCase()
+                    (c) =>
+                      (order.userId && (c.userId === order.userId || c.id === `order-user-${order.userId}`)) ||
+                      c.id === `order-${order.id}` ||
+                      c.userName?.toLowerCase() === order.member?.toLowerCase() ||
+                      c.name?.toLowerCase() === order.member?.toLowerCase()
                   );
 
                   return (
@@ -799,10 +803,12 @@ export default function AdminDashboard() {
                             type="button"
                             onClick={() => {
                               setSelectedOrder(order);
+                              const threadId = userConsultation?.id || (order.userId ? `order-user-${order.userId}` : `order-${order.id}`);
                               setActiveNegotiationThread(userConsultation || {
-                                id: "order-" + order.id,
+                                id: threadId,
                                 name: order.member,
                                 email: athleteUser?.email || "athlete@bravegym.com",
+                                chatMessages: [],
                                 chatHistory: []
                               });
                             }}
@@ -2417,8 +2423,20 @@ export default function AdminDashboard() {
                   </span>
                 </div>
 
-                {activeNegotiationThread.chatHistory && activeNegotiationThread.chatHistory.length > 0 ? (
-                  activeNegotiationThread.chatHistory.map((msg, mIdx) => {
+                {(() => {
+                  const messages = activeNegotiationThread.chatMessages || activeNegotiationThread.chatHistory || [];
+                  if (messages.length === 0) {
+                    return (
+                      <div className="py-12 text-center text-xs text-[#8C8C8C] space-y-2">
+                        <MessageSquare className="w-8 h-8 mx-auto text-[#8C8C8C]/50" />
+                        <p className="text-white/80 font-semibold">Start direct conversation with athlete.</p>
+                        <p className="text-[11px] max-w-xs mx-auto">
+                          Clarify payment plans, answer training inquiries, or offer custom terms before confirming their membership order.
+                        </p>
+                      </div>
+                    );
+                  }
+                  return messages.map((msg, mIdx) => {
                     const isAdmin = msg.sender === "admin" || msg.sender === "assistant";
                     return (
                       <div
@@ -2439,16 +2457,8 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                     );
-                  })
-                ) : (
-                  <div className="py-12 text-center text-xs text-[#8C8C8C] space-y-2">
-                    <MessageSquare className="w-8 h-8 mx-auto text-[#8C8C8C]/50" />
-                    <p className="text-white/80 font-semibold">Start direct conversation with athlete.</p>
-                    <p className="text-[11px] max-w-xs mx-auto">
-                      Clarify payment plans, answer training inquiries, or offer custom terms before confirming their membership order.
-                    </p>
-                  </div>
-                )}
+                  });
+                })()}
               </div>
 
               {/* Input Footer */}
@@ -2466,23 +2476,33 @@ export default function AdminDashboard() {
                         setActiveNegotiationThread(updated);
                       } else {
                         // local optimistic update
-                        setActiveNegotiationThread((prev) => ({
-                          ...prev,
-                          chatHistory: [
-                            ...(prev.chatHistory || []),
+                        setActiveNegotiationThread((prev) => {
+                          const existing = prev.chatMessages || prev.chatHistory || [];
+                          const updatedMsgs = [
+                            ...existing,
                             { sender: "admin", text, timestamp: new Date().toISOString() }
-                          ]
-                        }));
+                          ];
+                          return {
+                            ...prev,
+                            chatMessages: updatedMsgs,
+                            chatHistory: updatedMsgs
+                          };
+                        });
                       }
                     } catch (err) {
                       // optimistic update fallback
-                      setActiveNegotiationThread((prev) => ({
-                        ...prev,
-                        chatHistory: [
-                          ...(prev.chatHistory || []),
+                      setActiveNegotiationThread((prev) => {
+                        const existing = prev.chatMessages || prev.chatHistory || [];
+                        const updatedMsgs = [
+                          ...existing,
                           { sender: "admin", text, timestamp: new Date().toISOString() }
-                        ]
-                      }));
+                        ];
+                        return {
+                          ...prev,
+                          chatMessages: updatedMsgs,
+                          chatHistory: updatedMsgs
+                        };
+                      });
                     }
                   }}
                   className="flex items-center gap-2"

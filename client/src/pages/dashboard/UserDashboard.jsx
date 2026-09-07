@@ -131,7 +131,11 @@ export default function UserDashboard() {
 
   // Find user's negotiation consultation thread
   const userConsultation = (consultationRequests || []).find(
-    (c) => c.userId === currentUser?.id || c.name?.toLowerCase() === currentUser?.name?.toLowerCase()
+    (c) =>
+      c.userId === currentUser?.id ||
+      c.id === `order-user-${currentUser?.id}` ||
+      c.userName?.toLowerCase() === currentUser?.name?.toLowerCase() ||
+      c.name?.toLowerCase() === currentUser?.name?.toLowerCase()
   );
 
   const handleAddWorkout = (e) => {
@@ -680,8 +684,10 @@ export default function UserDashboard() {
                 </div>
 
                 {/* Conversation messages */}
-                {userConsultation?.chatHistory && userConsultation.chatHistory.length > 0 ? (
-                  userConsultation.chatHistory.map((msg, mIdx) => {
+                {(() => {
+                  const messages = userConsultation?.chatMessages || userConsultation?.chatHistory || [];
+                  if (messages.length === 0) return null;
+                  return messages.map((msg, mIdx) => {
                     const isMe = msg.sender === "user";
                     return (
                       <div
@@ -702,8 +708,8 @@ export default function UserDashboard() {
                         </div>
                       </div>
                     );
-                  })
-                ) : null}
+                  });
+                })()}
               </div>
 
               {/* Message Input Box */}
