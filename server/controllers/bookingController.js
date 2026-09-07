@@ -24,6 +24,12 @@ export class BookingController {
         scheduleItem: req.body.scheduleItem || req.body,
         userMeta: req.body.userMeta || { name: req.user?.name, email: req.user?.email }
       });
+      
+      const io = req.app.get("io");
+      if (io) {
+        io.emit("bookingCreated", { booking: result.booking, updatedClass: result.updatedClass });
+      }
+      
       return res.status(201).json({ success: true, data: result.booking, updatedClass: result.updatedClass });
     } catch (err) {
       return res.status(400).json({ success: false, message: err.message });
@@ -38,6 +44,12 @@ export class BookingController {
       const { id } = req.params;
       const updates = req.body;
       const updatedBooking = await BookingViewModel.updateBooking(id, updates);
+      
+      const io = req.app.get("io");
+      if (io) {
+        io.emit("bookingUpdated", updatedBooking);
+      }
+      
       return res.status(200).json({ success: true, data: updatedBooking });
     } catch (err) {
       return res.status(400).json({ success: false, message: err.message });
@@ -48,6 +60,12 @@ export class BookingController {
     try {
       const { id } = req.params;
       const success = await BookingViewModel.cancelBooking(id);
+      
+      const io = req.app.get("io");
+      if (io && success) {
+        io.emit("bookingDeleted", { id });
+      }
+      
       return res.status(200).json({ success, message: success ? "Booking cancelled" : "Booking not found" });
     } catch (err) {
       return res.status(500).json({ success: false, message: err.message });

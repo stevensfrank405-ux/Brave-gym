@@ -195,6 +195,40 @@ export function GymProvider({ children }) {
           return [updatedConsultation, ...prev];
         });
       });
+
+      socket.on("bookingCreated", ({ booking, updatedClass }) => {
+        if (booking.userId === activeUserId) {
+          setBookings((prev) => {
+            if (prev.some(b => b.id === booking.id)) return prev;
+            return [booking, ...prev];
+          });
+        }
+        if (activeUserRole === "admin") {
+          setAdminBookings((prev) => {
+            if (prev.some(b => b.id === booking.id)) return prev;
+            return [booking, ...prev];
+          });
+        }
+        if (updatedClass) {
+          setSchedule((prev) =>
+            prev.map((sc) => (sc.id === updatedClass.id ? { ...sc, spotsLeft: updatedClass.spotsLeft } : sc))
+          );
+        }
+      });
+
+      socket.on("bookingUpdated", (updatedBooking) => {
+        if (updatedBooking.userId === activeUserId) {
+          setBookings((prev) => prev.map((b) => (b.id === updatedBooking.id ? updatedBooking : b)));
+        }
+        if (activeUserRole === "admin") {
+          setAdminBookings((prev) => prev.map((b) => (b.id === updatedBooking.id ? updatedBooking : b)));
+        }
+      });
+
+      socket.on("bookingDeleted", ({ id }) => {
+        setBookings((prev) => prev.filter((b) => b.id !== id));
+        setAdminBookings((prev) => prev.filter((b) => b.id !== id));
+      });
     };
     initAuth();
 
