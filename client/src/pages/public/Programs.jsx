@@ -51,20 +51,26 @@ export default function Programs() {
 
     try {
       const formattedDate = `${selectedDate} ${selectedTime}`;
-      const booking = await bookClass({
+      
+      // Close modal immediately for optimistic UI feel
+      setBookingModalOpen(false);
+      
+      // Start booking process without awaiting so UI isn't blocked
+      bookClass({
         ...selectedClassToBook,
         date: formattedDate
+      }).then((booking) => {
+        setBookingSuccess(booking);
+        confetti({
+          particleCount: 80,
+          spread: 60,
+          origin: { y: 0.8 },
+          colors: ["#ffffff", "#aaaaaa", "#444444"]
+        });
+        setTimeout(() => setBookingSuccess(null), 4000);
+      }).catch(err => {
+        setBookingError(err.message);
       });
-      
-      setBookingModalOpen(false);
-      setBookingSuccess(booking);
-      confetti({
-        particleCount: 80,
-        spread: 60,
-        origin: { y: 0.8 },
-        colors: ["#ffffff", "#aaaaaa", "#444444"]
-      });
-      setTimeout(() => setBookingSuccess(null), 4000);
     } catch (err) {
       setBookingError(err.message);
     }

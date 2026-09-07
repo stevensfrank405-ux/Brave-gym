@@ -161,6 +161,11 @@ export function GymProvider({ children }) {
   }, [currentUser?.role]);
 
   // Initial load & WebSocket for real-time updates
+  const currentUserRef = React.useRef(currentUser);
+  useEffect(() => {
+    currentUserRef.current = currentUser;
+  }, [currentUser]);
+
   useEffect(() => {
     let socket;
 
@@ -197,6 +202,9 @@ export function GymProvider({ children }) {
       });
 
       socket.on("bookingCreated", ({ booking, updatedClass }) => {
+        const activeUserId = currentUserRef.current?.id;
+        const activeUserRole = currentUserRef.current?.role;
+        
         if (booking.userId === activeUserId) {
           setBookings((prev) => {
             if (prev.some(b => b.id === booking.id)) return prev;
@@ -205,7 +213,7 @@ export function GymProvider({ children }) {
             return [booking, ...filtered];
           });
         }
-        if (activeUserRole === "admin") {
+        if (currentUserRef.current?.role === "admin") {
           setAdminBookings((prev) => {
             if (prev.some(b => b.id === booking.id)) return prev;
             return [booking, ...prev];
@@ -219,8 +227,11 @@ export function GymProvider({ children }) {
       });
 
       socket.on("bookingUpdated", (updatedBooking) => {
+        const activeUserId = currentUserRef.current?.id;
+        const activeUserRole = currentUserRef.current?.role;
+        
         // Remove strict userId === activeUserId check because prev.map already safely maps by b.id
-        setBookings((prev) => prev.map((b) => (b.id === updatedBooking.id ? updatedBooking : b)));
+        setBookings((prev) => prev.map((b) => (b.id === updatedBooking.id || (b.id.startsWith("bk-") && b.classTitle === updatedBooking.classTitle && b.date === updatedBooking.date) ? updatedBooking : b)));
         
         if (activeUserRole === "admin") {
           setAdminBookings((prev) => prev.map((b) => (b.id === updatedBooking.id ? updatedBooking : b)));
@@ -233,8 +244,8 @@ export function GymProvider({ children }) {
       });
 
       socket.on("refreshNotifications", async ({ userId }) => {
-        if (userId === activeUserId) {
-          const myNotifs = await api.getNotifications(activeUserId).catch(() => []);
+        if (userId === currentUserRef.current?.id) {
+          const myNotifs = await api.getNotifications(userId).catch(() => []);
           setUserNotifications(myNotifs);
         }
       });
