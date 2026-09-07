@@ -233,7 +233,10 @@ export default function Programs() {
                 if (sc.day && b.date?.toLowerCase().includes(sc.day.toLowerCase())) return true;
                 
                 // Also check if time is explicitly in the date (since date picker formattedDate includes time)
-                if (sc.time && b.date?.toLowerCase().includes(sc.time.toLowerCase())) return true;
+                if (sc.time) {
+                  const timeWithoutAmPm = sc.time.split(" ")[0].toLowerCase();
+                  if (b.date?.toLowerCase().includes(timeWithoutAmPm)) return true;
+                }
                 
                 // For new formats ("2023-11-20 09:00")
                 const parsedDate = new Date(b.date);
