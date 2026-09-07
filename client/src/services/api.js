@@ -162,6 +162,14 @@ class ApiService {
     return res.success;
   }
 
+  async updateBooking(bookingId, updates) {
+    const res = await this.request(`/bookings/${bookingId}`, {
+      method: "PUT",
+      body: JSON.stringify(updates)
+    });
+    return res.data;
+  }
+
   // Workout Logs
   async getWorkoutLogs(userId = null, all = false) {
     const query = all ? "?all=true" : (userId ? `?userId=${encodeURIComponent(userId)}` : "");

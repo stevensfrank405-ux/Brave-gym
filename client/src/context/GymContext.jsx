@@ -263,7 +263,7 @@ export function GymProvider({ children }) {
       classTitle: scheduleItem.classTitle,
       trainer: scheduleItem.trainer,
       date: scheduleItem.date || `${scheduleItem.day}, ${scheduleItem.time}`,
-      status: "Confirmed",
+      status: scheduleItem.status || "Pending",
       room: scheduleItem.room || "Main Athletic Floor",
       userName: currentUser?.name || "Athlete",
       userEmail: currentUser?.email || ""
@@ -286,8 +286,8 @@ export function GymProvider({ children }) {
     const newNotif = {
       id: "notif-" + Date.now(),
       userId: currentUser?.id,
-      title: "Class Spot Reserved",
-      message: `Your reservation in ${scheduleItem.classTitle} with coach ${scheduleItem.trainer} is confirmed (${newBookingData.date}).`,
+      title: "Class Spot Requested",
+      message: `Your reservation request in ${scheduleItem.classTitle} with coach ${scheduleItem.trainer} is pending admin approval (${newBookingData.date}).`,
       type: "admin_response",
       read: false,
       createdAt: new Date().toISOString()
@@ -295,7 +295,7 @@ export function GymProvider({ children }) {
     setUserNotifications((prev) => [newNotif, ...prev]);
 
     try {
-      const res = await api.createBooking(scheduleItem, {
+      const res = await api.createBooking(newBookingData, {
         name: currentUser?.name,
         email: currentUser?.email
       });
@@ -316,6 +316,20 @@ export function GymProvider({ children }) {
     } catch (err) {
       console.warn("Saved booking locally:", err.message);
       return newBookingData;
+    }
+  };
+
+  const updateBooking = async (bookingId, updates) => {
+    try {
+      const res = await api.updateBooking(bookingId, updates);
+      if (res) {
+        setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, ...res } : b)));
+        setAdminBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, ...res } : b)));
+      }
+      return res;
+    } catch (err) {
+      console.error("Error updating booking:", err.message);
+      throw err;
     }
   };
 
@@ -648,6 +662,7 @@ export function GymProvider({ children }) {
         bookings,
         adminBookings,
         bookClass,
+        updateBooking,
         cancelBooking,
         workoutLogs,
         addWorkoutLog,

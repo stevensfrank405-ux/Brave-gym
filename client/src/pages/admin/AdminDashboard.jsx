@@ -60,7 +60,8 @@ export default function AdminDashboard() {
     approveMembershipOrder,
     rejectMembershipOrder,
     sendNegotiationMessage,
-    removeAthlete
+    removeAthlete,
+    updateBooking
   } = useGym();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("overview");
@@ -76,6 +77,13 @@ export default function AdminDashboard() {
   const [adminChatInput, setAdminChatInput] = useState("");
   const [activeNegotiationThread, setActiveNegotiationThread] = useState(null);
   const chatEndRef = React.useRef(null);
+
+  // Booking management state
+  const [manageBookingModal, setManageBookingModal] = useState(false);
+  const [selectedManageBooking, setSelectedManageBooking] = useState(null);
+  const [manageBookingDate, setManageBookingDate] = useState("");
+  const [manageBookingTime, setManageBookingTime] = useState("");
+  const [manageBookingStatus, setManageBookingStatus] = useState("Pending");
 
   // Auto-scroll admin chat
   useEffect(() => {
@@ -140,6 +148,41 @@ export default function AdminDashboard() {
       setIsEditingAdminProfile(false);
     } catch (err) {
       console.error("Failed to save admin profile:", err);
+    }
+  };
+
+  const openManageBookingModal = (booking) => {
+    setSelectedManageBooking(booking);
+    
+    // Parse date and time if it's stored as "YYYY-MM-DD HH:MM"
+    let d = "", t = "";
+    if (booking.date && booking.date.includes(" ")) {
+      const parts = booking.date.split(" ");
+      if (parts.length >= 2 && parts[0].includes("-") && parts[1].includes(":")) {
+        d = parts[0];
+        t = parts[1];
+      }
+    }
+    
+    setManageBookingDate(d);
+    setManageBookingTime(t);
+    setManageBookingStatus(booking.status || "Pending");
+    setManageBookingModal(true);
+  };
+
+  const handleUpdateBooking = async () => {
+    if (!selectedManageBooking) return;
+    try {
+      const updates = { status: manageBookingStatus };
+      if (manageBookingDate && manageBookingTime) {
+        updates.date = `${manageBookingDate} ${manageBookingTime}`;
+      }
+      await updateBooking(selectedManageBooking.id, updates);
+      setManageBookingModal(false);
+      setSelectedManageBooking(null);
+    } catch (err) {
+      console.error("Failed to update booking:", err);
+      alert("Failed to update booking. See console.");
     }
   };
 
@@ -1137,7 +1180,11 @@ export default function AdminDashboard() {
                         <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded border border-white/15 bg-white/5 text-white/80">
                           {bk.classTitle}
                         </span>
-                        <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                        <span className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded font-bold border ${
+                          bk.status === "Pending" ? "bg-amber-500/20 text-amber-400 border-amber-500/30" :
+                          bk.status === "Confirmed" ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" :
+                          "bg-rose-500/20 text-rose-400 border-rose-500/30"
+                        }`}>
                           {bk.status}
                         </span>
                       </div>
@@ -1154,6 +1201,28 @@ export default function AdminDashboard() {
                       <span className="text-xs font-mono text-white bg-white/5 px-3 py-1.5 rounded border border-white/10">
                         {bk.date}
                       </span>
+                      {bk.status === "Pending" && (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => updateBooking(bk.id, { status: "Confirmed" })}
+                            className="px-3 py-1 text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500 hover:text-black transition-colors rounded"
+                          >
+                            Accept
+                          </button>
+                          <button
+                            onClick={() => updateBooking(bk.id, { status: "Rejected" })}
+                            className="px-3 py-1 text-xs font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30 hover:bg-rose-500 hover:text-white transition-colors rounded"
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      )}
+                      <button
+                        onClick={() => openManageBookingModal(bk)}
+                        className="px-3 py-1 text-xs font-bold bg-white/10 text-white border border-white/20 hover:bg-white hover:text-black transition-colors rounded"
+                      >
+                        Manage
+                      </button>
                     </div>
                   </div>
                 ))
@@ -2691,6 +2760,67 @@ export default function AdminDashboard() {
         )}
 
       </main>
+
+      {/* Admin Manage Booking Modal */}
+      {manageBookingModal && selectedManageBooking && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-[#141414] border border-white/10 rounded-sm w-full max-w-md overflow-hidden flex flex-col shadow-2xl">
+            <div className="p-6 border-b border-white/10">
+              <h3 className="font-display text-2xl font-bold text-white uppercase mb-2">Manage Session</h3>
+              <p className="text-xs text-[#8C8C8C]">
+                Update booking for <strong className="text-white">{selectedManageBooking.userName}</strong> in <strong className="text-white">{selectedManageBooking.classTitle}</strong>.
+              </p>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="space-y-1">
+                <label className="text-[10px] font-mono text-white/50 uppercase tracking-widest block">Date</label>
+                <input
+                  type="date"
+                  value={manageBookingDate}
+                  onChange={(e) => setManageBookingDate(e.target.value)}
+                  className="w-full bg-[#0a0a0a] border border-white/10 text-white rounded-sm px-3 py-2 text-sm focus:outline-none focus:border-amber-400 transition-colors"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-mono text-white/50 uppercase tracking-widest block">Time</label>
+                <input
+                  type="time"
+                  value={manageBookingTime}
+                  onChange={(e) => setManageBookingTime(e.target.value)}
+                  className="w-full bg-[#0a0a0a] border border-white/10 text-white rounded-sm px-3 py-2 text-sm focus:outline-none focus:border-amber-400 transition-colors"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-mono text-white/50 uppercase tracking-widest block">Status</label>
+                <select
+                  value={manageBookingStatus}
+                  onChange={(e) => setManageBookingStatus(e.target.value)}
+                  className="w-full bg-[#0a0a0a] border border-white/10 text-white rounded-sm px-3 py-2 text-sm focus:outline-none focus:border-amber-400 transition-colors"
+                >
+                  <option value="Pending">Pending</option>
+                  <option value="Confirmed">Confirmed</option>
+                  <option value="Rejected">Rejected</option>
+                </select>
+              </div>
+            </div>
+            <div className="p-6 bg-[#0a0a0a] border-t border-white/10 flex items-center justify-end gap-3">
+              <button
+                onClick={() => setManageBookingModal(false)}
+                className="px-4 py-2 text-xs font-bold text-white/70 hover:text-white uppercase tracking-wider transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdateBooking}
+                className="px-5 py-2 text-xs font-bold text-black bg-white hover:bg-[#F5F5F3] rounded-sm uppercase tracking-wider transition-colors"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

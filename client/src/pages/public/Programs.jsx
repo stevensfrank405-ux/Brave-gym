@@ -8,7 +8,10 @@ export default function Programs() {
   const { currentUser, programs, schedule, bookings, bookClass } = useGym();
   const [selectedCategory, setSelectedCategory] = useState("ALL");
   const [bookingSuccess, setBookingSuccess] = useState(null);
-  const [bookingError, setBookingError] = useState(null);
+  const [bookingModalOpen, setBookingModalOpen] = useState(false);
+  const [selectedClassToBook, setSelectedClassToBook] = useState(null);
+  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedTime, setSelectedTime] = useState("");
 
   const isPending = currentUser && currentUser.role !== "admin" && (currentUser.status === "Pending" || currentUser.status?.toLowerCase().includes("pending"));
 
@@ -23,7 +26,7 @@ export default function Programs() {
     return true;
   });
 
-  const handleBook = async (sc) => {
+  const openBookingModal = (sc) => {
     if (sc.spotsLeft <= 0) return;
     setBookingError(null);
 
@@ -32,8 +35,27 @@ export default function Programs() {
       return;
     }
 
+    setSelectedClassToBook(sc);
+    
+    // Default to next week based on schedule day, or just current date
+    const today = new Date();
+    setSelectedDate(today.toISOString().split("T")[0]);
+    setSelectedTime(sc.time.split(" ")[0]); // naive default from sc.time
+    
+    setBookingModalOpen(true);
+  };
+
+  const handleConfirmBooking = async () => {
+    if (!selectedClassToBook || !selectedDate || !selectedTime) return;
+
     try {
-      const booking = await bookClass(sc);
+      const formattedDate = `${selectedDate} ${selectedTime}`;
+      const booking = await bookClass({
+        ...selectedClassToBook,
+        date: formattedDate
+      });
+      
+      setBookingModalOpen(false);
       setBookingSuccess(booking);
       confetti({
         particleCount: 80,
@@ -206,7 +228,7 @@ export default function Programs() {
               const isAlreadyBooked = (bookings || []).some(
                 (b) =>
                   b.classTitle?.toLowerCase() === sc.classTitle?.toLowerCase() &&
-                  (b.date?.toLowerCase().includes(sc.day.toLowerCase()) || b.trainer?.toLowerCase() === sc.trainer.toLowerCase())
+                  b.date?.toLowerCase().includes(sc.day.toLowerCase())
               );
 
               return (
@@ -253,7 +275,7 @@ export default function Programs() {
                       </span>
                     ) : (
                       <button
-                        onClick={() => handleBook(sc)}
+                        onClick={() => openBookingModal(sc)}
                         disabled={sc.spotsLeft <= 0}
                         className={`px-5 py-2.5 rounded-sm text-xs uppercase tracking-widest font-bold transition-all ${
                           sc.spotsLeft > 0
@@ -272,6 +294,55 @@ export default function Programs() {
         </div>
 
       </div>
+
+      {/* Booking Date/Time Selection Modal */}
+      {bookingModalOpen && selectedClassToBook && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-[#141414] border border-white/10 rounded-sm w-full max-w-md overflow-hidden flex flex-col shadow-2xl">
+            <div className="p-6 border-b border-white/10">
+              <h3 className="font-display text-2xl font-bold text-white uppercase mb-2">Request Session</h3>
+              <p className="text-xs text-[#8C8C8C]">
+                Select the exact date and time you wish to attend <strong className="text-white">{selectedClassToBook.classTitle}</strong> with coach <strong className="text-white">{selectedClassToBook.trainer}</strong>. Your request will be sent to HQ for approval.
+              </p>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="space-y-1">
+                <label className="text-[10px] font-mono text-white/50 uppercase tracking-widest block">Date</label>
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="w-full bg-[#0a0a0a] border border-white/10 text-white rounded-sm px-3 py-2 text-sm focus:outline-none focus:border-amber-400 transition-colors"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-mono text-white/50 uppercase tracking-widest block">Time</label>
+                <input
+                  type="time"
+                  value={selectedTime}
+                  onChange={(e) => setSelectedTime(e.target.value)}
+                  className="w-full bg-[#0a0a0a] border border-white/10 text-white rounded-sm px-3 py-2 text-sm focus:outline-none focus:border-amber-400 transition-colors"
+                />
+              </div>
+            </div>
+            <div className="p-6 bg-[#0a0a0a] border-t border-white/10 flex items-center justify-end gap-3">
+              <button
+                onClick={() => setBookingModalOpen(false)}
+                className="px-4 py-2 text-xs font-bold text-white/70 hover:text-white uppercase tracking-wider transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmBooking}
+                className="px-5 py-2 text-xs font-bold text-black bg-white hover:bg-[#F5F5F3] rounded-sm uppercase tracking-wider transition-colors"
+              >
+                Request Booking
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

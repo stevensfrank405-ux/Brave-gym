@@ -38,15 +38,15 @@ export class BookingViewModel {
       trainer: scheduleItem.trainer,
       date: scheduleItem.date || `${scheduleItem.day}, ${scheduleItem.time}`,
       room: scheduleItem.room || "Main Athletic Floor",
-      status: "Confirmed"
+      status: scheduleItem.status || "Pending" // Default to Pending instead of Confirmed
     });
 
     // Generate real-time confirmation notification for athlete
     if (userId) {
       await NotificationModel.create({
         userId,
-        title: "Class Reservation Confirmed",
-        message: `Your spot in ${scheduleItem.classTitle} with coach ${scheduleItem.trainer} is secured (${booking.date}). Room: ${booking.room}.`,
+        title: "Class Reservation Requested",
+        message: `Your booking request for ${scheduleItem.classTitle} with coach ${scheduleItem.trainer} is pending admin approval (${booking.date}). Room: ${booking.room}.`,
         type: "admin_response"
       });
     }
@@ -55,11 +55,28 @@ export class BookingViewModel {
     await NotificationModel.create({
       userId: null,
       title: "New Athlete Class Enrollment",
-      message: `${userMeta?.name || "An athlete"} enrolled in ${scheduleItem.classTitle} (${booking.date}). Remaining spots: ${updatedClass?.spotsLeft ?? "updated"}.`,
+      message: `${userMeta?.name || "An athlete"} requested to enroll in ${scheduleItem.classTitle} (${booking.date}). Needs approval.`,
       type: "admin_response"
     });
 
     return { booking, updatedClass };
+  }
+
+  static async updateBooking(bookingId, updates) {
+    const updatedBooking = await BookingModel.update(bookingId, updates);
+    if (!updatedBooking) throw new Error("Booking not found");
+
+    // If status changed to Confirmed or Rejected, notify athlete
+    if (updates.status && (updates.status === "Confirmed" || updates.status === "Rejected")) {
+      await NotificationModel.create({
+        userId: updatedBooking.userId,
+        title: `Booking ${updates.status}`,
+        message: `Your booking for ${updatedBooking.classTitle} on ${updatedBooking.date} has been ${updates.status.toLowerCase()} by HQ.`,
+        type: "admin_response"
+      });
+    }
+
+    return updatedBooking;
   }
 
   static async cancelBooking(bookingId) {

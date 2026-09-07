@@ -81,7 +81,7 @@ export class BookingModel {
       trainer: data.trainer,
       date: data.date,
       room: data.room || "Main Athletic Floor",
-      status: data.status || "Confirmed",
+      status: data.status || "Pending", // Default to Pending instead of Confirmed
       createdAt: new Date().toISOString()
     };
 
@@ -109,6 +109,40 @@ export class BookingModel {
       }
     } else {
       throw new Error("Database is not configured.");
+    }
+  }
+
+  static async update(id, updates) {
+    if (!id || !updates) return null;
+    if (!db.isConfigured()) throw new Error("Database is not configured.");
+
+    const allowedFields = ["date", "time", "status", "room"];
+    const setClauses = [];
+    const values = [];
+    let idx = 1;
+
+    for (const key of allowedFields) {
+      if (updates[key] !== undefined) {
+        setClauses.push(`${key} = $${idx}`);
+        values.push(updates[key]);
+        idx++;
+      }
+    }
+
+    if (setClauses.length === 0) return this.findById(id);
+
+    values.push(id);
+    const query = `UPDATE bookings SET ${setClauses.join(", ")} WHERE id = $${idx} RETURNING *`;
+
+    try {
+      const res = await db.query(query, values);
+      if (res.rows.length > 0) {
+        return mapPgRowToBooking(res.rows[0]);
+      }
+      return null;
+    } catch (err) {
+      console.error("PostgreSQL booking update error:", err.message);
+      throw err;
     }
   }
 

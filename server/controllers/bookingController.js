@@ -30,6 +30,20 @@ export class BookingController {
     }
   }
 
+  static async updateBooking(req, res) {
+    try {
+      if (!req.user || req.user.role !== "admin") {
+        return res.status(403).json({ success: false, message: "Only admins can update bookings" });
+      }
+      const { id } = req.params;
+      const updates = req.body;
+      const updatedBooking = await BookingViewModel.updateBooking(id, updates);
+      return res.status(200).json({ success: true, data: updatedBooking });
+    } catch (err) {
+      return res.status(400).json({ success: false, message: err.message });
+    }
+  }
+
   static async cancelBooking(req, res) {
     try {
       const { id } = req.params;
