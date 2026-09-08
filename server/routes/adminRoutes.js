@@ -3,7 +3,17 @@ import { AdminController } from "../controllers/adminController.js";
 import { optionalAuthenticate, authenticate, requireAdmin } from "../middleware/authMiddleware.js";
 import { TrainerModel } from "../models/Trainer.js";
 
+import { upload } from "../middleware/uploadMiddleware.js";
+
 const router = express.Router();
+
+router.post("/upload", authenticate, requireAdmin, upload.single("image"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ message: "No image file provided" });
+  }
+  const imageUrl = `/uploads/${req.file.filename}`;
+  res.status(201).json({ url: imageUrl });
+});
 
 router.get("/stats", optionalAuthenticate, AdminController.getStats);
 router.delete("/users/:id", authenticate, requireAdmin, AdminController.deleteUser);

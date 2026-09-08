@@ -243,6 +243,20 @@ class ApiService {
     return res || [];
   }
 
+  async uploadAdminMedia(file) {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    const res = await this.request("/admin/upload", {
+      method: "POST",
+      isMultipart: true,
+      body: formData
+    });
+
+    const imageUrl = res?.url;
+    return imageUrl ? `${SERVER_BASE_URL}${imageUrl}` : null;
+  }
+
   async createTrainer(trainerData) {
     const res = await this.request("/admin/trainers", {
       method: "POST",

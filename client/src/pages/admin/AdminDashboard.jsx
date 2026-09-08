@@ -37,6 +37,7 @@ import {
 } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useGym } from "../../context/GymContext";
+import api from "../../services/api";
 
 export default function AdminDashboard() {
   const {
@@ -259,10 +260,22 @@ export default function AdminDashboard() {
     quote: "",
     specialties: ""
   });
+  const [newTrainerImageFile, setNewTrainerImageFile] = useState(null);
+  const [isUploadingTrainer, setIsUploadingTrainer] = useState(false);
 
   const handleCreateTrainer = async (e) => {
     e.preventDefault();
     try {
+      setIsUploadingTrainer(true);
+      let imageUrl = newTrainerData.image;
+
+      if (newTrainerImageFile) {
+        const uploadedUrl = await api.uploadAdminMedia(newTrainerImageFile);
+        if (uploadedUrl) {
+          imageUrl = uploadedUrl;
+        }
+      }
+
       const specsArray = newTrainerData.specialties
         .split(",")
         .map(s => s.trim())
@@ -270,12 +283,16 @@ export default function AdminDashboard() {
 
       await addTrainer({
         ...newTrainerData,
+        image: imageUrl,
         specialties: specsArray
       });
       setNewTrainerModal(false);
       setNewTrainerData({ name: "", role: "", image: "", bio: "", quote: "", specialties: "" });
+      setNewTrainerImageFile(null);
     } catch (err) {
       alert("Failed to create trainer. See console.");
+    } finally {
+      setIsUploadingTrainer(false);
     }
   };
 
@@ -2117,15 +2134,34 @@ export default function AdminDashboard() {
                 </div>
 
                 <div>
-                  <label htmlFor="trainer-image" className="uppercase font-mono text-[#8C8C8C] block mb-1">Image URL</label>
-                  <input
-                    id="trainer-image"
-                    type="text"
-                    placeholder="https://..."
-                    value={newTrainerData.image}
-                    onChange={(e) => setNewTrainerData({ ...newTrainerData, image: e.target.value })}
-                    className="w-full px-3 py-2 bg-[#1F1F1F] border border-white/15 rounded text-white text-sm focus:outline-none focus:border-amber-500/50"
-                  />
+                  <label htmlFor="trainer-image" className="uppercase font-mono text-[#8C8C8C] block mb-1">Image URL or Upload</label>
+                  <div className="flex gap-2">
+                    <input
+                      id="trainer-image"
+                      type="text"
+                      placeholder="https://..."
+                      value={newTrainerData.image}
+                      onChange={(e) => setNewTrainerData({ ...newTrainerData, image: e.target.value })}
+                      disabled={!!newTrainerImageFile}
+                      className="w-full px-3 py-2 bg-[#1F1F1F] border border-white/15 rounded text-white text-sm focus:outline-none focus:border-amber-500/50 disabled:opacity-50"
+                    />
+                    <label className="flex items-center justify-center px-4 bg-[#2A2A2A] hover:bg-[#333333] border border-white/15 rounded cursor-pointer transition-colors whitespace-nowrap text-sm">
+                      <Upload className="w-4 h-4 mr-2" />
+                      {newTrainerImageFile ? "Selected" : "Upload"}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            setNewTrainerImageFile(e.target.files[0]);
+                          } else {
+                            setNewTrainerImageFile(null);
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
                 </div>
 
                 <div>
@@ -2172,9 +2208,10 @@ export default function AdminDashboard() {
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 bg-amber-400 text-black font-bold uppercase rounded hover:bg-amber-300 transition-colors"
+                    disabled={isUploadingTrainer}
+                    className="px-5 py-2 bg-amber-400 text-black font-bold uppercase rounded hover:bg-amber-300 transition-colors disabled:opacity-50"
                   >
-                    Add Trainer
+                    {isUploadingTrainer ? "Uploading..." : "Add Trainer"}
                   </button>
                 </div>
               </form>
