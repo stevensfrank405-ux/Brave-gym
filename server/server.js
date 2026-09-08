@@ -44,6 +44,20 @@ app.use("/uploads", express.static(path.join(__dirname, "data/uploads")));
 // API routes
 app.use("/api", routes);
 
+// Serve frontend dist assets if present (production deployment)
+const clientDistPath = path.join(__dirname, "../client/dist");
+app.use(express.static(clientDistPath));
+
+app.get("*", (req, res, next) => {
+  if (req.path.startsWith("/api") || req.path.startsWith("/uploads")) {
+    return next();
+  }
+  const indexHtml = path.join(clientDistPath, "index.html");
+  res.sendFile(indexHtml, (err) => {
+    if (err) next();
+  });
+});
+
 // Global Error Handler
 app.use(errorHandler);
 

@@ -3,8 +3,9 @@
  * Clean MVVM Model Service replacing Supabase
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-const SERVER_BASE_URL = import.meta.env.VITE_SERVER_URL || "http://localhost:5000";
+const isClientBrowser = typeof window !== "undefined";
+const API_BASE_URL = import.meta.env.VITE_API_URL || (isClientBrowser && !window.location.hostname.includes("localhost") ? `${window.location.origin}/api` : "http://localhost:5000/api");
+const SERVER_BASE_URL = import.meta.env.VITE_SERVER_URL || (isClientBrowser && !window.location.hostname.includes("localhost") ? window.location.origin : "http://localhost:5000");
 
 class ApiService {
   getToken() {
