@@ -1,76 +1,25 @@
-import React, { useEffect, useRef, useState } from "react";
-import { ArrowDown, Flame, Shield, ArrowUpRight, Volume2, VolumeX, Play, Pause, RotateCcw, Trophy } from "lucide-react";
+import React from "react";
+import { ArrowDown, Flame, Shield, ArrowUpRight, Trophy } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function ScrollVideoHero() {
-  const videoRef = useRef(null);
-  const [isMuted, setIsMuted] = useState(true);
-  const [isPlaying, setIsPlaying] = useState(true);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    video.muted = true;
-    video.play()
-      .then(() => setIsPlaying(true))
-      .catch(() => setIsPlaying(false));
-
-    const onPlay = () => setIsPlaying(true);
-    const onPause = () => setIsPlaying(false);
-    const onEnded = () => setIsPlaying(false);
-
-    video.addEventListener("play", onPlay);
-    video.addEventListener("pause", onPause);
-    video.addEventListener("ended", onEnded);
-
-    return () => {
-      video.removeEventListener("play", onPlay);
-      video.removeEventListener("pause", onPause);
-      video.removeEventListener("ended", onEnded);
-    };
-  }, []);
-
-  const togglePlayPause = () => {
-    const video = videoRef.current;
-    if (!video) return;
-    if (video.paused) {
-      video.play().then(() => setIsPlaying(true)).catch(() => {});
-    } else {
-      video.pause();
-      setIsPlaying(false);
-    }
-  };
-
-  const handleReplay = () => {
-    const video = videoRef.current;
-    if (!video) return;
-    video.currentTime = 0;
-    video.play().then(() => setIsPlaying(true)).catch(() => {});
-  };
-
   const headlineWords = ["BE", "BRAVE.", "TRAIN", "HARD."];
 
   return (
     <section
       className="relative w-full h-screen bg-[#0D0D0D] overflow-hidden flex flex-col justify-between"
     >
-      {/* Background Video */}
-      <div className="absolute inset-0 w-full h-full">
-        <video
-          ref={videoRef}
-          src="/media/boxing-hero.mp4"
-          poster="/media/edgar-chaparro-sHfo3WOgGTU-unsplash.jpg"
-          preload="auto"
-          muted={isMuted}
-          autoPlay
-          loop
-          playsInline
-          className="w-full h-full object-cover object-center grayscale contrast-125 filter brightness-80 scale-[1.02] transition-all duration-300"
+      {/* Background Video (Streamable) */}
+      <div className="absolute inset-0 w-full h-full pointer-events-none">
+        <iframe
+          src="https://streamable.com/e/4n3wku?autoplay=1&nocontrols=1&muted=1&loop=1"
+          allow="autoplay"
+          className="w-full h-full object-cover object-center grayscale contrast-125 filter brightness-80 scale-[1.05] transition-all duration-300"
+          style={{ width: '100%', height: '100%', border: 'none', pointerEvents: 'none' }}
         />
 
         {/* Dynamic dark vignette overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0D0D0D] via-[#0D0D0D]/30 to-[#0D0D0D]/60 opacity-60" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0D0D0D] via-[#0D0D0D]/30 to-[#0D0D0D]/60 opacity-60 pointer-events-none" />
 
         {/* Cinematic Radial Shadow */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_40%,rgba(0,0,0,0.8)_100%)] pointer-events-none" />
@@ -162,43 +111,6 @@ export default function ScrollVideoHero() {
                   Our Ethos <ArrowUpRight className="w-3 h-3" />
                 </Link>
               </div>
-            </div>
-
-            {/* Interactive Media Controls: Sound, Play/Pause, Replay */}
-            <div className="flex items-center gap-2 self-start lg:self-end">
-              {/* Play / Pause Toggle */}
-              <button
-                onClick={togglePlayPause}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] tracking-wider uppercase text-white/80 hover:text-white bg-black/60 backdrop-blur-md rounded-full border border-white/15 transition-all hover:bg-black/90 cursor-pointer"
-                title={isPlaying ? "Pause Video" : "Play Video"}
-              >
-                {isPlaying ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
-                <span>{isPlaying ? "Pause" : "Play"}</span>
-              </button>
-
-              {/* Replay Button */}
-              <button
-                onClick={handleReplay}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] tracking-wider uppercase text-white/80 hover:text-white bg-black/60 backdrop-blur-md rounded-full border border-white/15 transition-all hover:bg-black/90 cursor-pointer"
-                title="Replay Video from Beginning"
-              >
-                <RotateCcw className="w-3 h-3" />
-                <span>Replay</span>
-              </button>
-
-              {/* Discreet Sound Button */}
-              <button
-                onClick={() => {
-                  const nextMute = !isMuted;
-                  setIsMuted(nextMute);
-                  if (videoRef.current) videoRef.current.muted = nextMute;
-                }}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] tracking-wider uppercase text-white/80 hover:text-white bg-black/60 backdrop-blur-md rounded-full border border-white/15 transition-all hover:bg-black/90 cursor-pointer"
-                title={isMuted ? "Unmute Sound" : "Mute Sound"}
-              >
-                {isMuted ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3 text-white" />}
-                <span>{isMuted ? "Muted" : "Audio"}</span>
-              </button>
             </div>
 
           </div>
