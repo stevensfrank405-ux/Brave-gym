@@ -43,7 +43,9 @@ export class BookingController {
       }
       const { id } = req.params;
       const updates = req.body;
+      console.log("Admin updating booking:", id, updates);
       const updatedBooking = await BookingViewModel.updateBooking(id, updates);
+      console.log("Booking updated result:", updatedBooking);
       
       const io = req.app.get("io");
       if (io) {
@@ -53,6 +55,7 @@ export class BookingController {
       
       return res.status(200).json({ success: true, data: updatedBooking });
     } catch (err) {
+      console.error("updateBooking Error:", err);
       return res.status(400).json({ success: false, message: err.message });
     }
   }

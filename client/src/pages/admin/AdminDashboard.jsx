@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import {
   DollarSign,
   Users,
@@ -23,7 +24,7 @@ import {
   Shield,
   ChevronRight,
   Menu,
-  PieChart,
+  PieChartIcon,
   Eye,
   Search,
   BookOpen,
@@ -818,9 +819,10 @@ export default function AdminDashboard() {
                         <div className="flex items-center gap-4">
                           <div className="w-12 h-12 rounded-sm bg-[#202020] border border-white/10 flex items-center justify-center shrink-0 overflow-hidden">
                             <img 
-                              src={athleteUser?.avatar || athleteUser?.avatar_url || "/media/chris-kendall-sJ6az6-T1u8-unsplash.jpg"} 
+                              src={(athleteUser?.avatar && athleteUser.avatar !== "null" && athleteUser.avatar !== "undefined") ? athleteUser.avatar : ((athleteUser?.avatar_url && athleteUser.avatar_url !== "null" && athleteUser.avatar_url !== "undefined") ? athleteUser.avatar_url : "/media/chris-kendall-sJ6az6-T1u8-unsplash.jpg")}
                               alt={order.member} 
                               className="w-full h-full object-cover grayscale contrast-125" 
+                              onError={(e) => { e.target.onerror = null; e.target.src = "/media/chris-kendall-sJ6az6-T1u8-unsplash.jpg"; }}
                             />
                           </div>
                           
@@ -1055,16 +1057,16 @@ export default function AdminDashboard() {
                       className="px-5 py-3 flex flex-col md:flex-row md:items-center justify-between gap-5 border-b border-white/5 last:border-b-0 hover:bg-white/[0.02] transition-colors"
                     >
                       <div className="flex items-center gap-4">
-                        {/* Avatar */}
                         <div className="w-10 h-10 rounded-full overflow-hidden border border-white/10 bg-black flex items-center justify-center text-white shadow-inner font-display font-bold text-sm shrink-0">
-                          {ath.avatar_url ? (
+                          {((ath.avatar_url && ath.avatar_url !== "null" && ath.avatar_url !== "undefined") || (ath.avatar && ath.avatar !== "null" && ath.avatar !== "undefined")) ? (
                             <img
-                              src={ath.avatar_url}
+                              src={ath.avatar || ath.avatar_url}
                               alt={ath.name}
                               className="w-full h-full object-cover grayscale contrast-125"
+                              onError={(e) => { e.target.onerror = null; e.target.src = "/media/chris-kendall-sJ6az6-T1u8-unsplash.jpg"; }}
                             />
                           ) : (
-                            (ath.name || "U").substring(0, 1).toUpperCase()
+                            (ath.name || ath.email || "U").substring(0, 1).toUpperCase()
                           )}
                         </div>
 
@@ -1134,6 +1136,64 @@ export default function AdminDashboard() {
                   );
                 });
               })()}
+            </div>
+          </div>
+        )}
+
+        {/* Tab Content: Curriculum / Programs */}
+        {(activeTab === "overview" || activeTab === "programs") && (
+          <div className="space-y-6 pt-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="font-display text-2xl font-bold text-white uppercase">Curriculum & Programs</h2>
+                <p className="text-sm text-[#8C8C8C] mt-1">Manage disciplines and program categories.</p>
+              </div>
+              <button
+                onClick={() => {
+                  setEditingProgram(null);
+                  setProgramForm({ category: "", tag: "", title: "", subtitle: "", duration: "60 MIN", intensity: "HIGH", trainer: "", capacity: 16, poster: "", details: "" });
+                  setProgramModal(true);
+                }}
+                className="px-4 py-2 bg-white text-black font-bold text-xs uppercase tracking-wider rounded-sm hover:bg-[#F5F5F3] flex items-center gap-1.5"
+              >
+                <Plus className="w-3.5 h-3.5" /> New Program
+              </button>
+            </div>
+
+            <div className="bg-[#141414] border border-white/10 rounded-sm divide-y divide-white/10">
+              {programs && programs.length > 0 ? (
+                programs.map((prog) => (
+                  <div key={prog.id} className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 hover:bg-white/[0.02]">
+                    <div className="flex items-start gap-4">
+                      <div className="w-24 h-16 shrink-0 bg-black rounded overflow-hidden">
+                        <img src={prog.poster || "/media/edgar-chaparro-sHfo3WOgGTU-unsplash.jpg"} className="w-full h-full object-cover grayscale contrast-125" alt={prog.title} />
+                      </div>
+                      <div>
+                        <h4 className="font-display text-sm sm:text-base font-bold text-white uppercase">{prog.title}</h4>
+                        <span className="text-[10px] sm:text-xs font-mono text-[#8C8C8C] bg-white/5 px-2 py-0.5 rounded mr-2">{prog.category || "ALL"}</span>
+                        <span className="text-[10px] sm:text-xs font-mono text-[#8C8C8C]">{prog.duration} • {prog.intensity}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-end gap-3 border-t sm:border-t-0 pt-3 sm:pt-0 border-white/5">
+                      <button
+                        onClick={() => openEditProgram(prog)}
+                        className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white rounded text-[10px] uppercase font-bold tracking-widest transition-colors"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteProgram(prog.id)}
+                        className="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 rounded text-[10px] uppercase font-bold tracking-widest transition-colors"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="p-8 text-center text-[#8C8C8C]">No programs defined. Add one to get started.</div>
+              )}
             </div>
           </div>
         )}
@@ -1349,64 +1409,6 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Tab Content: Curriculum / Programs */}
-        {(activeTab === "overview" || activeTab === "programs") && (
-          <div className="space-y-6 pt-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="font-display text-2xl font-bold text-white uppercase">Curriculum & Programs</h2>
-                <p className="text-sm text-[#8C8C8C] mt-1">Manage disciplines and program categories.</p>
-              </div>
-              <button
-                onClick={() => {
-                  setEditingProgram(null);
-                  setProgramForm({ category: "", tag: "", title: "", subtitle: "", duration: "60 MIN", intensity: "HIGH", trainer: "", capacity: 16, poster: "", details: "" });
-                  setProgramModal(true);
-                }}
-                className="px-4 py-2 bg-white text-black font-bold text-xs uppercase tracking-wider rounded-sm hover:bg-[#F5F5F3] flex items-center gap-1.5"
-              >
-                <Plus className="w-3.5 h-3.5" /> New Program
-              </button>
-            </div>
-
-            <div className="bg-[#141414] border border-white/10 rounded-sm divide-y divide-white/10">
-              {programs && programs.length > 0 ? (
-                programs.map((prog) => (
-                  <div key={prog.id} className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 hover:bg-white/[0.02]">
-                    <div className="flex items-start gap-4">
-                      <div className="w-24 h-16 shrink-0 bg-black rounded overflow-hidden">
-                        <img src={prog.poster || "/media/edgar-chaparro-sHfo3WOgGTU-unsplash.jpg"} className="w-full h-full object-cover grayscale contrast-125" alt={prog.title} />
-                      </div>
-                      <div>
-                        <h4 className="font-display text-sm sm:text-base font-bold text-white uppercase">{prog.title}</h4>
-                        <span className="text-[10px] sm:text-xs font-mono text-[#8C8C8C] bg-white/5 px-2 py-0.5 rounded mr-2">{prog.category || "ALL"}</span>
-                        <span className="text-[10px] sm:text-xs font-mono text-[#8C8C8C]">{prog.duration} • {prog.intensity}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-end gap-3 border-t sm:border-t-0 pt-3 sm:pt-0 border-white/5">
-                      <button
-                        onClick={() => openEditProgram(prog)}
-                        className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white rounded text-[10px] uppercase font-bold tracking-widest transition-colors"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDeleteProgram(prog.id)}
-                        className="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 rounded text-[10px] uppercase font-bold tracking-widest transition-colors"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="p-8 text-center text-[#8C8C8C]">No programs defined. Add one to get started.</div>
-              )}
-            </div>
-          </div>
-        )}
-
         {/* Tab Content: Schedule Management */}
         {(activeTab === "overview" || activeTab === "schedule") && (
           <div className="space-y-6 pt-4">
@@ -1481,7 +1483,7 @@ export default function AdminDashboard() {
                   <div>
                     <h3 className="font-display text-xl font-bold text-white uppercase">Membership Tier Share</h3>
                   </div>
-                  <PieChart className="w-4 h-4 text-white/60" />
+                  <PieChartIcon className="w-4 h-4 text-white/60" />
                 </div>
 
                 <div className="flex flex-col gap-6 pt-2">
@@ -1497,12 +1499,42 @@ export default function AdminDashboard() {
 
                   {totalTxCount > 0 ? (
                     <div className="space-y-5">
-                      {/* Segmented Progress Bar */}
-                      <div className="h-1.5 w-full flex rounded-full overflow-hidden bg-white/5">
-                        {blackTierPct > 0 && <div style={{ width: `${blackTierPct}%` }} className="bg-white transition-all duration-1000 shadow-[0_0_8px_rgba(255,255,255,0.4)]" />}
-                        {obsidianTierPct > 0 && <div style={{ width: `${obsidianTierPct}%` }} className="bg-amber-400 transition-all duration-1000 shadow-[0_0_8px_rgba(251,191,36,0.4)]" />}
-                        {trialTierPct > 0 && <div style={{ width: `${trialTierPct}%` }} className="bg-blue-400 transition-all duration-1000 shadow-[0_0_8px_rgba(96,165,250,0.4)]" />}
-                        {otherTierPct > 0 && <div style={{ width: `${otherTierPct}%` }} className="bg-emerald-400 transition-all duration-1000 shadow-[0_0_8px_rgba(52,211,153,0.4)]" />}
+                      {/* Recharts Pie Chart */}
+                      <div className="h-48 w-full relative -mt-4">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={[
+                                { name: 'Black Tier', value: blackTierCount, color: '#ffffff' },
+                                { name: 'Obsidian', value: obsidianTierCount, color: '#fbbf24' },
+                                { name: 'Trial Pass', value: trialTierCount, color: '#60a5fa' },
+                                { name: 'Custom', value: otherTierCount, color: '#34d399' }
+                              ].filter(d => d.value > 0)}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={60}
+                              outerRadius={80}
+                              paddingAngle={5}
+                              stroke="none"
+                              dataKey="value"
+                            >
+                              {
+                                [
+                                  { name: 'Black Tier', value: blackTierCount, color: '#ffffff' },
+                                  { name: 'Obsidian', value: obsidianTierCount, color: '#fbbf24' },
+                                  { name: 'Trial Pass', value: trialTierCount, color: '#60a5fa' },
+                                  { name: 'Custom', value: otherTierCount, color: '#34d399' }
+                                ].filter(d => d.value > 0).map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={entry.color} />
+                                ))
+                              }
+                            </Pie>
+                            <Tooltip 
+                              contentStyle={{ backgroundColor: '#1A1A1A', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', fontSize: '11px', fontFamily: 'monospace' }}
+                              itemStyle={{ color: '#fff', fontWeight: 'bold' }}
+                            />
+                          </PieChart>
+                        </ResponsiveContainer>
                       </div>
 
                       {/* Legend Grid */}
@@ -2417,14 +2449,15 @@ export default function AdminDashboard() {
                 <div className="p-6 border-b border-white/10 bg-[#161616] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
                     <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-amber-400 bg-white/5 flex items-center justify-center text-amber-400 font-display text-xl font-bold shrink-0">
-                      {selectedDossierAthlete.avatar_url || selectedDossierAthlete.avatar ? (
+                      {((selectedDossierAthlete.avatar_url && selectedDossierAthlete.avatar_url !== "null" && selectedDossierAthlete.avatar_url !== "undefined") || (selectedDossierAthlete.avatar && selectedDossierAthlete.avatar !== "null" && selectedDossierAthlete.avatar !== "undefined")) ? (
                         <img
                           src={selectedDossierAthlete.avatar_url || selectedDossierAthlete.avatar}
                           alt={selectedDossierAthlete.name}
                           className="w-full h-full object-cover grayscale contrast-125"
+                          onError={(e) => { e.target.onerror = null; e.target.src = "/media/chris-kendall-sJ6az6-T1u8-unsplash.jpg"; }}
                         />
                       ) : (
-                        (selectedDossierAthlete.name || "A").substring(0, 2).toUpperCase()
+                        (selectedDossierAthlete.name || selectedDossierAthlete.email || "A").substring(0, 2).toUpperCase()
                       )}
                     </div>
                     <div>
