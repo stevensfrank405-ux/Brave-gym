@@ -249,12 +249,12 @@ export default function Programs() {
         <div className="pt-12 space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
             <div>
-              <span className="text-xs font-mono uppercase tracking-widest text-[#8C8C8C]">Instant Roster</span>
+  
               <h2 className="font-display text-3xl sm:text-4xl font-bold text-white uppercase">
                 Upcoming Live Sessions
               </h2>
             </div>
-            <p className="text-xs text-[#8C8C8C]">Click 'Reserve Spot' to instantly add to your member booking profile.</p>
+
           </div>
 
           <div className="bg-[#141414] border border-white/10 rounded-sm divide-y divide-white/10 overflow-x-auto">
