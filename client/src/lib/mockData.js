@@ -4,6 +4,7 @@ export const INITIAL_PROGRAMS = [
   {
     id: "boxing",
     tag: "STRIKING & FOOTWORK",
+    category: "BOXING",
     title: "Championship Boxing",
     subtitle: "Heavy bag drill, kinetic chain rotation, head movement, and sparring discipline.",
     duration: "60 MIN",
@@ -18,6 +19,7 @@ export const INITIAL_PROGRAMS = [
   {
     id: "strength",
     tag: "RESISTANCE & POWER",
+    category: "STRENGTH",
     title: "Iron Discipline Strength",
     subtitle: "Barbell mastery, compound movements, deadlift mechanics, and neuromuscular recruitment.",
     duration: "75 MIN",
@@ -31,6 +33,7 @@ export const INITIAL_PROGRAMS = [
   {
     id: "conditioning",
     tag: "AEROBIC THRESHOLD",
+    category: "METABOLIC",
     title: "Metabolic Warfare",
     subtitle: "Ski-erg, assault runner intervals, kettlebell ballistic circuits, and breath control.",
     duration: "50 MIN",
@@ -44,6 +47,7 @@ export const INITIAL_PROGRAMS = [
   {
     id: "recovery",
     tag: "MOBILITY & RESTORATION",
+    category: "RECOVERY",
     title: "Kinetic Reset & Ice Protocol",
     subtitle: "Contrast hydrotherapy, myofascial decompression, hyperbaric oxygen, and mobility flow.",
     duration: "45 MIN",

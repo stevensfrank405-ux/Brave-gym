@@ -17,13 +17,17 @@ export default function Programs() {
 
   const isPending = currentUser && currentUser.role !== "admin" && (currentUser.status === "Pending" || currentUser.status?.toLowerCase().includes("pending"));
 
-  // Extract dynamic categories from the database programs
-  const dynamicCategories = Array.from(new Set(programs.map((p) => p.category || "ALL"))).filter(c => c !== "ALL");
-  const categories = ["ALL", ...dynamicCategories];
+  // Ensure standard categories plus dynamic ones from DB programs are always available
+  const baseCategories = ["BOXING", "STRENGTH", "METABOLIC", "RECOVERY"];
+  const dynamicCategories = (programs || [])
+    .map((p) => p.category?.toUpperCase() || (p.id ? p.id.toUpperCase() : ""))
+    .filter((c) => c && c !== "ALL");
+  const categories = ["ALL", ...Array.from(new Set([...baseCategories, ...dynamicCategories]))];
 
-  const filteredPrograms = programs.filter((p) => {
+  const filteredPrograms = (programs || []).filter((p) => {
     if (selectedCategory === "ALL") return true;
-    return p.category === selectedCategory || p.id === selectedCategory.toLowerCase(); // fallback for older hardcoded logic
+    const cat = (p.category || p.id || "").toUpperCase();
+    return cat === selectedCategory || p.id?.toUpperCase() === selectedCategory;
   });
 
   const openBookingModal = (sc) => {
