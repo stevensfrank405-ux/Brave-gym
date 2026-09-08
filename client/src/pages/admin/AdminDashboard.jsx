@@ -861,7 +861,7 @@ export default function AdminDashboard() {
                       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
                         {/* Member Info */}
                         <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-full bg-black border border-white/10 flex items-center justify-center shrink-0 font-display font-bold text-sm text-white shadow-inner">
+                          <div className="w-12 h-12 rounded-sm bg-[#202020] border border-white/10 flex items-center justify-center shrink-0 font-display font-bold text-lg text-white">
                             {order.member ? order.member.charAt(0).toUpperCase() : "U"}
                           </div>
 
@@ -1148,11 +1148,11 @@ export default function AdminDashboard() {
                       </div>
 
                       {/* Action Buttons: Inspect & Remove */}
-                      <div className="flex items-center gap-6 pt-2 md:pt-0 shrink-0">
+                      <div className="flex items-center gap-2 pt-3 md:pt-0 shrink-0">
                         <button
                           type="button"
                           onClick={() => setSelectedDossierAthlete(ath)}
-                          className="text-[10px] text-amber-500 hover:text-amber-400 font-semibold uppercase tracking-widest flex items-center gap-1.5 transition-colors"
+                          className="px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 rounded text-[10px] font-semibold uppercase tracking-widest flex items-center gap-1.5 transition-colors"
                         >
                           <Eye className="w-3.5 h-3.5" />
                           <span>Dossier</span>
@@ -1164,7 +1164,7 @@ export default function AdminDashboard() {
                               removeAthlete(ath.id);
                             }
                           }}
-                          className="text-[10px] text-red-500 hover:text-red-400 font-semibold uppercase tracking-widest flex items-center gap-1.5 transition-colors"
+                          className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded text-[10px] font-semibold uppercase tracking-widest flex items-center gap-1.5 transition-colors"
                           title="Remove Athlete Profile"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -1344,14 +1344,14 @@ export default function AdminDashboard() {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-6 pt-2 md:pt-0 shrink-0 self-start md:self-center">
+                      <div className="flex items-center gap-2 pt-3 md:pt-0 shrink-0 self-start md:self-center">
                         <button
                           type="button"
                           onClick={() => {
                             setSelectedOrder(matchingOrder || null);
                             setActiveNegotiationThread(req);
                           }}
-                          className="text-[10px] text-amber-500 hover:text-amber-400 font-semibold uppercase tracking-widest flex items-center gap-1.5 transition-colors"
+                          className="px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 rounded text-[10px] font-semibold uppercase tracking-widest flex items-center gap-1.5 transition-colors"
                           title="Open Live Chat"
                         >
                           <MessageSquare className="w-3.5 h-3.5" />
@@ -1362,7 +1362,7 @@ export default function AdminDashboard() {
                           <button
                             type="button"
                             onClick={() => setSelectedDossierAthlete(athleteUser)}
-                            className="text-[10px] text-[#8C8C8C] hover:text-white font-semibold uppercase tracking-widest flex items-center gap-1.5 transition-colors"
+                            className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-[#8C8C8C] hover:text-white border border-white/10 rounded text-[10px] font-semibold uppercase tracking-widest flex items-center gap-1.5 transition-colors"
                             title="Dossier"
                           >
                             <Eye className="w-3.5 h-3.5" />
@@ -1373,7 +1373,7 @@ export default function AdminDashboard() {
                         <button
                           type="button"
                           onClick={() => removeConsultationRequest(req.id)}
-                          className="text-[10px] text-red-500 hover:text-red-400 font-semibold uppercase tracking-widest flex items-center gap-1.5 transition-colors"
+                          className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded text-[10px] font-semibold uppercase tracking-widest flex items-center gap-1.5 transition-colors"
                           title="Delete Chat Thread"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
