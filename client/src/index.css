@@ -1,6 +1,13 @@
 @import "tailwindcss";
 @import "lenis/dist/lenis.css";
 
+@theme {
+  --font-primary: 'Caacupe One', cursive, sans-serif;
+  --font-secondary: 'Lobster Two', cursive, sans-serif;
+  --font-display: 'Lobster Two', cursive, sans-serif;
+  --font-body: 'Caacupe One', cursive, sans-serif;
+}
+
 @layer base {
   :root {
     --gym-obsidian: #0D0D0D;
@@ -15,12 +22,16 @@
   body {
     background-color: var(--gym-obsidian);
     color: var(--gym-chalk);
-    font-family: 'Satoshi', sans-serif;
+    font-family: 'Caacupe One', cursive, sans-serif;
     letter-spacing: -0.01em;
   }
 
-  h1, h2, h3, h4, .font-display {
-    font-family: 'Clash Display', sans-serif;
+  h1, h2, h3, h4, .font-display, .font-secondary {
+    font-family: 'Lobster Two', cursive, sans-serif;
+  }
+
+  .font-primary, .font-body {
+    font-family: 'Caacupe One', cursive, sans-serif;
   }
 }
 
