@@ -161,6 +161,18 @@ export async function initPostgresTables() {
     );
 
     CREATE INDEX IF NOT EXISTS idx_workout_logs_user_id ON workout_logs (user_id);
+
+    CREATE TABLE IF NOT EXISTS trainers (
+      id VARCHAR(50) PRIMARY KEY,
+      name VARCHAR(255) NOT NULL,
+      role VARCHAR(255) NOT NULL,
+      image TEXT,
+      bio TEXT,
+      quote TEXT,
+      specialties JSONB DEFAULT '[]'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
   `;
 
   try {
@@ -226,6 +238,19 @@ export async function initPostgresTables() {
           ('trial', 'Brave Trial', 39, '3-class pass', '3-class pass', 'Experience the facility, coaching precision, and community standard.', '["Access to any 3 classes within 14 days", "Full locker room & sauna privileges", "1-on-1 movement assessment", "Complimentary hand wraps & glove rental"]', false, 'Book Trial Pass'),
           ('black-tier', 'Black Tier', 189, 'monthly', 'monthly', 'The complete athletic standard for disciplined, dedicated daily athletes.', '["Unlimited group classes (Boxing, Strength, HIIT)", "Priority 7-day advance booking window", "Recovery suite (Sauna & Cold Plunge)", "Quarterly body composition & biomarker scan", "1 Guest pass per month"]', true, 'Claim Black Tier'),
           ('obsidian-tier', 'Obsidian Private', 349, 'monthly', 'monthly', 'High-touch coaching with individualized programming and biometric oversight.', '["All Black Tier privileges included", "4 Private 1-on-1 coaching sessions per month", "Custom nutrition & recovery protocol", "Private locker with daily laundry service", "24/7 dedicated coach direct messaging"]', false, 'Apply for Obsidian');
+      `);
+    }
+
+    // Seed default trainers if empty
+    const trainerCheck = await pool.query("SELECT COUNT(*) FROM trainers");
+    if (Number(trainerCheck.rows[0].count) === 0) {
+      console.log("🌱 Seeding initial professional trainers...");
+      await pool.query(`
+        INSERT INTO trainers (id, name, role, image, bio, quote, specialties) VALUES
+          ('tr-1', 'Marcus Vance', 'Head Boxing Director & Founder', '/media/chris-kendall-sJ6az6-T1u8-unsplash.jpg', 'Former professional cruiserweight with a 24-2 record. Marcus founded Brave Gym to bring professional fighting standards to the public. He focuses on technical precision, ring IQ, and building mental fortitude.', 'Discipline is the bridge between goals and accomplishment.', '["Championship Boxing", "Fight Prep", "Mental Conditioning"]'),
+          ('tr-2', 'Elena Rostova', 'Lead Strength & Conditioning', '/media/edgar-chaparro-sHfo3WOgGTU-unsplash.jpg', 'Olympic weightlifting bronze medalist. Elena rebuilds athletes from the ground up, prioritizing structural integrity, raw power, and injury resilience.', 'Weakness is a choice. Strength is a commitment.', '["Olympic Lifting", "Power Output", "Structural Resilience"]'),
+          ('tr-3', 'Jaxson Cole', 'Metabolic & HIIT Specialist', '/media/hermes-rivera-qbf59TU077Q-unsplash.jpg', 'Ex-military fitness instructor known for grueling, high-volume conditioning sessions that push the human cardiovascular system to its absolute limits.', 'When your lungs burn, your character is forged.', '["VO2 Max Protocol", "Combat Endurance", "High-Volume Calisthenics"]'),
+          ('tr-4', 'David Guliciuc', 'Tactical Striking Coach', '/media/david-guliciuc-o2zrjlM5s5o-unsplash.jpg', 'Doctor of Physical Therapy and biomechanics expert. Dr. Lin ensures athletes recover faster, correct muscular imbalances, and maintain peak longevity.', 'You can only train as hard as you can recover.', '["Kinetic Chain Repair", "Ice/Heat Protocol", "Mobility Mapping"]');
       `);
     }
 
