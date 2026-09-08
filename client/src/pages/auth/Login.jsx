@@ -1,15 +1,18 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowRight, Lock, Mail, Shield, AlertCircle } from "lucide-react";
 import { useGym } from "../../context/GymContext";
 
 export default function Login() {
+  const [searchParams] = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { login } = useGym();
   const navigate = useNavigate();
+
+  const targetRedirect = searchParams.get("redirect");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,6 +27,8 @@ export default function Login() {
       const user = await login(email, password);
       if (user.role === "admin") {
         navigate("/admin");
+      } else if (targetRedirect && targetRedirect.startsWith("/")) {
+        navigate(targetRedirect);
       } else {
         navigate("/dashboard");
       }

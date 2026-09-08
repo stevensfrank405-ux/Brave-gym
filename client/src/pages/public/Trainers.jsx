@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Award, Quote, CheckCircle2, X, Send, Bot, MessageSquare, ArrowRight, Phone, MapPin, User, FileText } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
+import { Award, Quote, CheckCircle2, X, Send, Bot, MessageSquare, ArrowRight, Phone, MapPin, User, FileText, UserPlus } from "lucide-react";
 import { useGym } from "../../context/GymContext";
 import confetti from "canvas-confetti";
 
 export default function Trainers() {
   const { trainers, addConsultationRequest, currentUser } = useGym();
+  const navigate = useNavigate();
   const [activeModal, setActiveModal] = useState(null);
   const [showConsultantForm, setShowConsultantForm] = useState(false);
   const [selectedTrainer, setSelectedTrainer] = useState(null);
@@ -53,6 +55,12 @@ export default function Trainers() {
   const [submittedSuccess, setSubmittedSuccess] = useState(false);
 
   const openConsultationForm = (trainer) => {
+    if (!currentUser) {
+      setActiveModal(null);
+      navigate(`/register?redirect=/trainers&notice=consultation_required&trainerName=${encodeURIComponent(trainer.name)}`);
+      return;
+    }
+
     setSelectedTrainer(trainer);
     setActiveModal(null);
     setShowConsultantForm(true);
@@ -91,6 +99,11 @@ export default function Trainers() {
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
+    if (!currentUser) {
+      navigate("/register?redirect=/trainers&notice=consultation_required");
+      return;
+    }
+
     if (!formData.fullName || !formData.phone) {
       alert("Please provide your complete name and contact phone number.");
       return;
@@ -132,6 +145,21 @@ export default function Trainers() {
           <p className="text-sm sm:text-base text-[#8C8C8C] leading-relaxed">
             Our coaching faculty consists of professional prize-fighters, Division-1 strength directors, and kinetic biomechanists who live the training lifestyle.
           </p>
+
+          {!currentUser && (
+            <div className="p-4 bg-white/5 border border-white/10 rounded-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2.5 text-white/80">
+                <UserPlus className="w-4 h-4 text-amber-400 shrink-0" />
+                <span>Private consultations & coach assignments require an active athlete registration.</span>
+              </div>
+              <Link
+                to="/register?redirect=/trainers"
+                className="px-3.5 py-1.5 bg-white text-black font-bold font-mono text-[11px] uppercase tracking-wider rounded shrink-0 text-center hover:bg-[#F5F5F3] transition-colors"
+              >
+                Create Account
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Trainers Grid */}

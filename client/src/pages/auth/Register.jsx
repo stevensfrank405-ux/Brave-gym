@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowRight, Lock, Mail, User, Shield, AlertCircle, Flame, Check } from "lucide-react";
+import { ArrowRight, Lock, Mail, User, Shield, AlertCircle, Flame, Check, Info } from "lucide-react";
 import { useGym } from "../../context/GymContext";
 import confetti from "canvas-confetti";
 
@@ -9,7 +9,13 @@ export default function Register() {
   const { register, memberships } = useGym();
   const navigate = useNavigate();
 
-  const preselectedTier = searchParams.get("tier") || (memberships?.[0]?.name || "Brave Trial");
+  const noticeType = searchParams.get("notice");
+  const targetRedirect = searchParams.get("redirect");
+  const classTitle = searchParams.get("classTitle");
+  const trainerName = searchParams.get("trainerName");
+  const requestedTier = searchParams.get("tier");
+
+  const preselectedTier = requestedTier || (memberships?.[0]?.name || "Brave Trial");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -48,6 +54,8 @@ export default function Register() {
 
       if (user.role === "admin") {
         navigate("/admin");
+      } else if (targetRedirect && targetRedirect.startsWith("/")) {
+        navigate(targetRedirect);
       } else {
         navigate("/dashboard");
       }
@@ -103,6 +111,37 @@ export default function Register() {
               Join the cohort. Receive your complimentary 3-day access pass upon registration.
             </p>
           </div>
+
+          {/* Contextual Notice Banner for Visitors */}
+          {noticeType === "pkg_required" && (
+            <div className="p-3.5 bg-amber-500/15 border border-amber-500/30 rounded text-xs text-amber-300 flex items-start gap-2.5">
+              <Info className="w-4 h-4 shrink-0 mt-0.5 text-amber-400" />
+              <div>
+                <strong className="block text-amber-200">Registration Required for Membership Tiers</strong>
+                <span>Please create your athlete profile first to select and activate the <strong>{requestedTier || "selected"}</strong> package.</span>
+              </div>
+            </div>
+          )}
+
+          {noticeType === "class_required" && (
+            <div className="p-3.5 bg-amber-500/15 border border-amber-500/30 rounded text-xs text-amber-300 flex items-start gap-2.5">
+              <Info className="w-4 h-4 shrink-0 mt-0.5 text-amber-400" />
+              <div>
+                <strong className="block text-amber-200">Registration Required for Class Booking</strong>
+                <span>You must register an athlete profile first to reserve your spot {classTitle ? <span>in <strong>{classTitle}</strong></span> : "in any class session"}.</span>
+              </div>
+            </div>
+          )}
+
+          {noticeType === "consultation_required" && (
+            <div className="p-3.5 bg-amber-500/15 border border-amber-500/30 rounded text-xs text-amber-300 flex items-start gap-2.5">
+              <Info className="w-4 h-4 shrink-0 mt-0.5 text-amber-400" />
+              <div>
+                <strong className="block text-amber-200">Registration Required for Coach Consultations</strong>
+                <span>Please create your profile first to request private 1-on-1 coaching {trainerName ? <span>with <strong>{trainerName}</strong></span> : "with our faculty"}.</span>
+              </div>
+            </div>
+          )}
 
           {error && (
             <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded text-xs text-rose-300 flex items-center gap-2">

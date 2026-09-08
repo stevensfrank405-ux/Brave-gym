@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { Clock, Flame, Users, Calendar, ArrowRight, CheckCircle2, AlertCircle, ShieldAlert, Check } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Clock, Flame, Users, Calendar, ArrowRight, CheckCircle2, AlertCircle, ShieldAlert, Check, UserPlus } from "lucide-react";
 import { useGym } from "../../context/GymContext";
 import confetti from "canvas-confetti";
 
 export default function Programs() {
   const { currentUser, programs, schedule, bookings, bookClass } = useGym();
+  const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState("ALL");
   const [bookingSuccess, setBookingSuccess] = useState(null);
   const [bookingModalOpen, setBookingModalOpen] = useState(false);
@@ -31,6 +32,11 @@ export default function Programs() {
     if (sc.spotsLeft <= 0) return;
     setBookingError(null);
 
+    if (!currentUser) {
+      navigate(`/register?redirect=/programs&notice=class_required&classTitle=${encodeURIComponent(sc.classTitle)}`);
+      return;
+    }
+
     if (isPending) {
       setBookingError("Your account/membership is currently Pending Admin Verification. Bookings will unlock once HQ approves your order.");
       return;
@@ -48,6 +54,11 @@ export default function Programs() {
 
   const handleConfirmBooking = async () => {
     if (!selectedClassToBook || !selectedDate || !selectedTime) return;
+
+    if (!currentUser) {
+      navigate(`/register?redirect=/programs&notice=class_required&classTitle=${encodeURIComponent(selectedClassToBook.classTitle)}`);
+      return;
+    }
 
     try {
       const formattedDate = `${selectedDate} ${selectedTime}`;
@@ -100,6 +111,22 @@ export default function Programs() {
           <p className="text-sm sm:text-base text-[#8C8C8C] leading-relaxed">
             Every session is capped to ensure strict coach-to-athlete ratios. Choose your discipline below to review technical curriculum and reserve a spot on the floor.
           </p>
+
+          {/* Unauthenticated Visitor Notice */}
+          {!currentUser && (
+            <div className="p-4 bg-white/5 border border-white/10 rounded-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2.5 text-white/80">
+                <UserPlus className="w-4 h-4 text-amber-400 shrink-0" />
+                <span>You are exploring as a visitor. <strong>Register an athlete profile</strong> to reserve ring slots and class sessions.</span>
+              </div>
+              <Link
+                to="/register?redirect=/programs"
+                className="px-3.5 py-1.5 bg-white text-black font-bold font-mono text-[11px] uppercase tracking-wider rounded shrink-0 text-center hover:bg-[#F5F5F3] transition-colors"
+              >
+                Create Account
+              </Link>
+            </div>
+          )}
 
           {/* Pending Approval Notice */}
           {isPending && (

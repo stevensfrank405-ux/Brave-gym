@@ -1,14 +1,21 @@
 import React, { useState } from "react";
-import { Check, Flame, HelpCircle, ShieldCheck, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Check, Flame, HelpCircle, ShieldCheck, ArrowRight, UserPlus } from "lucide-react";
 import { useGym } from "../../context/GymContext";
 import confetti from "canvas-confetti";
 
 export default function Pricing() {
-  const { memberships, purchasePlan } = useGym();
+  const { memberships, purchasePlan, currentUser } = useGym();
+  const navigate = useNavigate();
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [purchased, setPurchased] = useState(false);
 
   const handleCheckout = async (plan) => {
+    if (!currentUser) {
+      navigate(`/register?tier=${encodeURIComponent(plan.name)}&notice=pkg_required`);
+      return;
+    }
+
     setSelectedPlan(plan);
     setPurchased(true);
     await purchasePlan(plan);
@@ -56,6 +63,15 @@ export default function Pricing() {
           <p className="text-sm sm:text-base text-[#8C8C8C] leading-relaxed">
             Transparent pricing without activation fees, automated cancellation locks, or fine print. Choose the membership level that matches your ambition.
           </p>
+
+          {!currentUser && (
+            <div className="pt-2 flex items-center justify-center">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded bg-white/5 border border-white/10 text-xs text-[#8C8C8C]">
+                <UserPlus className="w-3.5 h-3.5 text-amber-400" />
+                <span>Visitors: Selecting any tier will prompt you to create your athlete profile first.</span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Purchase Confirmation Toast */}
