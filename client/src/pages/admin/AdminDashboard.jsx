@@ -433,12 +433,21 @@ export default function AdminDashboard() {
         className={`transition-all duration-300 bg-[#121212] border-r border-white/10 hidden md:flex flex-col justify-between shrink-0 z-30 sticky top-20 h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain ${sidebarCollapsed ? "w-20" : "w-72"
           }`}>
         {/* Top Header inside Sidebar */}
-        <div className="p-5 border-b border-white/10 space-y-4">
-          <div className="flex items-center justify-between">
+        <div className="p-5 border-b border-white/10 flex items-start justify-between min-h-[81px]">
+          {(!sidebarCollapsed || mobileAdminMenu) && (
+            <div className="flex-1 mt-0.5">
+              <h2 className="font-display font-extrabold text-xl uppercase tracking-tight text-white leading-none mb-1">
+                Admin Console
+              </h2>
+              <p className="text-[11px] text-[#8C8C8C]">Director Command & Roster</p>
+            </div>
+          )}
+
+          <div className={sidebarCollapsed ? "w-full flex justify-center" : "shrink-0 ml-3"}>
             {/* Desktop collapse toggle */}
             <button
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="hidden md:block p-1.5 text-white/70 hover:text-white hover:bg-white/10 rounded-sm transition-colors ml-auto"
+              className="hidden md:flex p-1.5 text-white/70 hover:text-white hover:bg-white/10 rounded-sm transition-colors"
               title="Toggle Sidebar"
             >
               <Menu className="w-4 h-4" />
@@ -447,21 +456,12 @@ export default function AdminDashboard() {
             {/* Mobile close toggle */}
             <button
               onClick={() => setMobileAdminMenu(false)}
-              className="md:hidden p-1.5 text-white/70 hover:text-white hover:bg-white/10 rounded-sm transition-colors ml-auto"
+              className="md:hidden flex p-1.5 text-white/70 hover:text-white hover:bg-white/10 rounded-sm transition-colors"
               title="Close Menu"
             >
               <X className="w-4 h-4" />
             </button>
           </div>
-
-          {(!sidebarCollapsed || mobileAdminMenu) && (
-            <div>
-              <h2 className="font-display font-extrabold text-xl uppercase tracking-tight text-white">
-                Admin Console
-              </h2>
-              <p className="text-[11px] text-[#8C8C8C]">Director Command & Roster</p>
-            </div>
-          )}
         </div>
 
         {/* Sidebar Nav Items */}
