@@ -832,7 +832,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Orders Cards Grid */}
-            <div className="space-y-4">
+            <div className="bg-[#141414] border border-white/10 rounded-sm divide-y divide-white/10">
               {adminStats?.recentTransactions && adminStats.recentTransactions.length > 0 ? (
                 adminStats.recentTransactions.map((order) => {
                   const athleteUser = (allUsersRoster || []).find(
@@ -853,7 +853,7 @@ export default function AdminDashboard() {
                   return (
                     <div
                       key={order.id}
-                      className={`px-5 py-3 transition-all border-b last:border-b-0 ${isPending
+                      className={`px-5 py-3 transition-all border-b last:border-b-0 hover:bg-white/[0.02] ${isPending
                         ? "border-amber-500/20"
                         : "border-white/5"
                         }`}
@@ -1331,17 +1331,7 @@ export default function AdminDashboard() {
                           </div>
                         )}
 
-                        <div className="flex flex-wrap items-center gap-3 text-[10px] text-[#666] font-mono tracking-widest uppercase">
-                          <span>Channel: {req.serviceType || "Membership Discussion"}</span>
-                          <span>·</span>
-                          <span>{msgCount} {msgCount === 1 ? "Message" : "Messages"}</span>
-                          {matchingOrder && (
-                            <>
-                              <span>·</span>
-                              <span className="text-amber-500/80">Order: {matchingOrder.plan} ({matchingOrder.status})</span>
-                            </>
-                          )}
-                        </div>
+
                       </div>
 
                       <div className="flex items-center gap-2 pt-3 md:pt-0 shrink-0 self-start md:self-center">
