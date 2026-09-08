@@ -48,7 +48,7 @@ app.use("/api", routes);
 const clientDistPath = path.join(__dirname, "../client/dist");
 app.use(express.static(clientDistPath));
 
-app.get("*", (req, res, next) => {
+app.get("{*path}", (req, res, next) => {
   if (req.path.startsWith("/api") || req.path.startsWith("/uploads")) {
     return next();
   }
