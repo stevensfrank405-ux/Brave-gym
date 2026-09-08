@@ -89,6 +89,24 @@ export async function initPostgresTables() {
 
     CREATE INDEX IF NOT EXISTS idx_classes_day ON classes (day);
 
+    CREATE TABLE IF NOT EXISTS programs (
+      id VARCHAR(50) PRIMARY KEY,
+      category VARCHAR(100) DEFAULT 'ALL',
+      tag VARCHAR(100),
+      title VARCHAR(255) NOT NULL,
+      subtitle TEXT,
+      duration VARCHAR(50),
+      intensity VARCHAR(50),
+      trainer VARCHAR(255),
+      capacity INT DEFAULT 16,
+      enrolled INT DEFAULT 0,
+      image TEXT,
+      poster TEXT,
+      details TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
     CREATE TABLE IF NOT EXISTS bookings (
       id VARCHAR(50) PRIMARY KEY,
       user_id VARCHAR(50) REFERENCES users(id) ON DELETE CASCADE,

@@ -58,6 +58,10 @@ export default function AdminDashboard() {
     adminBookings,
     allUsersRoster,
     allWorkoutLogs,
+    programs,
+    addProgram,
+    editProgram,
+    removeProgram,
     approveMembershipOrder,
     rejectMembershipOrder,
     sendNegotiationMessage,
@@ -76,6 +80,14 @@ export default function AdminDashboard() {
   const [athleteFilterTier, setAthleteFilterTier] = useState("ALL");
   const [inspectRequest, setInspectRequest] = useState(null);
   const [newClassModal, setNewClassModal] = useState(false);
+  const [newClassForm, setNewClassForm] = useState({
+    day: "Monday", time: "06:00 AM", classTitle: "", trainer: "", total: 16
+  });
+  const [programModal, setProgramModal] = useState(false);
+  const [editingProgram, setEditingProgram] = useState(null);
+  const [programForm, setProgramForm] = useState({
+    category: "", tag: "", title: "", subtitle: "", duration: "60 MIN", intensity: "HIGH", trainer: "", capacity: 16, poster: "", details: ""
+  });
   const [showAdminProfileModal, setShowAdminProfileModal] = useState(false);
   const [newTierModal, setNewTierModal] = useState(false);
   const [newTrainerModal, setNewTrainerModal] = useState(false);
@@ -238,11 +250,55 @@ export default function AdminDashboard() {
         setShowAdminProfileModal(false);
         setNewTierModal(false);
         setNewTrainerModal(false);
+        setProgramModal(false);
+        setEditingProgram(null);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  const handleSaveProgram = async (e) => {
+    e.preventDefault();
+    try {
+      if (editingProgram) {
+        await editProgram(editingProgram.id, programForm);
+      } else {
+        await addProgram(programForm);
+      }
+      setProgramModal(false);
+      setEditingProgram(null);
+      setProgramForm({ category: "", tag: "", title: "", subtitle: "", duration: "60 MIN", intensity: "HIGH", trainer: "", capacity: 16, poster: "", details: "" });
+    } catch (err) {
+      alert("Failed to save program: " + err.message);
+    }
+  };
+
+  const handleDeleteProgram = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this program?")) return;
+    try {
+      await removeProgram(id);
+    } catch (err) {
+      alert("Failed to delete program: " + err.message);
+    }
+  };
+
+  const openEditProgram = (prog) => {
+    setEditingProgram(prog);
+    setProgramForm({
+      category: prog.category || "ALL",
+      tag: prog.tag || "",
+      title: prog.title || "",
+      subtitle: prog.subtitle || "",
+      duration: prog.duration || "60 MIN",
+      intensity: prog.intensity || "HIGH",
+      trainer: prog.trainer || "",
+      capacity: prog.capacity || 16,
+      poster: prog.poster || "",
+      details: prog.details || ""
+    });
+    setProgramModal(true);
+  };
 
   const [newClassData, setNewClassData] = useState({
     day: "Monday",
@@ -390,10 +446,11 @@ export default function AdminDashboard() {
     { id: "athletes", label: "Athlete Monitoring", icon: UserCheck, badge: getUnreadCount("athletes", athleteRoster.length), desc: "Full Client Dossier Monitoring" },
     { id: "bookings", label: "Athlete Bookings", icon: Users, badge: getUnreadCount("bookings", adminBookings?.length || 0), desc: "Reserved Spots Roster" },
     { id: "requests", label: "Live Athlete Chats", icon: MessageSquare, badge: getUnreadCount("requests", athleteConsultationRequests.length), desc: "Real-Time Direct Negotiations" },
+    { id: "programs", label: "Curriculum / Programs", icon: Flame, desc: "Manage Program Disciplines" },
     { id: "schedule", label: "Timetable & Classes", icon: Calendar, desc: "Arena Scheduling" },
     { id: "finances", label: "Finances & Spatial", icon: DollarSign, desc: "Revenue & Zone Share" },
     { id: "trainers", label: "Trainers & Coaches", icon: UserCheck, desc: "Staff Profiles" },
-    { id: "tiers", label: "Membership Tiers", icon: Flame, desc: "Manage & Create Tiers" }
+    { id: "tiers", label: "Membership Tiers", icon: ShieldCheck, desc: "Manage & Create Tiers" }
   ];
 
   const [mobileAdminMenu, setMobileAdminMenu] = useState(false);
@@ -1287,6 +1344,64 @@ export default function AdminDashboard() {
                     When athletes start a negotiation from their dashboard or inquire regarding a membership order, their real-time channel will appear here instantly.
                   </p>
                 </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Tab Content: Curriculum / Programs */}
+        {activeTab === "programs" && (
+          <div className="space-y-6 pt-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="font-display text-2xl font-bold text-white uppercase">Curriculum & Programs</h2>
+                <p className="text-sm text-[#8C8C8C] mt-1">Manage disciplines and program categories.</p>
+              </div>
+              <button
+                onClick={() => {
+                  setEditingProgram(null);
+                  setProgramForm({ category: "", tag: "", title: "", subtitle: "", duration: "60 MIN", intensity: "HIGH", trainer: "", capacity: 16, poster: "", details: "" });
+                  setProgramModal(true);
+                }}
+                className="px-4 py-2 bg-white text-black font-bold text-xs uppercase tracking-wider rounded-sm hover:bg-[#F5F5F3] flex items-center gap-1.5"
+              >
+                <Plus className="w-3.5 h-3.5" /> New Program
+              </button>
+            </div>
+
+            <div className="bg-[#141414] border border-white/10 rounded-sm divide-y divide-white/10">
+              {programs && programs.length > 0 ? (
+                programs.map((prog) => (
+                  <div key={prog.id} className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 hover:bg-white/[0.02]">
+                    <div className="flex items-start gap-4">
+                      <div className="w-24 h-16 shrink-0 bg-black rounded overflow-hidden">
+                        <img src={prog.poster || "/media/edgar-chaparro-sHfo3WOgGTU-unsplash.jpg"} className="w-full h-full object-cover grayscale contrast-125" alt={prog.title} />
+                      </div>
+                      <div>
+                        <h4 className="font-display text-sm sm:text-base font-bold text-white uppercase">{prog.title}</h4>
+                        <span className="text-[10px] sm:text-xs font-mono text-[#8C8C8C] bg-white/5 px-2 py-0.5 rounded mr-2">{prog.category || "ALL"}</span>
+                        <span className="text-[10px] sm:text-xs font-mono text-[#8C8C8C]">{prog.duration} • {prog.intensity}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-end gap-3 border-t sm:border-t-0 pt-3 sm:pt-0 border-white/5">
+                      <button
+                        onClick={() => openEditProgram(prog)}
+                        className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white rounded text-[10px] uppercase font-bold tracking-widest transition-colors"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteProgram(prog.id)}
+                        className="px-3 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 rounded text-[10px] uppercase font-bold tracking-widest transition-colors"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="p-8 text-center text-[#8C8C8C]">No programs defined. Add one to get started.</div>
               )}
             </div>
           </div>
@@ -2890,6 +3005,157 @@ export default function AdminDashboard() {
                 Save Changes
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* NEW PROGRAM / EDIT PROGRAM MODAL */}
+      {programModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#141414] border border-white/10 rounded w-full max-w-xl shadow-2xl">
+            <div className="p-6 border-b border-white/10 flex items-center justify-between">
+              <h3 className="font-display text-xl font-bold text-white uppercase tracking-tight">
+                {editingProgram ? "Edit Program" : "Create New Program"}
+              </h3>
+              <button
+                onClick={() => {
+                  setProgramModal(false);
+                  setEditingProgram(null);
+                }}
+                className="text-[#8C8C8C] hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveProgram} className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-mono text-[#8C8C8C] mb-1 uppercase tracking-wider">Title</label>
+                  <input
+                    type="text"
+                    required
+                    value={programForm.title}
+                    onChange={(e) => setProgramForm({ ...programForm, title: e.target.value })}
+                    className="w-full bg-black border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30"
+                    placeholder="e.g. Boxing Pro"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-mono text-[#8C8C8C] mb-1 uppercase tracking-wider">Category</label>
+                  <input
+                    type="text"
+                    required
+                    value={programForm.category}
+                    onChange={(e) => setProgramForm({ ...programForm, category: e.target.value.toUpperCase() })}
+                    className="w-full bg-black border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30"
+                    placeholder="e.g. BOXING"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-mono text-[#8C8C8C] mb-1 uppercase tracking-wider">Tag</label>
+                  <input
+                    type="text"
+                    required
+                    value={programForm.tag}
+                    onChange={(e) => setProgramForm({ ...programForm, tag: e.target.value })}
+                    className="w-full bg-black border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30"
+                    placeholder="e.g. FOUNDATION"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-mono text-[#8C8C8C] mb-1 uppercase tracking-wider">Trainer</label>
+                  <input
+                    type="text"
+                    required
+                    value={programForm.trainer}
+                    onChange={(e) => setProgramForm({ ...programForm, trainer: e.target.value })}
+                    className="w-full bg-black border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30"
+                    placeholder="e.g. Coach Alex"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-mono text-[#8C8C8C] mb-1 uppercase tracking-wider">Duration</label>
+                  <input
+                    type="text"
+                    required
+                    value={programForm.duration}
+                    onChange={(e) => setProgramForm({ ...programForm, duration: e.target.value })}
+                    className="w-full bg-black border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30"
+                    placeholder="e.g. 60 MIN"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-mono text-[#8C8C8C] mb-1 uppercase tracking-wider">Intensity</label>
+                  <input
+                    type="text"
+                    required
+                    value={programForm.intensity}
+                    onChange={(e) => setProgramForm({ ...programForm, intensity: e.target.value })}
+                    className="w-full bg-black border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30"
+                    placeholder="e.g. HIGH"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-mono text-[#8C8C8C] mb-1 uppercase tracking-wider">Capacity</label>
+                  <input
+                    type="number"
+                    required
+                    value={programForm.capacity}
+                    onChange={(e) => setProgramForm({ ...programForm, capacity: Number(e.target.value) })}
+                    className="w-full bg-black border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-mono text-[#8C8C8C] mb-1 uppercase tracking-wider">Poster Image URL (Optional)</label>
+                <input
+                  type="text"
+                  value={programForm.poster}
+                  onChange={(e) => setProgramForm({ ...programForm, poster: e.target.value })}
+                  className="w-full bg-black border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30"
+                  placeholder="e.g. /media/boxing.jpg"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-mono text-[#8C8C8C] mb-1 uppercase tracking-wider">Details</label>
+                <textarea
+                  required
+                  rows="3"
+                  value={programForm.details}
+                  onChange={(e) => setProgramForm({ ...programForm, details: e.target.value })}
+                  className="w-full bg-black border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30"
+                  placeholder="Describe the program..."
+                ></textarea>
+              </div>
+
+              <div className="pt-4 flex items-center justify-end gap-3 border-t border-white/10">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setProgramModal(false);
+                    setEditingProgram(null);
+                  }}
+                  className="px-4 py-2 text-xs font-bold text-white/70 hover:text-white uppercase tracking-wider transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 text-xs font-bold text-black bg-white hover:bg-[#F5F5F3] rounded-sm uppercase tracking-wider transition-colors"
+                >
+                  {editingProgram ? "Update Program" : "Save Program"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

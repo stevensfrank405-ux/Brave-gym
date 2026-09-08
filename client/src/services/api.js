@@ -116,6 +116,35 @@ class ApiService {
     this.setToken(null);
   }
 
+  // Programs
+  async getPrograms() {
+    const res = await this.request("/programs");
+    return res.data || [];
+  }
+
+  async createProgram(data) {
+    const res = await this.request("/programs", {
+      method: "POST",
+      body: JSON.stringify(data)
+    });
+    return res.data;
+  }
+
+  async updateProgram(id, data) {
+    const res = await this.request(`/programs/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data)
+    });
+    return res.data;
+  }
+
+  async deleteProgram(id) {
+    const res = await this.request(`/programs/${id}`, {
+      method: "DELETE"
+    });
+    return res.success;
+  }
+
   // Classes & Schedule
   async getClasses() {
     const res = await this.request("/classes");

@@ -19,7 +19,7 @@ export function GymProvider({ children }) {
     return null;
   });
 
-  const [programs] = useState(INITIAL_PROGRAMS);
+  const [programs, setPrograms] = useState(INITIAL_PROGRAMS);
   const [trainers, setTrainers] = useState([]);
   const [memberships, setMemberships] = useState(() => {
     const saved = localStorage.getItem("brave_memberships");
@@ -104,7 +104,13 @@ export function GymProvider({ children }) {
         );
       }
 
-      // 2. Load Membership Tiers
+      // 2. Load Programs
+      const remotePrograms = await api.getPrograms().catch(() => null);
+      if (Array.isArray(remotePrograms) && remotePrograms.length > 0) {
+        setPrograms(remotePrograms);
+      }
+
+      // 3. Load Membership Tiers
       const remoteTiers = await api.getMembershipTiers().catch(() => null);
       if (Array.isArray(remoteTiers) && remoteTiers.length > 0) {
         const mappedTiers = remoteTiers.map((t) => ({
@@ -710,7 +716,43 @@ export function GymProvider({ children }) {
 
 
   // ==========================================
-  // TRAINER ADMIN ACTIONS
+  // PROGRAM MANAGEMENT (Admin)
+  // ==========================================
+
+  const addProgram = async (programData) => {
+    try {
+      const newProgram = await api.createProgram(programData);
+      setPrograms((prev) => [...prev, newProgram]);
+      return newProgram;
+    } catch (err) {
+      console.error("Failed to add program:", err.message);
+      throw err;
+    }
+  };
+
+  const editProgram = async (programId, updates) => {
+    try {
+      const updated = await api.updateProgram(programId, updates);
+      setPrograms((prev) => prev.map((p) => (p.id === programId ? updated : p)));
+      return updated;
+    } catch (err) {
+      console.error("Failed to edit program:", err.message);
+      throw err;
+    }
+  };
+
+  const removeProgram = async (programId) => {
+    try {
+      await api.deleteProgram(programId);
+      setPrograms((prev) => prev.filter((p) => p.id !== programId));
+    } catch (err) {
+      console.error("Failed to remove program:", err.message);
+      throw err;
+    }
+  };
+
+  // ==========================================
+  // TRAINER MANAGEMENT (Admin)
   // ==========================================
 
   const addTrainer = async (trainerData) => {
@@ -785,6 +827,10 @@ export function GymProvider({ children }) {
         removeTrainer,
 
         allUsersRoster,
+        programs,
+        addProgram,
+        editProgram,
+        removeProgram,
         allWorkoutLogs,
         addTrainer,
         editTrainer,

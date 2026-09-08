@@ -17,15 +17,13 @@ export default function Programs() {
 
   const isPending = currentUser && currentUser.role !== "admin" && (currentUser.status === "Pending" || currentUser.status?.toLowerCase().includes("pending"));
 
-  const categories = ["ALL", "BOXING", "STRENGTH", "METABOLIC", "RECOVERY"];
+  // Extract dynamic categories from the database programs
+  const dynamicCategories = Array.from(new Set(programs.map((p) => p.category || "ALL"))).filter(c => c !== "ALL");
+  const categories = ["ALL", ...dynamicCategories];
 
   const filteredPrograms = programs.filter((p) => {
     if (selectedCategory === "ALL") return true;
-    if (selectedCategory === "BOXING") return p.id === "boxing";
-    if (selectedCategory === "STRENGTH") return p.id === "strength";
-    if (selectedCategory === "METABOLIC") return p.id === "conditioning";
-    if (selectedCategory === "RECOVERY") return p.id === "recovery";
-    return true;
+    return p.category === selectedCategory || p.id === selectedCategory.toLowerCase(); // fallback for older hardcoded logic
   });
 
   const openBookingModal = (sc) => {
@@ -85,13 +83,6 @@ export default function Programs() {
     } catch (err) {
       setBookingError(err.message);
     }
-  };
-
-  const imagesMap = {
-    boxing: "/media/edgar-chaparro-sHfo3WOgGTU-unsplash.jpg",
-    strength: "/media/mohamed-fareed-rbSNsoXk-3A-unsplash.jpg",
-    conditioning: "/media/hermes-rivera-qbf59TU077Q-unsplash.jpg",
-    recovery: "/media/david-guliciuc-o2zrjlM5s5o-unsplash.jpg"
   };
 
   return (
@@ -208,7 +199,7 @@ export default function Programs() {
             >
               <div className="relative aspect-[16/9] overflow-hidden bg-black">
                 <img
-                  src={imagesMap[prog.id] || "/media/edgar-chaparro-sHfo3WOgGTU-unsplash.jpg"}
+                  src={prog.poster || prog.image || "/media/edgar-chaparro-sHfo3WOgGTU-unsplash.jpg"}
                   alt={prog.title}
                   className="w-full h-full object-cover grayscale contrast-125 group-hover:scale-105 transition-transform duration-700"
                 />
