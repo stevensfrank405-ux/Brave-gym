@@ -474,10 +474,7 @@ export default function AdminDashboard() {
                         </span>
                       )}
                     </div>
-                    <span className={`text-[10px] font-mono block truncate ${isActive ? "text-black/70" : "text-[#8C8C8C]"
-                      }`}>
-                      {item.desc}
-                    </span>
+
                   </div>
                 )}
 
