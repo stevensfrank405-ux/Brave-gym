@@ -740,7 +740,7 @@ export default function UserDashboard() {
                 </div>
               </div>
               <p className="text-xs text-[#8C8C8C] max-w-sm">
-                Plans created and deployed by Brave HQ Admin. Select a tier to upgrade or change your athletic privileges.
+                Upgrade your membership tier for enhanced benefits.
               </p>
             </div>
 
