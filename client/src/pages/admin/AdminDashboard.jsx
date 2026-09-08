@@ -1350,7 +1350,7 @@ export default function AdminDashboard() {
         )}
 
         {/* Tab Content: Curriculum / Programs */}
-        {activeTab === "programs" && (
+        {(activeTab === "overview" || activeTab === "programs") && (
           <div className="space-y-6 pt-4">
             <div className="flex items-center justify-between">
               <div>
