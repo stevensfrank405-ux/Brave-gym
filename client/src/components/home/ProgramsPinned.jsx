@@ -60,9 +60,6 @@ export default function ProgramsPinned() {
                 {/* Bottom Badge details */}
                 <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between">
                   <div>
-                    <span className="text-xs font-mono uppercase tracking-widest text-white/70 block mb-1">
-                      [0{activeIdx + 1}] {activeProg.tag}
-                    </span>
                     <h3 className="font-display text-2xl sm:text-3xl font-bold text-white uppercase">
                       {activeProg.title}
                     </h3>
@@ -98,17 +95,6 @@ export default function ProgramsPinned() {
                         : "bg-[#141414] border-white/5 hover:border-white/20 hover:bg-[#181818]"
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-mono uppercase tracking-widest text-[#8C8C8C]">
-                        0{idx + 1} // {prog.tag}
-                      </span>
-                      <span className={`text-xs uppercase tracking-wider px-2 py-0.5 rounded ${
-                        isCurrent ? "bg-white text-black font-bold" : "text-white/40"
-                      }`}>
-                        {prog.intensity}
-                      </span>
-                    </div>
-
                     <h4 className="font-display text-2xl font-bold text-white uppercase tracking-tight mb-2">
                       {prog.title}
                     </h4>
