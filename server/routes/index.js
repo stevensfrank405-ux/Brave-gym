@@ -7,6 +7,7 @@ import consultationRoutes from "./consultationRoutes.js";
 import notificationRoutes from "./notificationRoutes.js";
 import membershipRoutes from "./membershipRoutes.js";
 import adminRoutes from "./adminRoutes.js";
+import trainerRoutes from "./trainerRoutes.js";
 
 const router = express.Router();
 
@@ -17,6 +18,7 @@ router.use("/workouts", workoutRoutes);
 router.use("/consultations", consultationRoutes);
 router.use("/notifications", notificationRoutes);
 router.use("/memberships", membershipRoutes);
+router.use("/trainers", trainerRoutes);
 router.use("/admin", adminRoutes);
 
 router.get("/health", (req, res) => {

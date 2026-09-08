@@ -238,6 +238,35 @@ class ApiService {
   }
 
   // Memberships & Financial Tiers
+  async getTrainers() {
+    const res = await this.request("/trainers");
+    return res || [];
+  }
+
+  async createTrainer(trainerData) {
+    const res = await this.request("/admin/trainers", {
+      method: "POST",
+      body: JSON.stringify(trainerData)
+    });
+    return res;
+  }
+
+  async updateTrainer(trainerId, updates) {
+    const res = await this.request(`/admin/trainers/${trainerId}`, {
+      method: "PUT",
+      body: JSON.stringify(updates)
+    });
+    return res;
+  }
+
+  async deleteTrainer(trainerId) {
+    const res = await this.request(`/admin/trainers/${trainerId}`, {
+      method: "DELETE"
+    });
+    return res;
+  }
+
+  // Memberships & Financial Tiers
   async getMembershipTiers() {
     const res = await this.request("/memberships");
     return res.data || [];

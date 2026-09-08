@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { INITIAL_PROGRAMS, INITIAL_TRAINERS, INITIAL_MEMBERSHIPS, INITIAL_SCHEDULE } from "../lib/mockData";
+import { INITIAL_PROGRAMS, INITIAL_MEMBERSHIPS, INITIAL_SCHEDULE } from "../lib/mockData";
 import { api, SERVER_BASE_URL } from "../services/api";
 import { io } from "socket.io-client";
 
@@ -20,7 +20,7 @@ export function GymProvider({ children }) {
   });
 
   const [programs] = useState(INITIAL_PROGRAMS);
-  const [trainers] = useState(INITIAL_TRAINERS);
+  const [trainers, setTrainers] = useState([]);
   const [memberships, setMemberships] = useState(() => {
     const saved = localStorage.getItem("brave_memberships");
     if (saved) {
@@ -141,6 +141,12 @@ export function GymProvider({ children }) {
         if (Array.isArray(stats.allUsersRoster)) setAllUsersRoster(stats.allUsersRoster);
         if (Array.isArray(stats.allWorkoutLogs)) setAllWorkoutLogs(stats.allWorkoutLogs);
         if (Array.isArray(stats.adminBookings)) setAdminBookings(stats.adminBookings);
+      }
+
+      // 4.5 Load Trainers
+      const remoteTrainers = await api.getTrainers().catch(() => null);
+      if (Array.isArray(remoteTrainers) && remoteTrainers.length > 0) {
+        setTrainers(remoteTrainers);
       }
 
       // 5. User Specific Data
@@ -703,6 +709,43 @@ export function GymProvider({ children }) {
   };
 
 
+  // ==========================================
+  // TRAINER ADMIN ACTIONS
+  // ==========================================
+
+  const addTrainer = async (trainerData) => {
+    try {
+      const newTrainer = await api.createTrainer(trainerData);
+      setTrainers((prev) => [...prev, newTrainer]);
+      return newTrainer;
+    } catch (err) {
+      console.error("Failed to add trainer:", err.message);
+      throw err;
+    }
+  };
+
+  const editTrainer = async (trainerId, updates) => {
+    try {
+      const updated = await api.updateTrainer(trainerId, updates);
+      setTrainers((prev) => prev.map((t) => (t.id === trainerId ? updated : t)));
+      return updated;
+    } catch (err) {
+      console.error("Failed to edit trainer:", err.message);
+      throw err;
+    }
+  };
+
+  const removeTrainer = async (trainerId) => {
+    try {
+      await api.deleteTrainer(trainerId);
+      setTrainers((prev) => prev.filter((t) => t.id !== trainerId));
+      return true;
+    } catch (err) {
+      console.error("Failed to delete trainer:", err.message);
+      throw err;
+    }
+  };
+
   return (
     <GymContext.Provider
       value={{
@@ -737,8 +780,15 @@ export function GymProvider({ children }) {
         removeScheduleClass,
         removeAthlete,
 
+        addTrainer,
+        editTrainer,
+        removeTrainer,
+
         allUsersRoster,
         allWorkoutLogs,
+        addTrainer,
+        editTrainer,
+        removeTrainer,
         purchasePlan,
         approveMembershipOrder,
         rejectMembershipOrder,

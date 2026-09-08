@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { 
-  DollarSign, 
-  Users, 
-  Calendar, 
-  TrendingUp, 
-  Plus, 
-  Trash2, 
-  Edit3, 
-  Check, 
+import {
+  DollarSign,
+  Users,
+  Calendar,
+  TrendingUp,
+  Plus,
+  Trash2,
+  Edit3,
+  Check,
   AlertCircle,
   FileSpreadsheet,
   X,
@@ -39,11 +39,11 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useGym } from "../../context/GymContext";
 
 export default function AdminDashboard() {
-  const { 
+  const {
     currentUser,
-    adminStats, 
-    schedule, 
-    setSchedule, 
+    adminStats,
+    schedule,
+    setSchedule,
     memberships,
     addMembershipTier,
     removeMembershipTier,
@@ -61,7 +61,11 @@ export default function AdminDashboard() {
     rejectMembershipOrder,
     sendNegotiationMessage,
     removeAthlete,
-    updateBooking
+    updateBooking,
+    trainers,
+    addTrainer,
+    editTrainer,
+    removeTrainer
   } = useGym();
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("overview");
@@ -73,6 +77,7 @@ export default function AdminDashboard() {
   const [newClassModal, setNewClassModal] = useState(false);
   const [showAdminProfileModal, setShowAdminProfileModal] = useState(false);
   const [newTierModal, setNewTierModal] = useState(false);
+  const [newTrainerModal, setNewTrainerModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [adminChatInput, setAdminChatInput] = useState("");
   const [activeNegotiationThread, setActiveNegotiationThread] = useState(null);
@@ -153,7 +158,7 @@ export default function AdminDashboard() {
 
   const openManageBookingModal = (booking) => {
     setSelectedManageBooking(booking);
-    
+
     // Parse date and time if it's stored as "YYYY-MM-DD HH:MM"
     let d = "", t = "";
     if (booking.date && booking.date.includes(" ")) {
@@ -163,7 +168,7 @@ export default function AdminDashboard() {
         t = parts[1];
       }
     }
-    
+
     setManageBookingDate(d);
     setManageBookingTime(t);
     setManageBookingStatus(booking.status || "Pending");
@@ -195,7 +200,7 @@ export default function AdminDashboard() {
       setShowAdminProfileModal(true);
       setSearchParams({}, { replace: true });
     } else if (tabParam) {
-      if (["overview", "athletes", "bookings", "requests", "schedule", "finances", "tiers"].includes(tabParam)) {
+      if (["overview", "athletes", "bookings", "requests", "schedule", "finances", "tiers", "trainers"].includes(tabParam)) {
         setActiveTab(tabParam);
       }
       setSearchParams({}, { replace: true });
@@ -231,6 +236,7 @@ export default function AdminDashboard() {
         setNewClassModal(false);
         setShowAdminProfileModal(false);
         setNewTierModal(false);
+        setNewTrainerModal(false);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -244,6 +250,34 @@ export default function AdminDashboard() {
     trainer: "Marcus Vance",
     total: 16
   });
+
+  const [newTrainerData, setNewTrainerData] = useState({
+    name: "",
+    role: "",
+    image: "",
+    bio: "",
+    quote: "",
+    specialties: ""
+  });
+
+  const handleCreateTrainer = async (e) => {
+    e.preventDefault();
+    try {
+      const specsArray = newTrainerData.specialties
+        .split(",")
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+
+      await addTrainer({
+        ...newTrainerData,
+        specialties: specsArray
+      });
+      setNewTrainerModal(false);
+      setNewTrainerData({ name: "", role: "", image: "", bio: "", quote: "", specialties: "" });
+    } catch (err) {
+      alert("Failed to create trainer. See console.");
+    }
+  };
 
   const handleCreateClass = (e) => {
     e.preventDefault();
@@ -312,6 +346,7 @@ export default function AdminDashboard() {
     { id: "requests", label: "Live Athlete Chats", icon: MessageSquare, badge: athleteConsultationRequests.length, desc: "Real-Time Direct Negotiations" },
     { id: "schedule", label: "Timetable & Classes", icon: Calendar, desc: "Arena Scheduling" },
     { id: "finances", label: "Finances & Spatial", icon: DollarSign, desc: "Revenue & Zone Share" },
+    { id: "trainers", label: "Trainers & Coaches", icon: UserCheck, desc: "Staff Profiles" },
     { id: "tiers", label: "Membership Tiers", icon: Flame, desc: "Manage & Create Tiers" }
   ];
 
@@ -345,13 +380,12 @@ export default function AdminDashboard() {
 
   return (
     <div className="pt-20 bg-[#0A0A0A] min-h-screen text-white flex">
-      
+
       {/* 🧭 Modern Real-Time Sticky Admin Sidebar (Desktop) */}
-      <aside 
+      <aside
         data-lenis-prevent
-        className={`transition-all duration-300 bg-[#121212] border-r border-white/10 hidden md:flex flex-col justify-between shrink-0 z-30 sticky top-20 h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain ${
-        sidebarCollapsed ? "w-20" : "w-72"
-      }`}>
+        className={`transition-all duration-300 bg-[#121212] border-r border-white/10 hidden md:flex flex-col justify-between shrink-0 z-30 sticky top-20 h-[calc(100vh-5rem)] overflow-y-auto overscroll-contain ${sidebarCollapsed ? "w-20" : "w-72"
+          }`}>
         {/* Top Header inside Sidebar */}
         <div className="p-5 border-b border-white/10 space-y-4">
           <div className="flex items-center justify-between">
@@ -361,7 +395,7 @@ export default function AdminDashboard() {
                 <span className="font-mono uppercase text-[10px] tracking-widest text-[#8C8C8C]">Live Operational HQ</span>
               </div>
             )}
-            
+
             {/* Desktop collapse toggle */}
             <button
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -404,30 +438,27 @@ export default function AdminDashboard() {
                   setActiveTab(item.id);
                   setMobileAdminMenu(false);
                 }}
-                className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-sm transition-all text-left group relative ${
-                  isActive
-                    ? "bg-white text-black font-bold shadow-lg"
-                    : "text-[#8C8C8C] hover:text-white hover:bg-white/5"
-                }`}
+                className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-sm transition-all text-left group relative ${isActive
+                  ? "bg-white text-black font-bold shadow-lg"
+                  : "text-[#8C8C8C] hover:text-white hover:bg-white/5"
+                  }`}
                 title={sidebarCollapsed ? item.label : undefined}
               >
                 <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-black" : "text-white/70 group-hover:text-white"}`} />
-                
+
                 {!sidebarCollapsed && (
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <span className="text-xs uppercase tracking-wider truncate">{item.label}</span>
                       {item.badge !== undefined && item.badge > 0 && (
-                        <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ml-2 ${
-                          isActive ? "bg-black text-white" : "bg-amber-400 text-black shadow"
-                        }`}>
+                        <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ml-2 ${isActive ? "bg-black text-white" : "bg-amber-400 text-black shadow"
+                          }`}>
                           {item.badge}
                         </span>
                       )}
                     </div>
-                    <span className={`text-[10px] font-mono block truncate ${
-                      isActive ? "text-black/70" : "text-[#8C8C8C]"
-                    }`}>
+                    <span className={`text-[10px] font-mono block truncate ${isActive ? "text-black/70" : "text-[#8C8C8C]"
+                      }`}>
                       {item.desc}
                     </span>
                   </div>
@@ -490,7 +521,7 @@ export default function AdminDashboard() {
 
         {/* Sidebar System Telemetry & Admin Profile Trigger */}
         {!sidebarCollapsed ? (
-          <div 
+          <div
             onClick={() => setShowAdminProfileModal(true)}
             className="p-4 m-3 bg-black/60 hover:bg-black/90 cursor-pointer rounded border border-white/10 hover:border-white/30 transition-all space-y-2 group"
             title="Click to view & edit Admin Profile"
@@ -517,7 +548,7 @@ export default function AdminDashboard() {
             </div>
           </div>
         ) : (
-          <div 
+          <div
             onClick={() => setShowAdminProfileModal(true)}
             className="p-3 text-center border-t border-white/10 cursor-pointer hover:bg-white/5"
             title="Admin Profile"
@@ -529,7 +560,7 @@ export default function AdminDashboard() {
 
       {/* 🖥️ Main Workstation Content Area */}
       <main className="flex-1 p-4 sm:p-6 md:p-10 max-w-7xl mx-auto space-y-6 sm:space-y-10 min-w-0 pb-20 w-full">
-        
+
         {/* Top bar header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 sm:pb-6 border-b border-white/10">
           <div>
@@ -554,7 +585,7 @@ export default function AdminDashboard() {
 
         {/* 1. Overview KPIs with Modern Circular Animated Radial Gauges */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
-          
+
           {/* Circular Graph 1: Floor Occupancy */}
           <div className="p-5 bg-[#141414] border border-white/10 rounded-sm flex items-center justify-between gap-4 shadow-lg hover:border-white/25 transition-all group">
             <div className="space-y-1">
@@ -775,9 +806,8 @@ export default function AdminDashboard() {
                   <h2 className="font-display text-2xl font-bold text-white uppercase">
                     Membership Orders & Payment Plans
                   </h2>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono font-bold ${
-                    pendingOrdersCount > 0 ? "bg-amber-400 text-black animate-pulse" : "bg-white/10 text-white"
-                  }`}>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono font-bold ${pendingOrdersCount > 0 ? "bg-amber-400 text-black animate-pulse" : "bg-white/10 text-white"
+                    }`}>
                     {pendingOrdersCount} Pending Approval
                   </span>
                 </div>
@@ -806,13 +836,12 @@ export default function AdminDashboard() {
                   return (
                     <div
                       key={order.id}
-                      className={`p-5 rounded-sm border transition-all ${
-                        isPending
-                          ? "bg-[#18150e] border-amber-500/40 shadow-[0_0_15px_rgba(251,191,36,0.08)]"
-                          : isConfirmed
+                      className={`p-5 rounded-sm border transition-all ${isPending
+                        ? "bg-[#18150e] border-amber-500/40 shadow-[0_0_15px_rgba(251,191,36,0.08)]"
+                        : isConfirmed
                           ? "bg-[#141414] border-white/10"
                           : "bg-[#141414] border-red-500/20"
-                      }`}
+                        }`}
                     >
                       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
                         {/* Member Info */}
@@ -827,13 +856,12 @@ export default function AdminDashboard() {
                                 {order.member}
                               </h3>
                               <span
-                                className={`px-2 py-0.5 rounded text-[10px] uppercase font-mono tracking-wider font-bold ${
-                                  isPending
-                                    ? "bg-amber-400 text-black"
-                                    : isConfirmed
+                                className={`px-2 py-0.5 rounded text-[10px] uppercase font-mono tracking-wider font-bold ${isPending
+                                  ? "bg-amber-400 text-black"
+                                  : isConfirmed
                                     ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
                                     : "bg-red-500/20 text-red-400 border border-red-500/30"
-                                }`}
+                                  }`}
                               >
                                 {order.status}
                               </span>
@@ -1049,8 +1077,8 @@ export default function AdminDashboard() {
                   const tierColor = tierName.toLowerCase().includes("obsidian")
                     ? "bg-purple-500/20 text-purple-300 border-purple-500/30"
                     : tierName.toLowerCase().includes("black")
-                    ? "bg-amber-500/20 text-amber-300 border-amber-500/30"
-                    : "bg-white/10 text-white/80 border-white/20";
+                      ? "bg-amber-500/20 text-amber-300 border-amber-500/30"
+                      : "bg-white/10 text-white/80 border-white/20";
 
                   return (
                     <div
@@ -1171,11 +1199,10 @@ export default function AdminDashboard() {
                         <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded border border-white/15 bg-white/5 text-white/80">
                           {bk.classTitle}
                         </span>
-                        <span className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded font-bold border ${
-                          bk.status === "Pending" ? "bg-amber-500/20 text-amber-400 border-amber-500/30" :
+                        <span className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded font-bold border ${bk.status === "Pending" ? "bg-amber-500/20 text-amber-400 border-amber-500/30" :
                           bk.status === "Confirmed" ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" :
-                          "bg-rose-500/20 text-rose-400 border-rose-500/30"
-                        }`}>
+                            "bg-rose-500/20 text-rose-400 border-rose-500/30"
+                          }`}>
                           {bk.status}
                         </span>
                       </div>
@@ -1272,11 +1299,10 @@ export default function AdminDashboard() {
                               {athleteUser.email}
                             </span>
                           )}
-                          <span className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded font-bold ${
-                            (athleteUser?.status || req.status) === "Pending"
-                              ? "bg-amber-400/20 text-amber-300 border border-amber-400/30"
-                              : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
-                          }`}>
+                          <span className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded font-bold ${(athleteUser?.status || req.status) === "Pending"
+                            ? "bg-amber-400/20 text-amber-300 border border-amber-400/30"
+                            : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                            }`}>
                             {athleteUser?.status || req.status || "Active"}
                           </span>
                         </div>
@@ -1420,10 +1446,10 @@ export default function AdminDashboard() {
         {/* Tab Content: Financial & Operations Audit */}
         {(activeTab === "overview" || activeTab === "finances") && (
           <div className="space-y-6 pt-4">
-            
+
             {/* Real Financial Analytics Donut */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              
+
               {/* Circular Chart 1: Plan Distribution */}
               <div className="p-6 bg-[#141414] border border-white/10 rounded-sm space-y-4 shadow-lg">
                 <div className="flex items-center justify-between">
@@ -1635,7 +1661,7 @@ export default function AdminDashboard() {
                       </div>
 
                       <h3 className="font-display text-xl font-bold text-white uppercase">{tier.name}</h3>
-                      
+
                       <div className="flex items-baseline gap-1">
                         <span className="font-display text-3xl font-extrabold text-white">${tier.price}</span>
                         <span className="text-xs text-[#8C8C8C]">/{tier.billing || tier.interval || "monthly"}</span>
@@ -1671,6 +1697,79 @@ export default function AdminDashboard() {
                 </div>
               )}
             </div>
+          </div>)}
+        {/* 8. TRAINERS TAB */},
+        {(activeTab === "overview" || activeTab === "trainers") && (
+          <div className="space-y-6 pt-4">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+              <div>
+                <h2 className="font-display text-2xl font-bold text-white uppercase tracking-tight">Staff Profiles</h2>
+                <p className="text-[#8C8C8C] text-xs">Manage professional trainers, roles, and specialties.</p>
+              </div>
+              <button
+                onClick={() => setNewTrainerModal(true)}
+                className="bg-white text-black px-4 py-2 text-xs uppercase tracking-wider font-bold rounded-sm hover:bg-[#E5E5E5] transition-colors flex items-center justify-center gap-1.5"
+              >
+                <Plus className="w-3.5 h-3.5" /> Add Trainer
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {trainers?.length > 0 ? (
+                trainers.map((trainer) => (
+                  <div key={trainer.id} className="bg-[#141414] border border-white/10 p-5 rounded-sm flex flex-col justify-between">
+                    <div className="space-y-4 mb-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full overflow-hidden shrink-0 border border-white/20">
+                          {trainer.image ? (
+                            <img src={trainer.image} alt={trainer.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full bg-[#1F1F1F] flex items-center justify-center">
+                              <UserCheck className="w-5 h-5 text-white/40" />
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <h3 className="font-display text-xl font-bold text-white uppercase">{trainer.name}</h3>
+                          <span className="text-[10px] uppercase font-mono text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">{trainer.role}</span>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-white/80 line-clamp-2 italic">"{trainer.quote}"</p>
+
+                      <div className="pt-3 border-t border-white/10 space-y-1.5">
+                        <span className="text-[10px] uppercase font-mono text-[#8C8C8C] block">Specialties:</span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {trainer.specialties?.map((spec, i) => (
+                            <span key={i} className="text-[10px] uppercase bg-white/5 border border-white/10 text-white/70 px-2 py-0.5 rounded">
+                              {spec}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-4 border-t border-white/10 flex items-center justify-between text-[11px] text-[#8C8C8C]">
+                      <span className="font-mono">Ref #{trainer.id}</span>
+                      <button
+                        onClick={() => {
+                          if (window.confirm(`Are you sure you want to remove ${trainer.name}?`)) {
+                            removeTrainer(trainer.id);
+                          }
+                        }}
+                        className="text-rose-400 hover:text-rose-300 hover:underline text-xs cursor-pointer"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-full p-8 text-center text-xs text-[#8C8C8C] bg-[#141414] border border-white/10 rounded-sm">
+                  No trainers found. Click 'Add Trainer' to create one.
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -1679,7 +1778,7 @@ export default function AdminDashboard() {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/80 backdrop-blur-md">
             <div className="bg-[#161616] border border-white/20 p-6 max-w-md w-full rounded-sm space-y-5">
               <h3 className="font-display text-2xl font-bold text-white uppercase">Add New Session</h3>
-              
+
               <form onSubmit={handleCreateClass} className="space-y-4 text-xs">
                 <div>
                   <label htmlFor="session-day" className="uppercase font-mono text-[#8C8C8C] block mb-1">Day of Week</label>
@@ -1834,9 +1933,8 @@ export default function AdminDashboard() {
                 <div className="bg-[#111111] border border-white/10 rounded p-3 max-h-40 overflow-y-auto space-y-2 text-xs">
                   {inspectRequest.chatMessages && inspectRequest.chatMessages.map((m, idx) => (
                     <div key={idx} className={`flex ${m.sender === "user" ? "justify-end" : "justify-start"}`}>
-                      <div className={`p-2 rounded max-w-[85%] ${
-                        m.sender === "user" ? "bg-white text-black font-semibold" : "bg-white/10 text-white/90"
-                      }`}>
+                      <div className={`p-2 rounded max-w-[85%] ${m.sender === "user" ? "bg-white text-black font-semibold" : "bg-white/10 text-white/90"
+                        }`}>
                         <span className="text-[9px] uppercase font-mono block opacity-60 mb-0.5">
                           {m.sender === "user" ? inspectRequest.userName : "AI Bot"}
                         </span>
@@ -1878,12 +1976,12 @@ export default function AdminDashboard() {
 
         {/* Create Membership Tier Modal */}
         {newTierModal && (
-          <div 
+          <div
             onClick={() => setNewTierModal(false)}
             onWheel={(e) => e.stopPropagation()}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in"
           >
-            <div 
+            <div
               onClick={(e) => e.stopPropagation()}
               className="bg-[#161616] border border-white/20 p-6 sm:p-8 max-w-md w-full rounded-sm space-y-5 shadow-2xl relative"
             >
@@ -1986,9 +2084,107 @@ export default function AdminDashboard() {
           </div>
         )}
 
+        {/* New Trainer Modal */}
+        {newTrainerModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/80 backdrop-blur-md">
+            <div className="bg-[#161616] border border-white/20 p-6 max-w-md w-full rounded-sm space-y-5">
+              <h3 className="font-display text-2xl font-bold text-white uppercase tracking-tight">Onboard Staff</h3>
+
+              <form onSubmit={handleCreateTrainer} className="space-y-4 text-xs">
+                <div>
+                  <label htmlFor="trainer-name" className="uppercase font-mono text-[#8C8C8C] block mb-1">Full Name</label>
+                  <input
+                    id="trainer-name"
+                    required
+                    type="text"
+                    value={newTrainerData.name}
+                    onChange={(e) => setNewTrainerData({ ...newTrainerData, name: e.target.value })}
+                    className="w-full px-3 py-2 bg-[#1F1F1F] border border-white/15 rounded text-white text-sm focus:outline-none focus:border-amber-500/50"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="trainer-role" className="uppercase font-mono text-[#8C8C8C] block mb-1">Official Role</label>
+                  <input
+                    id="trainer-role"
+                    required
+                    type="text"
+                    placeholder="e.g. Master Boxing Coach"
+                    value={newTrainerData.role}
+                    onChange={(e) => setNewTrainerData({ ...newTrainerData, role: e.target.value })}
+                    className="w-full px-3 py-2 bg-[#1F1F1F] border border-white/15 rounded text-white text-sm focus:outline-none focus:border-amber-500/50"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="trainer-image" className="uppercase font-mono text-[#8C8C8C] block mb-1">Image URL</label>
+                  <input
+                    id="trainer-image"
+                    type="text"
+                    placeholder="https://..."
+                    value={newTrainerData.image}
+                    onChange={(e) => setNewTrainerData({ ...newTrainerData, image: e.target.value })}
+                    className="w-full px-3 py-2 bg-[#1F1F1F] border border-white/15 rounded text-white text-sm focus:outline-none focus:border-amber-500/50"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="trainer-quote" className="uppercase font-mono text-[#8C8C8C] block mb-1">Signature Quote</label>
+                  <input
+                    id="trainer-quote"
+                    type="text"
+                    value={newTrainerData.quote}
+                    onChange={(e) => setNewTrainerData({ ...newTrainerData, quote: e.target.value })}
+                    className="w-full px-3 py-2 bg-[#1F1F1F] border border-white/15 rounded text-white text-sm focus:outline-none focus:border-amber-500/50"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="trainer-bio" className="uppercase font-mono text-[#8C8C8C] block mb-1">Bio</label>
+                  <textarea
+                    id="trainer-bio"
+                    rows="3"
+                    value={newTrainerData.bio}
+                    onChange={(e) => setNewTrainerData({ ...newTrainerData, bio: e.target.value })}
+                    className="w-full px-3 py-2 bg-[#1F1F1F] border border-white/15 rounded text-white text-sm focus:outline-none focus:border-amber-500/50"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="trainer-specs" className="uppercase font-mono text-[#8C8C8C] block mb-1">Specialties (Comma Separated)</label>
+                  <input
+                    id="trainer-specs"
+                    type="text"
+                    placeholder="Striking, Strength, Conditioning"
+                    value={newTrainerData.specialties}
+                    onChange={(e) => setNewTrainerData({ ...newTrainerData, specialties: e.target.value })}
+                    className="w-full px-3 py-2 bg-[#1F1F1F] border border-white/15 rounded text-white text-sm font-mono focus:outline-none focus:border-amber-500/50"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setNewTrainerModal(false)}
+                    className="px-4 py-2 border border-white/20 text-white/70 hover:text-white rounded"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-5 py-2 bg-amber-400 text-black font-bold uppercase rounded hover:bg-amber-300 transition-colors"
+                  >
+                    Add Trainer
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
         {/* Admin Profile Dossier Modal */}
         {showAdminProfileModal && (
-          <div 
+          <div
             onClick={() => {
               setShowAdminProfileModal(false);
               setIsEditingAdminProfile(false);
@@ -1996,7 +2192,7 @@ export default function AdminDashboard() {
             onWheel={(e) => e.stopPropagation()}
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in"
           >
-            <div 
+            <div
               onClick={(e) => e.stopPropagation()}
               className="bg-[#141414] border border-white/20 p-6 sm:p-8 max-w-lg w-full rounded-sm space-y-6 shadow-2xl relative max-h-[92vh] overflow-y-auto overscroll-contain"
             >
@@ -2020,7 +2216,7 @@ export default function AdminDashboard() {
                     )}
                   </div>
                   {/* Photo upload trigger */}
-                  <label 
+                  <label
                     className="absolute -bottom-1 -right-1 p-1 bg-amber-400 text-black rounded-full cursor-pointer hover:bg-amber-300 transition-colors shadow"
                     title="Upload Custom Admin Avatar"
                   >
@@ -2226,11 +2422,10 @@ export default function AdminDashboard() {
                         <h3 className="font-display text-xl font-bold text-white uppercase">
                           {selectedDossierAthlete.name || "Unnamed Athlete"}
                         </h3>
-                        <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold uppercase ${
-                          selectedDossierAthlete.status === "Pending"
-                            ? "bg-amber-400/20 text-amber-300 border border-amber-400/30"
-                            : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
-                        }`}>
+                        <span className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold uppercase ${selectedDossierAthlete.status === "Pending"
+                          ? "bg-amber-400/20 text-amber-300 border border-amber-400/30"
+                          : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                          }`}>
                           {selectedDossierAthlete.status || "Active"}
                         </span>
                         {selectedDossierAthlete.role === "admin" && (
@@ -2314,17 +2509,15 @@ export default function AdminDashboard() {
                       key={tab.id}
                       type="button"
                       onClick={() => setDossierTab(tab.id)}
-                      className={`py-3 px-3.5 text-xs uppercase tracking-wider font-semibold border-b-2 transition-all flex items-center gap-1.5 ${
-                        dossierTab === tab.id
-                          ? "border-amber-400 text-white"
-                          : "border-transparent text-[#8C8C8C] hover:text-white"
-                      }`}
+                      className={`py-3 px-3.5 text-xs uppercase tracking-wider font-semibold border-b-2 transition-all flex items-center gap-1.5 ${dossierTab === tab.id
+                        ? "border-amber-400 text-white"
+                        : "border-transparent text-[#8C8C8C] hover:text-white"
+                        }`}
                     >
                       <span>{tab.label}</span>
                       {tab.count !== null && (
-                        <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
-                          dossierTab === tab.id ? "bg-amber-400 text-black" : "bg-white/10 text-white"
-                        }`}>
+                        <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${dossierTab === tab.id ? "bg-amber-400 text-black" : "bg-white/10 text-white"
+                          }`}>
                           {tab.count}
                         </span>
                       )}
@@ -2387,9 +2580,8 @@ export default function AdminDashboard() {
                                 </div>
                                 <div className="text-right">
                                   <span className="text-amber-400 font-mono font-bold block">{ord.amount}</span>
-                                  <span className={`text-[10px] font-mono uppercase font-bold px-1.5 py-0.2 rounded ${
-                                    ord.status === "Confirmed" ? "text-emerald-400" : "text-amber-400"
-                                  }`}>
+                                  <span className={`text-[10px] font-mono uppercase font-bold px-1.5 py-0.2 rounded ${ord.status === "Confirmed" ? "text-emerald-400" : "text-amber-400"
+                                    }`}>
                                     {ord.status}
                                   </span>
                                 </div>
@@ -2484,11 +2676,10 @@ export default function AdminDashboard() {
                                     {isAdmin ? "Director HQ" : (selectedDossierAthlete.name || "Athlete")} · {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Live"}
                                   </span>
                                   <div
-                                    className={`px-3.5 py-2 rounded max-w-[85%] text-xs ${
-                                      isAdmin
-                                        ? "bg-amber-400 text-black font-semibold rounded-br-none"
-                                        : "bg-[#222222] text-white border border-white/15 rounded-bl-none"
-                                    }`}
+                                    className={`px-3.5 py-2 rounded max-w-[85%] text-xs ${isAdmin
+                                      ? "bg-amber-400 text-black font-semibold rounded-br-none"
+                                      : "bg-[#222222] text-white border border-white/15 rounded-bl-none"
+                                      }`}
                                   >
                                     {msg.text}
                                   </div>
@@ -2568,7 +2759,7 @@ export default function AdminDashboard() {
         {activeNegotiationThread && (
           <div className="fixed inset-0 z-50 flex bg-black/60 backdrop-blur-sm animate-fadeIn">
             {/* Clickable backdrop to close */}
-            <div 
+            <div
               className="flex-1"
               onClick={() => {
                 setActiveNegotiationThread(null);
@@ -2634,16 +2825,15 @@ export default function AdminDashboard() {
                         className={`flex flex-col group ${isAdmin ? "items-end" : "items-start"}`}
                       >
                         <div
-                          className={`px-4 py-2.5 rounded-2xl text-sm max-w-[85%] leading-relaxed shadow-lg ${
-                            isAdmin
-                              ? "bg-gradient-to-br from-[#202020] to-[#1a1a1a] text-white border border-white/10 font-medium rounded-tr-sm"
-                              : "bg-[#1C1C1C]/80 backdrop-blur-md text-amber-400 border border-amber-500/20 rounded-tl-sm"
-                          }`}
+                          className={`px-4 py-2.5 rounded-2xl text-sm max-w-[85%] leading-relaxed shadow-lg ${isAdmin
+                            ? "bg-gradient-to-br from-[#202020] to-[#1a1a1a] text-white border border-white/10 font-medium rounded-tr-sm"
+                            : "bg-[#1C1C1C]/80 backdrop-blur-md text-amber-400 border border-amber-500/20 rounded-tl-sm"
+                            }`}
                         >
                           {msg.text}
                         </div>
                         <span className={`text-[10px] text-white/30 mt-1 mx-1 opacity-0 group-hover:opacity-100 transition-opacity ${isAdmin ? "text-right" : "text-left"}`}>
-                           {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Just now"}
+                          {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Just now"}
                         </span>
                       </div>
                     );

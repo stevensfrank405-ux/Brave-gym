@@ -162,6 +162,21 @@ CREATE INDEX IF NOT EXISTS idx_workout_logs_user_id ON workout_logs (user_id);
 
 
 -- ==========================================================
+-- 9. TRAINERS
+-- ==========================================================
+CREATE TABLE IF NOT EXISTS trainers (
+  id VARCHAR(50) PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  role VARCHAR(255) NOT NULL,
+  image TEXT,
+  bio TEXT,
+  quote TEXT,
+  specialties JSONB DEFAULT '[]'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ==========================================================
 -- AUTO-UPDATE updated_at TRIGGER (for users table)
 -- ==========================================================
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -180,6 +195,19 @@ BEGIN
   ) THEN
     CREATE TRIGGER trg_users_updated_at
       BEFORE UPDATE ON users
+      FOR EACH ROW
+      EXECUTE FUNCTION update_updated_at_column();
+  END IF;
+END;
+$$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_trigger WHERE tgname = 'trg_trainers_updated_at'
+  ) THEN
+    CREATE TRIGGER trg_trainers_updated_at
+      BEFORE UPDATE ON trainers
       FOR EACH ROW
       EXECUTE FUNCTION update_updated_at_column();
   END IF;
@@ -276,3 +304,32 @@ WHERE NOT EXISTS (SELECT 1 FROM classes WHERE id = 'sc-9');
 INSERT INTO classes (id, day, time, class_title, trainer, spots_left, total)
 SELECT 'sc-10', 'Saturday', '09:00 AM', 'Brave Community Combine', 'All Coaches', 8, 30
 WHERE NOT EXISTS (SELECT 1 FROM classes WHERE id = 'sc-10');
+
+-- Seed Trainers
+INSERT INTO trainers (id, name, role, image, bio, quote, specialties)
+SELECT 'tr-1', 'Marcus Vance', 'Head Boxing Director & Founder', '/media/edgar-chaparro-sHfo3WOgGTU-unsplash.jpg',
+       'Former professional cruiserweight with a 24-2 record. Marcus founded Brave Gym to bring professional fighting standards to the public. He focuses on technical precision, ring IQ, and building mental fortitude.',
+       'Discipline is the bridge between goals and accomplishment.',
+       '["Championship Boxing", "Fight Prep", "Mental Conditioning"]'::jsonb
+WHERE NOT EXISTS (SELECT 1 FROM trainers WHERE id = 'tr-1');
+
+INSERT INTO trainers (id, name, role, image, bio, quote, specialties)
+SELECT 'tr-2', 'Elena Rostova', 'Lead Strength & Conditioning', '/media/victor-freitas-WvDYdXDzkhs-unsplash.jpg',
+       'Olympic weightlifting bronze medalist. Elena rebuilds athletes from the ground up, prioritizing structural integrity, raw power, and injury resilience.',
+       'Weakness is a choice. Strength is a commitment.',
+       '["Olympic Lifting", "Power Output", "Structural Resilience"]'::jsonb
+WHERE NOT EXISTS (SELECT 1 FROM trainers WHERE id = 'tr-2');
+
+INSERT INTO trainers (id, name, role, image, bio, quote, specialties)
+SELECT 'tr-3', 'Jaxson Cole', 'Metabolic & HIIT Specialist', '/media/anastase-maragos-7kEpUPB8vNk-unsplash.jpg',
+       'Ex-military fitness instructor known for grueling, high-volume conditioning sessions that push the human cardiovascular system to its absolute limits.',
+       'When your lungs burn, your character is forged.',
+       '["VO2 Max Protocol", "Combat Endurance", "High-Volume Calisthenics"]'::jsonb
+WHERE NOT EXISTS (SELECT 1 FROM trainers WHERE id = 'tr-3');
+
+INSERT INTO trainers (id, name, role, image, bio, quote, specialties)
+SELECT 'tr-4', 'Dr. Maya Lin', 'Recovery & Bio-Mechanics', '/media/logan-weaver-lgnwvr-9D_rUDe7xvA-unsplash.jpg',
+       'Doctor of Physical Therapy and biomechanics expert. Dr. Lin ensures athletes recover faster, correct muscular imbalances, and maintain peak longevity.',
+       'You can only train as hard as you can recover.',
+       '["Kinetic Chain Repair", "Ice/Heat Protocol", "Mobility Mapping"]'::jsonb
+WHERE NOT EXISTS (SELECT 1 FROM trainers WHERE id = 'tr-4');

@@ -56,44 +56,6 @@ export const INITIAL_PROGRAMS = [
   }
 ];
 
-export const INITIAL_TRAINERS = [
-  {
-    id: "marcus-vance",
-    name: "Marcus Vance",
-    role: "Head Boxing Coach",
-    creds: "Former National Golden Gloves Finalist / 12yr Elite Coaching",
-    image: "/media/chris-kendall-sJ6az6-T1u8-unsplash.jpg",
-    specialties: ["Counter-Punching", "Footwork Biomechanics", "Fight Conditioning"],
-    quote: "Courage isn't the absence of fatigue. It's executing precision when your lungs are burning."
-  },
-  {
-    id: "elena-rostova",
-    name: "Elena Rostova",
-    role: "Director of Strength & Conditioning",
-    creds: "CSCS / USAW Senior International Coach",
-    image: "/media/edgar-chaparro-sHfo3WOgGTU-unsplash.jpg",
-    specialties: ["Olympic Weightlifting", "Power Curve Optimization", "Velocity Based Training"],
-    quote: "Barbells never lie to you. The weight asks for conviction, nothing less."
-  },
-  {
-    id: "jaxson-cole",
-    name: "Jaxson Cole",
-    role: "Metabolic Conditioning Specialist",
-    creds: "Ex-Decathlete / Tier 3 Performance Coach",
-    image: "/media/hermes-rivera-qbf59TU077Q-unsplash.jpg",
-    specialties: ["Lactate Threshold", "Engine Building", "Agility Dynamics"],
-    quote: "When you want to stop, that's when the true training begins."
-  },
-  {
-    id: "david-guliciuc",
-    name: "David Guliciuc",
-    role: "Tactical Striking Coach",
-    creds: "Muay Thai & Boxing Specialist",
-    image: "/media/david-guliciuc-o2zrjlM5s5o-unsplash.jpg",
-    specialties: ["Rotational Force", "Spatial Awareness", "Heavy Bag Rhythm"],
-    quote: "Every blow lands with purpose when your mindset is unshakeable."
-  }
-];
 
 export const INITIAL_MEMBERSHIPS = [
   {

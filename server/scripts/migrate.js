@@ -1,5 +1,5 @@
-import { initPostgresTables } from "./config/db.js";
-import { config } from "./config/config.js";
+import { initPostgresTables } from "../config/db.js";
+import { config } from "../config/config.js";
 
 async function runMigration() {
   console.log("=========================================");
