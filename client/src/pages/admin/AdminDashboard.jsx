@@ -1371,108 +1371,73 @@ export default function AdminDashboard() {
                   <PieChart className="w-4 h-4 text-white/60" />
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-center justify-around gap-6 pt-2">
-                  {/* Concentric / Segmented SVG Donut */}
-                  <div className="relative w-36 h-36 flex items-center justify-center shrink-0">
-                    <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                      <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#262626" strokeWidth="4" />
-                      {totalTxCount > 0 ? (
-                        <>
-                          {/* Black Tier Slice (White) */}
-                          {blackTierPct > 0 && (
-                            <circle
-                              cx="18" cy="18" r="15.9155" fill="none" stroke="#FFFFFF" strokeWidth="4"
-                              strokeDasharray={`${blackTierPct} ${100 - blackTierPct}`}
-                              strokeDashoffset="0"
-                              className="transition-all duration-1000 ease-out drop-shadow-[0_0_8px_rgba(255,255,255,0.6)]"
-                            />
-                          )}
-                          {/* Obsidian Tier Slice (Amber) */}
-                          {obsidianTierPct > 0 && (
-                            <circle
-                              cx="18" cy="18" r="15.9155" fill="none" stroke="#FBBF24" strokeWidth="4"
-                              strokeDasharray={`${obsidianTierPct} ${100 - obsidianTierPct}`}
-                              strokeDashoffset={`-${blackTierPct}`}
-                              className="transition-all duration-1000 ease-out drop-shadow-[0_0_8px_rgba(251,191,36,0.6)]"
-                            />
-                          )}
-                          {/* Trial Passes Slice (Blue) */}
-                          {trialTierPct > 0 && (
-                            <circle
-                              cx="18" cy="18" r="15.9155" fill="none" stroke="#60A5FA" strokeWidth="4"
-                              strokeDasharray={`${trialTierPct} ${100 - trialTierPct}`}
-                              strokeDashoffset={`-${blackTierPct + obsidianTierPct}`}
-                              className="transition-all duration-1000 ease-out drop-shadow-[0_0_8px_rgba(96,165,250,0.6)]"
-                            />
-                          )}
-                          {/* Other Custom Tiers (Emerald) */}
-                          {otherTierPct > 0 && (
-                            <circle
-                              cx="18" cy="18" r="15.9155" fill="none" stroke="#34D399" strokeWidth="4"
-                              strokeDasharray={`${otherTierPct} ${100 - otherTierPct}`}
-                              strokeDashoffset={`-${blackTierPct + obsidianTierPct + trialTierPct}`}
-                              className="transition-all duration-1000 ease-out drop-shadow-[0_0_8px_rgba(52,211,153,0.6)]"
-                            />
-                          )}
-                        </>
-                      ) : null}
-                    </svg>
-                    <div className="absolute text-center">
-                      <span className="font-display text-lg font-bold text-white block leading-none">
-                        ${revenueValue.toLocaleString()}
-                      </span>
-                      <span className="text-[9px] font-mono text-[#8C8C8C] uppercase">Live Gross</span>
-                    </div>
+                <div className="flex flex-col gap-6 pt-2">
+                  {/* Total Gross Display */}
+                  <div className="flex flex-col gap-1">
+                    <span className="font-display text-4xl font-extrabold text-white leading-none">
+                      ${revenueValue.toLocaleString()}
+                    </span>
+                    <span className="text-[10px] font-mono text-[#8C8C8C] uppercase tracking-widest">
+                      Live Gross Revenue
+                    </span>
                   </div>
 
-                  {/* Dynamic Legend based on active tiers or actual orders */}
-                  <div className="space-y-2 text-xs font-mono w-full sm:w-auto">
-                    {totalTxCount > 0 ? (
-                      <>
+                  {totalTxCount > 0 ? (
+                    <div className="space-y-5">
+                      {/* Segmented Progress Bar */}
+                      <div className="h-1.5 w-full flex rounded-full overflow-hidden bg-white/5">
+                        {blackTierPct > 0 && <div style={{ width: `${blackTierPct}%` }} className="bg-white transition-all duration-1000 shadow-[0_0_8px_rgba(255,255,255,0.4)]" />}
+                        {obsidianTierPct > 0 && <div style={{ width: `${obsidianTierPct}%` }} className="bg-amber-400 transition-all duration-1000 shadow-[0_0_8px_rgba(251,191,36,0.4)]" />}
+                        {trialTierPct > 0 && <div style={{ width: `${trialTierPct}%` }} className="bg-blue-400 transition-all duration-1000 shadow-[0_0_8px_rgba(96,165,250,0.4)]" />}
+                        {otherTierPct > 0 && <div style={{ width: `${otherTierPct}%` }} className="bg-emerald-400 transition-all duration-1000 shadow-[0_0_8px_rgba(52,211,153,0.4)]" />}
+                      </div>
+
+                      {/* Legend Grid */}
+                      <div className="grid grid-cols-2 gap-3 text-xs font-mono">
                         {blackTierCount > 0 && (
-                          <div className="flex items-center justify-between sm:justify-start gap-3">
-                            <span className="flex items-center gap-2 text-white">
-                              <span className="w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_6px_white]" />
+                          <div className="flex flex-col gap-1.5 p-3 bg-white/5 rounded-sm border border-white/10 hover:border-white/30 transition-colors">
+                            <span className="flex items-center gap-2 text-white/70 text-[10px] uppercase tracking-wider">
+                              <span className="w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_6px_white]" />
                               Black Tier
                             </span>
-                            <strong className="text-white">{blackTierCount} Orders ({Math.round(blackTierPct)}%)</strong>
+                            <strong className="text-white text-sm font-display tracking-wide">{Math.round(blackTierPct)}% <span className="text-white/40 text-[10px] ml-1 font-mono">({blackTierCount} Orders)</span></strong>
                           </div>
                         )}
                         {obsidianTierCount > 0 && (
-                          <div className="flex items-center justify-between sm:justify-start gap-3">
-                            <span className="flex items-center gap-2 text-amber-300">
-                              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.8)]" />
-                              Obsidian Private
+                          <div className="flex flex-col gap-1.5 p-3 bg-white/5 rounded-sm border border-white/10 hover:border-amber-500/30 transition-colors">
+                            <span className="flex items-center gap-2 text-amber-300/70 text-[10px] uppercase tracking-wider">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_rgba(251,191,36,0.8)]" />
+                              Obsidian
                             </span>
-                            <strong className="text-white">{obsidianTierCount} Orders ({Math.round(obsidianTierPct)}%)</strong>
+                            <strong className="text-white text-sm font-display tracking-wide">{Math.round(obsidianTierPct)}% <span className="text-white/40 text-[10px] ml-1 font-mono">({obsidianTierCount} Orders)</span></strong>
                           </div>
                         )}
                         {trialTierCount > 0 && (
-                          <div className="flex items-center justify-between sm:justify-start gap-3">
-                            <span className="flex items-center gap-2 text-blue-300">
-                              <span className="w-2.5 h-2.5 rounded-full bg-blue-400 shadow-[0_0_6px_rgba(96,165,250,0.8)]" />
-                              Brave Trial Passes
+                          <div className="flex flex-col gap-1.5 p-3 bg-white/5 rounded-sm border border-white/10 hover:border-blue-500/30 transition-colors">
+                            <span className="flex items-center gap-2 text-blue-300/70 text-[10px] uppercase tracking-wider">
+                              <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_6px_rgba(96,165,250,0.8)]" />
+                              Trial Pass
                             </span>
-                            <strong className="text-white">{trialTierCount} Orders ({Math.round(trialTierPct)}%)</strong>
+                            <strong className="text-white text-sm font-display tracking-wide">{Math.round(trialTierPct)}% <span className="text-white/40 text-[10px] ml-1 font-mono">({trialTierCount} Orders)</span></strong>
                           </div>
                         )}
                         {otherTierCount > 0 && (
-                          <div className="flex items-center justify-between sm:justify-start gap-3">
-                            <span className="flex items-center gap-2 text-emerald-300">
-                              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
-                              Custom Tiers
+                          <div className="flex flex-col gap-1.5 p-3 bg-white/5 rounded-sm border border-white/10 hover:border-emerald-500/30 transition-colors">
+                            <span className="flex items-center gap-2 text-emerald-300/70 text-[10px] uppercase tracking-wider">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
+                              Custom
                             </span>
-                            <strong className="text-white">{otherTierCount} Orders ({Math.round(otherTierPct)}%)</strong>
+                            <strong className="text-white text-sm font-display tracking-wide">{Math.round(otherTierPct)}% <span className="text-white/40 text-[10px] ml-1 font-mono">({otherTierCount} Orders)</span></strong>
                           </div>
                         )}
-                      </>
-                    ) : (
-                      <div className="text-[#8C8C8C] text-[11px] space-y-1">
-                        <p className="text-white/80 font-semibold">Fresh Ledger · Zero Orders</p>
-                        <p>When an athlete orders a membership tier or books a paid session, live distribution slices appear here.</p>
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  ) : (
+                    <div className="text-[#8C8C8C] text-[11px] space-y-1 p-4 border border-white/10 rounded bg-white/5">
+                      <p className="text-white/80 font-semibold">Fresh Ledger · Zero Orders</p>
+                      <p>When an athlete orders a membership tier or books a paid session, live distribution slices appear here.</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
