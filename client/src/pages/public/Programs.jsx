@@ -232,7 +232,7 @@ export default function Programs() {
 
           <div className="bg-[#141414] border border-white/10 rounded-sm divide-y divide-white/10 overflow-x-auto">
             {schedule.map((sc) => {
-              const isAlreadyBooked = (bookings || []).some((b) => {
+              const userBooking = (bookings || []).find((b) => {
                 if (b.classTitle?.toLowerCase() !== sc.classTitle?.toLowerCase()) return false;
                 
                 // Fallback for older formats ("Monday, 09:00 AM")
@@ -254,11 +254,21 @@ export default function Programs() {
                 return false;
               });
 
+              const bookingStatus = (userBooking?.status || "").toLowerCase();
+              const isPendingBooking = userBooking && bookingStatus === "pending";
+              const isRejectedBooking = userBooking && (bookingStatus === "rejected" || bookingStatus === "declined" || bookingStatus === "cancelled");
+              const isConfirmedBooking = userBooking && !isPendingBooking && !isRejectedBooking;
+              const hasActiveBooking = isPendingBooking || isConfirmedBooking;
+
               return (
                 <div
                   key={sc.id}
                   className={`p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors ${
-                    isAlreadyBooked ? "bg-emerald-500/[0.04] border-l-2 border-l-emerald-400" : "hover:bg-white/[0.02]"
+                    isConfirmedBooking
+                      ? "bg-emerald-500/[0.04] border-l-2 border-l-emerald-400"
+                      : isPendingBooking
+                      ? "bg-amber-500/[0.04] border-l-2 border-l-amber-400"
+                      : "hover:bg-white/[0.02]"
                   }`}
                 >
                   <div className="flex items-center gap-6">
@@ -270,9 +280,14 @@ export default function Programs() {
                     <div>
                       <div className="flex items-center gap-2">
                         <h4 className="font-display text-lg font-bold text-white uppercase">{sc.classTitle}</h4>
-                        {isAlreadyBooked && (
+                        {isConfirmedBooking && (
                           <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                            <Check className="w-3 h-3" /> Booked
+                            <Check className="w-3 h-3" /> Confirmed
+                          </span>
+                        )}
+                        {isPendingBooking && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 animate-pulse">
+                            <Clock className="w-3 h-3" /> Pending HQ Approval
                           </span>
                         )}
                       </div>
@@ -292,9 +307,13 @@ export default function Programs() {
                       <span className="text-[11px] text-[#8C8C8C]">{sc.total} athlete max</span>
                     </div>
 
-                    {isAlreadyBooked ? (
+                    {isConfirmedBooking ? (
                       <span className="px-5 py-2.5 rounded-sm text-xs uppercase tracking-widest font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
                         <Check className="w-3.5 h-3.5" /> Enrolled
+                      </span>
+                    ) : isPendingBooking ? (
+                      <span className="px-5 py-2.5 rounded-sm text-xs uppercase tracking-widest font-bold bg-amber-400/15 text-amber-300 border border-amber-400/30 flex items-center gap-1.5 animate-pulse">
+                        <Clock className="w-3.5 h-3.5" /> Pending Approval
                       </span>
                     ) : (
                       <button
