@@ -853,7 +853,7 @@ export default function AdminDashboard() {
                   return (
                     <div
                       key={order.id}
-                      className={`py-4 transition-all border-b last:border-b-0 ${isPending
+                      className={`px-5 py-3 transition-all border-b last:border-b-0 ${isPending
                         ? "border-amber-500/20"
                         : "border-white/5"
                         }`}
@@ -1093,7 +1093,7 @@ export default function AdminDashboard() {
                   return (
                     <div
                       key={ath.id}
-                      className="py-4 flex flex-col md:flex-row md:items-center justify-between gap-5 border-b border-white/5 last:border-b-0 hover:bg-white/[0.02] transition-colors"
+                      className="px-5 py-3 flex flex-col md:flex-row md:items-center justify-between gap-5 border-b border-white/5 last:border-b-0 hover:bg-white/[0.02] transition-colors"
                     >
                       <div className="flex items-center gap-4">
                         {/* Avatar */}
@@ -1295,7 +1295,7 @@ export default function AdminDashboard() {
                   return (
                     <div
                       key={req.id}
-                      className="py-4 flex flex-col md:flex-row md:items-center justify-between gap-5 border-b border-white/5 last:border-b-0 hover:bg-white/[0.02] transition-colors"
+                      className="px-5 py-3 flex flex-col md:flex-row md:items-center justify-between gap-5 border-b border-white/5 last:border-b-0 hover:bg-white/[0.02] transition-colors"
                     >
                       <div className="space-y-2 max-w-xl w-full">
                         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
