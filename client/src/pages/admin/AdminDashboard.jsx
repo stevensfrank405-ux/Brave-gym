@@ -435,13 +435,6 @@ export default function AdminDashboard() {
         {/* Top Header inside Sidebar */}
         <div className="p-5 border-b border-white/10 space-y-4">
           <div className="flex items-center justify-between">
-            {(!sidebarCollapsed || mobileAdminMenu) && (
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="font-mono uppercase text-[10px] tracking-widest text-[#8C8C8C]">Live Operational HQ</span>
-              </div>
-            )}
-
             {/* Desktop collapse toggle */}
             <button
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -607,10 +600,7 @@ export default function AdminDashboard() {
         {/* Top bar header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 sm:pb-6 border-b border-white/10">
           <div>
-            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/10 text-[10px] uppercase font-mono tracking-widest text-white mb-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-              Administrative Command Suite
-            </div>
+
             <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-extrabold text-white uppercase tracking-tight">
               {sidebarNavItems.find((t) => t.id === activeTab)?.label || "Brave HQ Management"}
             </h1>
