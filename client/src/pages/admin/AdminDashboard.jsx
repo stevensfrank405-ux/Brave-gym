@@ -1610,7 +1610,7 @@ export default function AdminDashboard() {
               )}
             </div>
           </div>)}
-        {/* 8. TRAINERS TAB */},
+        {/* 8. TRAINERS TAB */}
         {(activeTab === "overview" || activeTab === "trainers") && (
           <div className="space-y-6 pt-4">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
