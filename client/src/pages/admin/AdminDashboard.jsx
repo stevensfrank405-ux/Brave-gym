@@ -782,9 +782,6 @@ export default function AdminDashboard() {
                   </span>
                 </div>
               </div>
-              <div className="text-xs text-[#8C8C8C] font-mono">
-                Real-Time Postgres Ledger Sync
-              </div>
             </div>
 
             {/* Orders Cards Grid */}
@@ -968,9 +965,6 @@ export default function AdminDashboard() {
                   </span>
                 </div>
               </div>
-              <p className="text-xs text-[#8C8C8C] max-w-sm">
-                Real-time dossiers with each user's active tier, reserved combine sessions, intake chat transcripts, and logged training outputs.
-              </p>
             </div>
 
             {/* Filter & Search Bar */}
@@ -1160,9 +1154,6 @@ export default function AdminDashboard() {
                   </span>
                 </div>
               </div>
-              <p className="text-xs text-[#8C8C8C] max-w-sm">
-                Real-time synchronized athlete bookings for scheduled arena combine sessions.
-              </p>
             </div>
 
             <div className="bg-[#141414] border border-white/10 rounded-sm divide-y divide-white/10">
@@ -1249,9 +1240,6 @@ export default function AdminDashboard() {
                   </span>
                 </div>
               </div>
-              <p className="text-xs text-[#8C8C8C] max-w-sm">
-                Real-time negotiation and direct assistance for athlete membership payments, training questions, and customized plans.
-              </p>
             </div>
 
             <div className="bg-[#141414] border border-white/10 rounded-sm divide-y divide-white/10">
