@@ -4,7 +4,7 @@
 @theme {
   --font-primary: 'Caacupe One', cursive, sans-serif;
   --font-secondary: 'Lobster Two', cursive, sans-serif;
-  --font-display: 'Lobster Two', cursive, sans-serif;
+  --font-display: 'Caacupe One', cursive, sans-serif;
   --font-body: 'Caacupe One', cursive, sans-serif;
 }
 
@@ -26,12 +26,14 @@
     letter-spacing: -0.01em;
   }
 
-  h1, h2, h3, h4, .font-display, .font-secondary {
-    font-family: 'Lobster Two', cursive, sans-serif;
+  /* Main Headings (h1, h2) & Display text use Primary font (Caacupé One) */
+  h1, h2, .font-display, .font-primary, .font-body {
+    font-family: 'Caacupe One', cursive, sans-serif;
   }
 
-  .font-primary, .font-body {
-    font-family: 'Caacupe One', cursive, sans-serif;
+  /* Subheadings (h3, h4) use Secondary font (Lobster Two) */
+  h3, h4, .font-secondary {
+    font-family: 'Lobster Two', cursive, sans-serif;
   }
 }
 
