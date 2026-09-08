@@ -32,8 +32,8 @@
   }
 
   /* Subheadings (h3, h4) use Secondary font (Paprika) */
-  h3, h4, .font-secondary {
-    font-family: 'Paprika', cursive, sans-serif;
+  h3, h4, h3.font-display, h4.font-display, .font-secondary {
+    font-family: 'Paprika', cursive, sans-serif !important;
   }
 
   .font-body {
