@@ -389,6 +389,9 @@ export function GymProvider({ children }) {
   };
 
   const updateBooking = async (bookingId, updates) => {
+    // Optimistic UI update immediately
+    setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, ...updates } : b)));
+    setAdminBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, ...updates } : b)));
     try {
       const res = await api.updateBooking(bookingId, updates);
       if (res) {
@@ -397,7 +400,7 @@ export function GymProvider({ children }) {
       }
       return res;
     } catch (err) {
-      console.error("Error updating booking:", err.message);
+      console.error("Error updating booking on server:", err.message);
       throw err;
     }
   };

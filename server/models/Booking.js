@@ -103,7 +103,7 @@ export class BookingModel {
     if (!id || !updates) return null;
     if (!db.isConfigured()) throw new Error("Database is not configured.");
 
-    const allowedFields = ["date", "time", "status", "room"];
+    const allowedFields = ["date", "status", "room"];
     const setClauses = [];
     const values = [];
     let idx = 1;
