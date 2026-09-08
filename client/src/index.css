@@ -2,10 +2,10 @@
 @import "lenis/dist/lenis.css";
 
 @theme {
-  --font-primary: 'Erica One', cursive, sans-serif;
+  --font-primary: 'Clash Display', sans-serif;
   --font-secondary: 'Paprika', cursive, sans-serif;
-  --font-display: 'Erica One', cursive, sans-serif;
-  --font-body: 'Erica One', cursive, sans-serif;
+  --font-display: 'Clash Display', sans-serif;
+  --font-body: 'Satoshi', sans-serif;
 }
 
 @layer base {
@@ -22,18 +22,22 @@
   body {
     background-color: var(--gym-obsidian);
     color: var(--gym-chalk);
-    font-family: 'Erica One', cursive, sans-serif;
+    font-family: 'Satoshi', sans-serif;
     letter-spacing: -0.01em;
   }
 
-  /* Main Headings (h1, h2) & Display text use Primary font (Erica One) */
-  h1, h2, .font-display, .font-primary, .font-body {
-    font-family: 'Erica One', cursive, sans-serif;
+  /* Main Headings (h1, h2) & Display text use original default font (Clash Display) */
+  h1, h2, .font-display, .font-primary {
+    font-family: 'Clash Display', sans-serif;
   }
 
   /* Subheadings (h3, h4) use Secondary font (Paprika) */
   h3, h4, .font-secondary {
     font-family: 'Paprika', cursive, sans-serif;
+  }
+
+  .font-body {
+    font-family: 'Satoshi', sans-serif;
   }
 }
 
