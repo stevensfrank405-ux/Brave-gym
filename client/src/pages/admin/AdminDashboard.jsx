@@ -559,28 +559,18 @@ export default function AdminDashboard() {
         {!sidebarCollapsed ? (
           <div
             onClick={() => setShowAdminProfileModal(true)}
-            className="p-4 m-3 bg-black/60 hover:bg-black/90 cursor-pointer rounded border border-white/10 hover:border-white/30 transition-all space-y-2 group"
+            className="p-4 m-3 bg-white/5 hover:bg-white/10 cursor-pointer rounded-sm border border-white/10 transition-colors group flex items-center gap-3"
             title="Click to view & edit Admin Profile"
           >
-            <div className="flex items-center justify-between text-[10px] font-mono text-[#8C8C8C] uppercase">
-              <span>Security Clearance</span>
-              <span className="text-emerald-400 font-bold">L-4 Master</span>
+            <div className="w-9 h-9 rounded-full bg-amber-400/20 border border-amber-400/40 flex shrink-0 items-center justify-center text-amber-300 font-bold text-xs">
+              HQ
             </div>
-            <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-full bg-amber-400/20 border border-amber-400/40 flex items-center justify-center text-amber-300 font-bold text-xs">
-                HQ
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-display font-semibold text-white truncate flex items-center gap-1.5">
+                <span>{currentUser?.name || "Gym Director"}</span>
+                <Edit3 className="w-3 h-3 text-white/40 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-xs font-semibold text-white truncate flex items-center gap-1.5">
-                  <span>{currentUser?.name || "Gym Director"}</span>
-                  <Edit3 className="w-3 h-3 text-[#8C8C8C] opacity-0 group-hover:opacity-100 transition-opacity" />
-                </div>
-                <div className="text-[10px] text-[#8C8C8C] truncate">{currentUser?.email || "admin@bravegym.com"}</div>
-              </div>
-            </div>
-            <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[10px] text-[#8C8C8C]">
-              <span>Sync Status</span>
-              <span className="text-emerald-400 font-mono">Live Master</span>
+              <div className="text-[10px] font-mono text-[#8C8C8C] truncate">{currentUser?.email || "admin@bravegym.com"}</div>
             </div>
           </div>
         ) : (
