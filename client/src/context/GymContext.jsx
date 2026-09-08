@@ -397,10 +397,8 @@ export function GymProvider({ children }) {
       }
       return res;
     } catch (err) {
-      console.warn("Error updating booking API (falling back to local state):", err.message);
-      setBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, ...updates } : b)));
-      setAdminBookings((prev) => prev.map((b) => (b.id === bookingId ? { ...b, ...updates } : b)));
-      return { id: bookingId, ...updates };
+      console.error("Error updating booking:", err.message);
+      throw err;
     }
   };
 

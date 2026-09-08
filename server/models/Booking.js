@@ -1,5 +1,32 @@
 import { db } from "../config/db.js";
 import { v4 as uuidv4 } from "uuid";
+import fs from 'fs';
+import path from 'path';
+
+function getLocalDataPath() {
+  const dataDir = path.resolve(process.cwd(), 'data');
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
+  return path.resolve(dataDir, 'bookings.json');
+}
+
+function readLocalBookings() {
+  const dataPath = getLocalDataPath();
+  if (fs.existsSync(dataPath)) {
+    try {
+      return JSON.parse(fs.readFileSync(dataPath, 'utf8'));
+    } catch(e) {
+      return [];
+    }
+  }
+  return [];
+}
+
+function writeLocalBookings(bookings) {
+  const dataPath = getLocalDataPath();
+  fs.writeFileSync(dataPath, JSON.stringify(bookings, null, 2));
+}
 
 function mapPgRowToBooking(r) {
   if (!r) return null;
@@ -30,7 +57,7 @@ export class BookingModel {
         throw err;
       }
     } else {
-      throw new Error("Database is not configured.");
+      return readLocalBookings();
     }
     return [];
   }
@@ -48,7 +75,8 @@ export class BookingModel {
         throw err;
       }
     } else {
-      throw new Error("Database is not configured.");
+      const bookings = readLocalBookings();
+      return bookings.find(b => b.id === id) || null;
     }
     return null;
   }
@@ -66,7 +94,8 @@ export class BookingModel {
         throw err;
       }
     } else {
-      throw new Error("Database is not configured.");
+      const bookings = readLocalBookings();
+      return bookings.filter(b => b.userId === userId);
     }
     return [];
   }
@@ -81,7 +110,7 @@ export class BookingModel {
       trainer: data.trainer,
       date: data.date,
       room: data.room || "Main Athletic Floor",
-      status: data.status || "Pending", // Default to Pending instead of Confirmed
+      status: data.status || "Pending",
       createdAt: new Date().toISOString()
     };
 
@@ -108,13 +137,25 @@ export class BookingModel {
         throw err;
       }
     } else {
-      throw new Error("Database is not configured.");
+      const bookings = readLocalBookings();
+      bookings.unshift(newBooking);
+      writeLocalBookings(bookings);
+      return newBooking;
     }
   }
 
   static async update(id, updates) {
     if (!id || !updates) return null;
-    if (!db.isConfigured()) throw new Error("Database is not configured.");
+    if (!db.isConfigured()) {
+      const bookings = readLocalBookings();
+      const index = bookings.findIndex(b => b.id === id);
+      if (index !== -1) {
+        bookings[index] = { ...bookings[index], ...updates };
+        writeLocalBookings(bookings);
+        return bookings[index];
+      }
+      return { id, ...updates };
+    }
 
     const allowedFields = ["date", "time", "status", "room"];
     const setClauses = [];
@@ -157,7 +198,11 @@ export class BookingModel {
         throw err;
       }
     } else {
-      throw new Error("Database is not configured.");
+      let bookings = readLocalBookings();
+      const initialLength = bookings.length;
+      bookings = bookings.filter(b => b.id !== id);
+      writeLocalBookings(bookings);
+      return bookings.length < initialLength;
     }
   }
 }
