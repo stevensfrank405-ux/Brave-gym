@@ -1,12 +1,12 @@
 import { NotificationModel } from "../models/Notification.js";
 
 export class NotificationViewModel {
-  static getUserNotifications(userId) {
-    return NotificationModel.findByUserId(userId);
+  static async getUserNotifications(userId) {
+    return await NotificationModel.findByUserId(userId);
   }
 
-  static createNotification({ userId, title, message, type }) {
-    return NotificationModel.create({
+  static async createNotification({ userId, title, message, type }) {
+    return await NotificationModel.create({
       userId,
       title,
       message,
@@ -14,7 +14,7 @@ export class NotificationViewModel {
     });
   }
 
-  static markAllRead(userId) {
-    return NotificationModel.markAllRead(userId);
+  static async markAllRead(userId) {
+    return await NotificationModel.markAllRead(userId);
   }
 }

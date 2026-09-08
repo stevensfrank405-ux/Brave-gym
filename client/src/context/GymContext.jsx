@@ -61,21 +61,15 @@ export function GymProvider({ children }) {
   });
 
   // Real-time notifications
-  const [userNotifications, setUserNotifications] = useState(() => {
-    const saved = localStorage.getItem("brave_notifications");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) return parsed;
-      } catch { /* corrupted localStorage */ }
-    }
-    return [];
-  });
+  const [userNotifications, setUserNotifications] = useState([]);
 
-  // Sync to local cache as fallback
+  // Sync to local cache as fallback (scoped to current user)
   useEffect(() => {
-    localStorage.setItem("brave_notifications", JSON.stringify(userNotifications));
-  }, [userNotifications]);
+    if (currentUser?.id) {
+      const storageKey = `brave_notifications_${currentUser.id}`;
+      localStorage.setItem(storageKey, JSON.stringify(userNotifications));
+    }
+  }, [userNotifications, currentUser?.id]);
 
   useEffect(() => {
     localStorage.setItem("brave_consultations", JSON.stringify(consultationRequests));
@@ -300,6 +294,9 @@ export function GymProvider({ children }) {
     api.logout();
     localStorage.removeItem("brave_user");
     setCurrentUser(null);
+    setUserNotifications([]);
+    setBookings([]);
+    setWorkoutLogs([]);
   };
 
   // ==========================================

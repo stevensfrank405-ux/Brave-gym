@@ -857,27 +857,34 @@ export default function UserDashboard() {
             </div>
 
             <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-sm divide-y divide-white/10">
-              {userNotifications && userNotifications.map((n) => (
-                <div key={n.id} className={`p-6 flex items-start gap-4 transition-colors ${!n.read ? "bg-white/[0.03]" : ""}`}>
-                  <div className={`p-2.5 rounded-full mt-1 ${
-                    n.type === "admin_response" 
-                      ? "bg-amber-400/20 text-amber-300 border border-amber-400/30" 
-                      : n.type === "streak"
-                      ? "bg-rose-500/20 text-rose-300 border border-rose-500/30"
-                      : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
-                  }`}>
-                    {n.type === "admin_response" ? <MessageSquare className="w-4 h-4" /> : <Flame className="w-4 h-4" />}
-                  </div>
-
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-display text-base font-bold text-white uppercase">{n.title}</h4>
-                      <span className="text-xs font-mono text-[#8C8C8C]">{n.time}</span>
+              {userNotifications && userNotifications.length > 0 ? (
+                userNotifications.map((n) => (
+                  <div key={n.id} className={`p-6 flex items-start gap-4 transition-colors ${!n.read ? "bg-white/[0.03]" : ""}`}>
+                    <div className={`p-2.5 rounded-full mt-1 ${
+                      n.type === "admin_response" 
+                        ? "bg-amber-400/20 text-amber-300 border border-amber-400/30" 
+                        : n.type === "streak"
+                        ? "bg-rose-500/20 text-rose-300 border border-rose-500/30"
+                        : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                    }`}>
+                      {n.type === "admin_response" ? <MessageSquare className="w-4 h-4" /> : <Flame className="w-4 h-4" />}
                     </div>
-                    <p className="text-xs text-[#8C8C8C] leading-relaxed">{n.message}</p>
+
+                    <div className="flex-1 space-y-1">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-display text-base font-bold text-white uppercase">{n.title}</h4>
+                        <span className="text-xs font-mono text-[#8C8C8C]">{n.time || (n.createdAt ? new Date(n.createdAt).toLocaleDateString() : "")}</span>
+                      </div>
+                      <p className="text-xs text-[#8C8C8C] leading-relaxed">{n.message}</p>
+                    </div>
                   </div>
+                ))
+              ) : (
+                <div className="p-12 text-center space-y-2">
+                  <p className="text-sm text-white/70 font-display uppercase tracking-wider">No Admin Dispatches</p>
+                  <p className="text-xs text-[#8C8C8C]">You have no notifications or admin responses at this time.</p>
                 </div>
-              ))}
+              )}
             </div>
           </div>
         )}
