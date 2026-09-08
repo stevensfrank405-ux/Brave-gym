@@ -355,12 +355,41 @@ export default function AdminDashboard() {
       )
   );
 
+  const [viewedCounts, setViewedCounts] = useState(() => {
+    const saved = localStorage.getItem('braveAdminViewedCounts');
+    return saved ? JSON.parse(saved) : {
+      orders: 0,
+      athletes: 0,
+      bookings: 0,
+      requests: 0
+    };
+  });
+
+  useEffect(() => {
+    const currentCounts = {
+      orders: pendingOrdersCount,
+      athletes: athleteRoster.length,
+      bookings: adminBookings?.length || 0,
+      requests: athleteConsultationRequests.length
+    };
+
+    if (["orders", "athletes", "bookings", "requests"].includes(activeTab)) {
+      if (viewedCounts[activeTab] !== currentCounts[activeTab]) {
+        const newCounts = { ...viewedCounts, [activeTab]: currentCounts[activeTab] };
+        setViewedCounts(newCounts);
+        localStorage.setItem('braveAdminViewedCounts', JSON.stringify(newCounts));
+      }
+    }
+  }, [activeTab, pendingOrdersCount, athleteRoster.length, adminBookings?.length, athleteConsultationRequests.length, viewedCounts]);
+
+  const getUnreadCount = (tabId, currentCount) => Math.max(0, currentCount - (viewedCounts[tabId] || 0));
+
   const sidebarNavItems = [
     { id: "overview", label: "Dashboard Overview", icon: LayoutDashboard, desc: "Live KPI Telemetry" },
-    { id: "orders", label: "Membership Orders", icon: ShieldCheck, badge: pendingOrdersCount, desc: "Verify Athlete Subscriptions" },
-    { id: "athletes", label: "Athlete Monitoring", icon: UserCheck, badge: athleteRoster.length, desc: "Full Client Dossier Monitoring" },
-    { id: "bookings", label: "Athlete Bookings", icon: Users, badge: adminBookings?.length, desc: "Reserved Spots Roster" },
-    { id: "requests", label: "Live Athlete Chats", icon: MessageSquare, badge: athleteConsultationRequests.length, desc: "Real-Time Direct Negotiations" },
+    { id: "orders", label: "Membership Orders", icon: ShieldCheck, badge: getUnreadCount("orders", pendingOrdersCount), desc: "Verify Athlete Subscriptions" },
+    { id: "athletes", label: "Athlete Monitoring", icon: UserCheck, badge: getUnreadCount("athletes", athleteRoster.length), desc: "Full Client Dossier Monitoring" },
+    { id: "bookings", label: "Athlete Bookings", icon: Users, badge: getUnreadCount("bookings", adminBookings?.length || 0), desc: "Reserved Spots Roster" },
+    { id: "requests", label: "Live Athlete Chats", icon: MessageSquare, badge: getUnreadCount("requests", athleteConsultationRequests.length), desc: "Real-Time Direct Negotiations" },
     { id: "schedule", label: "Timetable & Classes", icon: Calendar, desc: "Arena Scheduling" },
     { id: "finances", label: "Finances & Spatial", icon: DollarSign, desc: "Revenue & Zone Share" },
     { id: "trainers", label: "Trainers & Coaches", icon: UserCheck, desc: "Staff Profiles" },
