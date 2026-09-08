@@ -759,10 +759,14 @@ export default function AdminDashboard() {
                       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
                         {/* Member Info */}
                         <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-sm bg-[#202020] border border-white/10 flex items-center justify-center shrink-0 font-display font-bold text-lg text-white">
-                            {order.member ? order.member.charAt(0).toUpperCase() : "U"}
+                          <div className="w-12 h-12 rounded-sm bg-[#202020] border border-white/10 flex items-center justify-center shrink-0 font-display font-bold text-lg text-white overflow-hidden">
+                            {athleteUser && (athleteUser.avatar || athleteUser.avatar_url) ? (
+                              <img src={athleteUser.avatar || athleteUser.avatar_url} alt={order.member} className="w-full h-full object-cover" />
+                            ) : (
+                              order.member ? order.member.charAt(0).toUpperCase() : "U"
+                            )}
                           </div>
-
+                          
                           <div className="space-y-0.5">
                             <div className="flex items-center gap-2">
                               <h3 className="font-display text-base font-bold text-white uppercase tracking-wide">
@@ -1197,8 +1201,12 @@ export default function AdminDashboard() {
                     >
                       <div className="space-y-2 max-w-xl w-full">
                         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                          <div className="w-8 h-8 rounded-full bg-black border border-white/10 text-white shadow-inner flex items-center justify-center font-bold text-xs uppercase">
-                            {(req.userName || req.name || "A")[0]}
+                          <div className="w-8 h-8 rounded-full bg-black border border-white/10 text-white shadow-inner flex items-center justify-center font-bold text-xs uppercase overflow-hidden">
+                            {athleteUser && (athleteUser.avatar || athleteUser.avatar_url) ? (
+                              <img src={athleteUser.avatar || athleteUser.avatar_url} alt={req.userName || req.name} className="w-full h-full object-cover" />
+                            ) : (
+                              (req.userName || req.name || "A")[0]
+                            )}
                           </div>
                           <h4 className="font-display text-base font-bold text-white uppercase tracking-wide">
                             {req.userName || req.name || "Athlete"}
