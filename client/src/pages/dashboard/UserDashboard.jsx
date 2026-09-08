@@ -222,11 +222,8 @@ export default function UserDashboard() {
 
             <div className="space-y-1.5">
               <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-extrabold text-white uppercase tracking-tight group-hover:text-white/80 transition-colors flex flex-wrap items-center gap-2">
-                  <span>{currentUser?.name}</span>
-                  <span className="text-xs text-[#8C8C8C] font-mono normal-case font-normal group-hover:underline">
-                    (View Profile)
-                  </span>
+                <h1 className="font-display text-2xl sm:text-3xl md:text-4xl font-extrabold text-white uppercase tracking-tight group-hover:text-white/80 transition-colors">
+                  {currentUser?.name}
                 </h1>
                 <span className="px-3 py-0.5 rounded-full text-[10px] uppercase font-mono tracking-widest bg-white text-black font-bold shadow-sm">
                   {currentUser?.membership}
@@ -245,7 +242,7 @@ export default function UserDashboard() {
 
           <div className="flex flex-wrap items-center gap-6 border-t md:border-t-0 md:border-l border-white/10 pt-4 md:pt-0 md:pl-8">
             <div>
-              <span className="text-[11px] uppercase font-mono tracking-wider text-[#8C8C8C] block">Discipline Streak</span>
+              <span className="text-[11px] uppercase font-mono tracking-wider text-[#8C8C8C] block">Streak</span>
               <div className="flex items-center gap-2 text-white font-display text-xl sm:text-2xl font-bold">
                 <Flame className="w-5 h-5 text-amber-400 fill-amber-400 animate-pulse" />
                 <span>{currentUser?.streak || 0} Days</span>
@@ -253,7 +250,7 @@ export default function UserDashboard() {
             </div>
 
             <div>
-              <span className="text-[11px] uppercase font-mono tracking-wider text-[#8C8C8C] block">Month Volume</span>
+              <span className="text-[11px] uppercase font-mono tracking-wider text-[#8C8C8C] block">This Month</span>
               <div className="flex items-center gap-2 text-white font-display text-2xl font-bold">
                 <Trophy className="w-5 h-5 text-white/80" />
                 <span>{currentUser?.sessionsThisMonth || 0} Sessions</span>
@@ -301,11 +298,11 @@ export default function UserDashboard() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
           <div className="flex items-center gap-1.5 bg-white/5 backdrop-blur-md p-1 rounded-sm border border-white/10 overflow-x-auto max-w-full scrollbar-none">
             {[
-              { id: "overview", label: "Hub Overview" },
-              { id: "tiers", label: "Membership Tiers", badge: memberships?.length },
-              { id: "schedule", label: "My Bookings", badge: bookings?.length },
-              { id: "notifications", label: "Admin Dispatch", badge: unreadCount },
-              { id: "logs", label: "Training Logs", badge: workoutLogs?.length }
+              { id: "overview", label: "Overview" },
+              { id: "tiers", label: "Membership", badge: memberships?.length },
+              { id: "schedule", label: "Bookings", badge: bookings?.length },
+              { id: "notifications", label: "Notifications", badge: unreadCount },
+              { id: "logs", label: "Logs", badge: workoutLogs?.length }
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -351,9 +348,9 @@ export default function UserDashboard() {
               <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-sm p-6 space-y-4 shadow-lg">
                 <div className="flex items-center justify-between text-xs font-mono uppercase tracking-widest text-[#8C8C8C]">
                   <span className="flex items-center gap-2 text-white">
-                    <Clock className="w-3.5 h-3.5 text-white" /> Next Class
+                    <Clock className="w-3.5 h-3.5 text-white" /> Next Session
                   </span>
-                  <span className="text-emerald-400 font-semibold">Active Slot</span>
+                  <span className="text-emerald-400 font-semibold">Upcoming</span>
                 </div>
 
                 {bookings.length > 0 ? (
@@ -453,7 +450,7 @@ export default function UserDashboard() {
               <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-sm p-6 space-y-4 shadow-lg">
                 <div className="flex items-center justify-between text-xs font-mono uppercase tracking-widest text-[#8C8C8C]">
                   <span className="flex items-center gap-2 text-white">
-                    <Bell className="w-3.5 h-3.5 text-white" /> Admin Dispatches
+                    <Bell className="w-3.5 h-3.5 text-white" /> Notifications
                   </span>
                   {unreadCount > 0 && (
                     <span className="text-amber-400 font-bold font-mono text-[10px] bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">
@@ -488,29 +485,29 @@ export default function UserDashboard() {
 
             </div>
 
-            {/* Daily Athletic Improvement Ratio Animated Graph */}
+            {/* Weekly Activity Graph */}
             <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-sm p-6 sm:p-8 space-y-6 shadow-xl">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-5">
                 <div>
                   <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-[#8C8C8C] mb-1">
                     <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Progression Telemetry</span>
+                    <span>Weekly Activity</span>
                     <span>•</span>
                     <span className="text-emerald-400 font-bold">
-                      {workoutLogs.length > 0 ? `${workoutLogs.length} Sessions Logged` : "0 Sessions Logged This Week"}
+                      {workoutLogs.length > 0 ? `${workoutLogs.length} Sessions` : "No sessions yet"}
                     </span>
                   </div>
                   <h2 className="font-display text-2xl sm:text-3xl font-extrabold text-white uppercase tracking-tight">
-                    Daily Improvement Ratio
+                    Performance
                   </h2>
                 </div>
 
                 {/* Metric Selector Pills */}
                 <div className="flex items-center gap-1.5 bg-[#1F1F1F] p-1 rounded-sm border border-white/10 self-start sm:self-auto">
                   {[
-                    { id: "stamina", label: "Stamina & VO2", icon: Activity },
-                    { id: "power", label: "Power & Velocity", icon: Zap },
-                    { id: "volume", label: "Volume Load", icon: Trophy }
+                    { id: "stamina", label: "Stamina", icon: Activity },
+                    { id: "power", label: "Power", icon: Zap },
+                    { id: "volume", label: "Volume", icon: Trophy }
                   ].map((m) => {
                     const Icon = m.icon;
                     return (
@@ -578,16 +575,15 @@ export default function UserDashboard() {
                   })}
                 </div>
 
-                {/* Graph Summary Footer */}
+                {/* Graph Footer */}
                 <div className="flex flex-wrap items-center justify-between gap-4 pt-2 text-xs text-[#8C8C8C] font-mono">
                   <div className="flex items-center gap-3">
                     <span className="flex items-center gap-1.5 text-white">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                      Continuous Progression Tracking
+                      <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                      7-Day Overview
                     </span>
-                    <span>• Baseline: +2.1% daily threshold standard</span>
                   </div>
-                  <span className="text-white/80">Peak Velocity: Sunday (Active Recovery)</span>
+                  <span className="text-white/50">Mon – Sun</span>
                 </div>
               </div>
             </div>
@@ -596,9 +592,9 @@ export default function UserDashboard() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="font-display text-2xl font-bold text-white uppercase">Your Upcoming Classes</h2>
+                  <h2 className="font-display text-2xl font-bold text-white uppercase">Upcoming Classes</h2>
                 </div>
-                <Link to="/programs" className="text-xs uppercase tracking-wider text-white hover:underline flex items-center gap-1">
+                <Link to="/programs" className="text-xs uppercase tracking-wider text-white/60 hover:text-white flex items-center gap-1 transition-colors">
                   View Full Timetable <ChevronRight className="w-3 h-3" />
                 </Link>
               </div>
@@ -620,7 +616,7 @@ export default function UserDashboard() {
                             {b.status || "Pending"}
                           </span>
                         </div>
-                        <span className="text-xs text-[#8C8C8C]">Lead Coach: {b.trainer} · Arena: {b.room}</span>
+                        <span className="text-xs text-[#8C8C8C]">{b.trainer} · {b.room}</span>
                       </div>
 
                       <div className="flex items-center gap-4">
@@ -655,7 +651,7 @@ export default function UserDashboard() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="font-display text-2xl font-bold text-white uppercase">Class Schedule & Reservations</h2>
+                <h2 className="font-display text-2xl font-bold text-white uppercase">Schedule</h2>
               </div>
               {isPending ? (
                 <span className="px-4 py-2 bg-white/10 text-[#8C8C8C] text-xs uppercase tracking-wider font-mono rounded">
@@ -697,7 +693,7 @@ export default function UserDashboard() {
                           {b.status || "Pending"}
                         </span>
                       </div>
-                      <p className="text-xs text-[#8C8C8C]">Assigned Instructor: {b.trainer} · Room: {b.room}</p>
+                      <p className="text-xs text-[#8C8C8C]">{b.trainer} · {b.room}</p>
                     </div>
 
                     <div className="flex items-center gap-4">
@@ -846,7 +842,7 @@ export default function UserDashboard() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="font-display text-2xl font-bold text-white uppercase">Admin Responses & Alerts</h2>
+                <h2 className="font-display text-2xl font-bold text-white uppercase">Notifications</h2>
               </div>
               <button
                 onClick={markNotificationsAsRead}
@@ -894,7 +890,7 @@ export default function UserDashboard() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="font-display text-2xl font-bold text-white uppercase">Daily Workout Progression</h2>
+                <h2 className="font-display text-2xl font-bold text-white uppercase">Workout Log</h2>
               </div>
             </div>
 

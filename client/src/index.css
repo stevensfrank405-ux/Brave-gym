@@ -31,9 +31,9 @@
     font-family: 'Clash Display', sans-serif;
   }
 
-  /* Subheadings (h3, h4) use Secondary font (Paprika) */
+  /* Subheadings (h3, h4) use the same clean display font */
   h3, h4, h3.font-display, h4.font-display, .font-secondary {
-    font-family: 'Paprika', cursive, sans-serif !important;
+    font-family: 'Clash Display', sans-serif;
   }
 
   .font-body {
