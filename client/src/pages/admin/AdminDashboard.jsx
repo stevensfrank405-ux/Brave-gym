@@ -34,7 +34,9 @@ import {
   Award,
   Camera,
   Upload,
-  Send
+  Send,
+  Mail,
+  MapPin
 } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useGym } from "../../context/GymContext";
@@ -1238,10 +1240,21 @@ export default function AdminDashboard() {
                       </div>
 
                       <div className="flex flex-wrap items-center gap-4 text-xs text-[#8C8C8C]">
-                        {bk.userEmail && <span>✉️ {bk.userEmail}</span>}
-                        <span>🏋️ Coach: {bk.trainer}</span>
-                        <span>•</span>
-                        <span>🏟️ {bk.room}</span>
+                        {bk.userEmail && (
+                          <span className="inline-flex items-center gap-1.5 text-white/70">
+                            <Mail className="w-3.5 h-3.5 text-[#8C8C8C]" />
+                            {bk.userEmail}
+                          </span>
+                        )}
+                        <span className="inline-flex items-center gap-1.5 text-white/70">
+                          <Dumbbell className="w-3.5 h-3.5 text-[#8C8C8C]" />
+                          <span>Coach: <strong className="text-white/90 font-medium">{bk.trainer}</strong></span>
+                        </span>
+                        <span className="text-white/20">•</span>
+                        <span className="inline-flex items-center gap-1.5 text-white/70">
+                          <MapPin className="w-3.5 h-3.5 text-[#8C8C8C]" />
+                          <span>{bk.room}</span>
+                        </span>
                       </div>
                     </div>
 
