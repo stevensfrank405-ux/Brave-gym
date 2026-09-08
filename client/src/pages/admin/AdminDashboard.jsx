@@ -853,56 +853,49 @@ export default function AdminDashboard() {
                   return (
                     <div
                       key={order.id}
-                      className={`p-5 rounded-sm border transition-all ${isPending
-                        ? "bg-[#18150e] border-amber-500/40 shadow-[0_0_15px_rgba(251,191,36,0.08)]"
-                        : isConfirmed
-                          ? "bg-[#141414] border-white/10"
-                          : "bg-[#141414] border-red-500/20"
+                      className={`py-4 transition-all border-b last:border-b-0 ${isPending
+                        ? "border-amber-500/20"
+                        : "border-white/5"
                         }`}
                     >
                       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
                         {/* Member Info */}
-                        <div className="flex items-start gap-4">
-                          <div className="w-12 h-12 rounded-sm bg-[#202020] border border-white/10 flex items-center justify-center shrink-0 font-display font-bold text-lg text-white">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-full bg-black border border-white/10 flex items-center justify-center shrink-0 font-display font-bold text-sm text-white shadow-inner">
                             {order.member ? order.member.charAt(0).toUpperCase() : "U"}
                           </div>
 
-                          <div className="space-y-1">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <h3 className="font-display text-lg font-bold text-white uppercase">
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-display text-base font-bold text-white uppercase tracking-wide">
                                 {order.member}
                               </h3>
                               <span
-                                className={`px-2 py-0.5 rounded text-[10px] uppercase font-mono tracking-wider font-bold ${isPending
-                                  ? "bg-amber-400 text-black"
+                                className={`text-[9px] uppercase font-mono tracking-widest font-bold ${isPending
+                                  ? "text-amber-400"
                                   : isConfirmed
-                                    ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                                    : "bg-red-500/20 text-red-400 border border-red-500/30"
+                                    ? "text-emerald-500"
+                                    : "text-red-500"
                                   }`}
                               >
-                                {order.status}
+                                [{order.status}]
                               </span>
-                              {isPending && (
-                                <span className="text-[10px] font-mono text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">
-                                  Services Locked Until Approved
-                                </span>
-                              )}
                             </div>
 
-                            <p className="text-xs text-[#8C8C8C]">
-                              Plan: <strong className="text-white">{order.plan}</strong> · Amount: <strong className="text-white">{order.amount}</strong> · Order #{order.id}
+                            <p className="text-[11px] text-[#8C8C8C] tracking-wide">
+                              Plan: <strong className="text-white/90 font-medium">{order.plan}</strong> · Amount: <strong className="text-white/90 font-medium">{order.amount}</strong>
                             </p>
-
+                            
                             {athleteUser && (
-                              <p className="text-[11px] text-[#8C8C8C] font-mono">
-                                Email: {athleteUser.email} · Registered: {athleteUser.createdAt ? new Date(athleteUser.createdAt).toLocaleDateString() : "Active"}
+                              <p className="text-[10px] text-[#666666] font-mono">
+                                {athleteUser.email}
                               </p>
                             )}
                           </div>
                         </div>
 
                         {/* Actions */}
-                        <div className="flex flex-wrap items-center gap-3 pt-3 lg:pt-0 border-t lg:border-t-0 border-white/10">
+                        <div className="flex items-center gap-6 pt-3 lg:pt-0">
                           {/* Chat / Negotiate Button */}
                           <button
                             type="button"
@@ -917,10 +910,10 @@ export default function AdminDashboard() {
                                 chatHistory: []
                               });
                             }}
-                            className="px-3 py-2 bg-[#202020] hover:bg-[#2a2a2a] text-white border border-white/15 rounded text-xs font-semibold uppercase tracking-wider flex items-center gap-2 transition-colors"
+                            className="text-[10px] text-amber-500 hover:text-amber-400 font-semibold uppercase tracking-widest flex items-center gap-1.5 transition-colors"
                           >
-                            <MessageSquare className="w-3.5 h-3.5 text-amber-400" />
-                            <span>Discuss / Negotiate</span>
+                            <MessageSquare className="w-3.5 h-3.5" />
+                            <span>Discuss</span>
                           </button>
 
                           {/* Inspect Athlete Dossier */}
@@ -928,16 +921,16 @@ export default function AdminDashboard() {
                             <button
                               type="button"
                               onClick={() => setSelectedDossierAthlete(athleteUser)}
-                              className="px-3 py-2 bg-white/5 hover:bg-white/10 text-white/90 border border-white/10 rounded text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 transition-colors"
+                              className="text-[10px] text-[#8C8C8C] hover:text-white font-semibold uppercase tracking-widest flex items-center gap-1.5 transition-colors"
                             >
                               <Eye className="w-3.5 h-3.5" />
-                              <span>View Dossier</span>
+                              <span>Dossier</span>
                             </button>
                           )}
 
                           {/* Approve / Reject Controls */}
                           {isPending ? (
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-4">
                               <button
                                 type="button"
                                 onClick={async () => {
@@ -949,10 +942,10 @@ export default function AdminDashboard() {
                                     }
                                   }
                                 }}
-                                className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-black font-bold rounded text-xs uppercase tracking-wider flex items-center gap-1.5 shadow transition-colors"
+                                className="text-[10px] text-emerald-500 hover:text-emerald-400 font-semibold uppercase tracking-widest flex items-center gap-1.5 transition-colors"
                               >
-                                <Check className="w-4 h-4" />
-                                <span>Approve & Activate</span>
+                                <Check className="w-3.5 h-3.5" />
+                                <span>Approve</span>
                               </button>
 
                               <button
@@ -967,15 +960,15 @@ export default function AdminDashboard() {
                                     }
                                   }
                                 }}
-                                className="px-3 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5 transition-colors"
+                                className="text-[10px] text-red-500 hover:text-red-400 font-semibold uppercase tracking-widest flex items-center gap-1.5 transition-colors"
                               >
                                 <X className="w-3.5 h-3.5" />
                                 <span>Decline</span>
                               </button>
                             </div>
                           ) : (
-                            <span className="text-xs font-mono text-[#8C8C8C] uppercase flex items-center gap-1.5">
-                              <ShieldCheck className="w-4 h-4 text-emerald-400" /> Order Verified
+                            <span className="text-[10px] font-mono text-[#444] uppercase flex items-center gap-1.5 tracking-widest">
+                              <ShieldCheck className="w-3.5 h-3.5 text-[#666]" /> Verified
                             </span>
                           )}
                         </div>
@@ -1100,11 +1093,11 @@ export default function AdminDashboard() {
                   return (
                     <div
                       key={ath.id}
-                      className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-white/[0.02] transition-colors"
+                      className="py-4 flex flex-col md:flex-row md:items-center justify-between gap-5 border-b border-white/5 last:border-b-0 hover:bg-white/[0.02] transition-colors"
                     >
-                      <div className="flex items-start sm:items-center gap-4">
+                      <div className="flex items-center gap-4">
                         {/* Avatar */}
-                        <div className="w-12 h-12 rounded-full overflow-hidden border border-white/20 bg-white/5 flex items-center justify-center text-amber-400 font-display font-bold text-lg shrink-0">
+                        <div className="w-10 h-10 rounded-full overflow-hidden border border-white/10 bg-black flex items-center justify-center text-white shadow-inner font-display font-bold text-sm shrink-0">
                           {ath.avatar_url ? (
                             <img
                               src={ath.avatar_url}
@@ -1112,57 +1105,57 @@ export default function AdminDashboard() {
                               className="w-full h-full object-cover grayscale contrast-125"
                             />
                           ) : (
-                            (ath.name || "A").substring(0, 2).toUpperCase()
+                            (ath.name || "U").substring(0, 1).toUpperCase()
                           )}
                         </div>
 
                         {/* Details */}
-                        <div className="space-y-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h4 className="font-display text-base font-bold text-white uppercase">
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-display text-base font-bold text-white uppercase tracking-wide">
                               {ath.name || "Unnamed Athlete"}
                             </h4>
-                            <span className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded border font-semibold ${tierColor}`}>
-                              {tierName}
+                            <span className={`text-[9px] uppercase font-mono tracking-widest font-bold ${tierName.toLowerCase().includes("obsidian") ? "text-purple-400" : tierName.toLowerCase().includes("black") ? "text-amber-400" : "text-[#8C8C8C]"}`}>
+                              [{tierName}]
                             </span>
                           </div>
 
-                          <div className="flex flex-wrap items-center gap-3 text-xs text-[#8C8C8C]">
-                            {ath.email && <span>✉️ {ath.email}</span>}
-                            {ath.phone && <span>📞 {ath.phone}</span>}
-                            {ath.weight_class && <span>⚖️ {ath.weight_class}</span>}
-                            {ath.discipline && <span>🥋 {ath.discipline}</span>}
+                          <div className="flex flex-wrap items-center gap-3 text-[10px] text-[#666666] tracking-wide font-mono">
+                            {ath.email && <span>{ath.email}</span>}
+                            {ath.phone && <span>· {ath.phone}</span>}
+                            {ath.weight_class && <span>· {ath.weight_class}</span>}
+                            {ath.discipline && <span>· {ath.discipline}</span>}
                           </div>
 
-                          {/* Mini telemetry pills */}
-                          <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px] font-mono">
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white/5 border border-white/10 text-white/80">
-                              <Calendar className="w-3 h-3 text-amber-400" />
-                              {athleteBookings.length} Booked Classes
+                          {/* Mini telemetry pills - sleek text mode */}
+                          <div className="flex flex-wrap items-center gap-4 pt-1 text-[10px] font-mono font-semibold tracking-widest uppercase">
+                            <span className="flex items-center gap-1.5 text-white/60">
+                              <Calendar className="w-3 h-3 text-amber-500/70" />
+                              {athleteBookings.length} Booked
                             </span>
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white/5 border border-white/10 text-white/80">
-                              <Dumbbell className="w-3 h-3 text-emerald-400" />
-                              {athleteLogs.length} Training Logs
+                            <span className="flex items-center gap-1.5 text-white/60">
+                              <Dumbbell className="w-3 h-3 text-emerald-500/70" />
+                              {athleteLogs.length} Logs
                             </span>
                             {athleteRequests.length > 0 && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-blue-500/10 border border-blue-500/30 text-blue-400">
+                              <span className="flex items-center gap-1.5 text-blue-400/80">
                                 <MessageSquare className="w-3 h-3" />
-                                {athleteRequests.length} Intake Inquiries
+                                {athleteRequests.length} Inquiries
                               </span>
                             )}
                           </div>
                         </div>
                       </div>
 
-                      {/* Action Button: Inspect Complete Dossier */}
-                      <div className="flex items-center gap-2 self-end md:self-auto shrink-0">
+                      {/* Action Buttons: Inspect & Remove */}
+                      <div className="flex items-center gap-6 pt-2 md:pt-0 shrink-0">
                         <button
                           type="button"
                           onClick={() => setSelectedDossierAthlete(ath)}
-                          className="inline-flex items-center gap-2 px-4 py-2 bg-amber-400 hover:bg-amber-300 text-black font-mono font-bold text-xs uppercase tracking-wider rounded transition-colors shadow-md"
+                          className="text-[10px] text-amber-500 hover:text-amber-400 font-semibold uppercase tracking-widest flex items-center gap-1.5 transition-colors"
                         >
                           <Eye className="w-3.5 h-3.5" />
-                          <span>Inspect Dossier</span>
+                          <span>Dossier</span>
                         </button>
                         <button
                           type="button"
@@ -1171,10 +1164,11 @@ export default function AdminDashboard() {
                               removeAthlete(ath.id);
                             }
                           }}
-                          className="inline-flex items-center gap-2 px-3 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-mono font-bold text-xs uppercase tracking-wider rounded transition-colors border border-red-500/20"
+                          className="text-[10px] text-red-500 hover:text-red-400 font-semibold uppercase tracking-widest flex items-center gap-1.5 transition-colors"
                           title="Remove Athlete Profile"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
+                          <span>Remove</span>
                         </button>
                       </div>
                     </div>
@@ -1301,86 +1295,89 @@ export default function AdminDashboard() {
                   return (
                     <div
                       key={req.id}
-                      className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-white/[0.02] transition-colors"
+                      className="py-4 flex flex-col md:flex-row md:items-center justify-between gap-5 border-b border-white/5 last:border-b-0 hover:bg-white/[0.02] transition-colors"
                     >
-                      <div className="space-y-2 max-w-xl">
+                      <div className="space-y-2 max-w-xl w-full">
                         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                          <div className="w-8 h-8 rounded-full bg-amber-400/20 text-amber-400 flex items-center justify-center font-bold text-xs uppercase border border-amber-400/30">
+                          <div className="w-8 h-8 rounded-full bg-black border border-white/10 text-white shadow-inner flex items-center justify-center font-bold text-xs uppercase">
                             {(req.userName || req.name || "A")[0]}
                           </div>
-                          <h4 className="font-display text-base sm:text-lg font-bold text-white uppercase">
+                          <h4 className="font-display text-base font-bold text-white uppercase tracking-wide">
                             {req.userName || req.name || "Athlete"}
                           </h4>
                           {athleteUser?.email && (
-                            <span className="text-xs font-mono text-[#8C8C8C]">
+                            <span className="text-[10px] font-mono text-[#666666] tracking-wide">
                               {athleteUser.email}
                             </span>
                           )}
-                          <span className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded font-bold ${(athleteUser?.status || req.status) === "Pending"
-                            ? "bg-amber-400/20 text-amber-300 border border-amber-400/30"
-                            : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                          <span className={`text-[9px] font-mono uppercase tracking-widest font-bold ${(athleteUser?.status || req.status) === "Pending"
+                            ? "text-amber-400"
+                            : "text-emerald-500"
                             }`}>
-                            {athleteUser?.status || req.status || "Active"}
+                            [{(athleteUser?.status || req.status || "Active")}]
                           </span>
                         </div>
 
                         {latestMsg ? (
-                          <div className="text-xs bg-[#1A1A1A] p-2.5 rounded border border-white/10 text-white/90">
-                            <span className="text-[10px] font-mono uppercase text-[#8C8C8C] block mb-0.5">
+                          <div className="text-[11px] bg-black/40 p-2.5 rounded border border-white/5 text-white/80 font-mono">
+                            <span className="text-[9px] uppercase text-[#666] block mb-1 tracking-widest">
                               Latest Message ({latestMsg.sender === "admin" ? "Director HQ" : "Athlete"}):
                             </span>
-                            <p className="line-clamp-1 italic">"{latestMsg.text}"</p>
+                            <p className="line-clamp-1">"{latestMsg.text}"</p>
                           </div>
                         ) : (
-                          <div className="text-xs text-[#8C8C8C] italic">
+                          <div className="text-[11px] text-[#666] italic font-mono p-2.5">
                             No messages exchanged yet in this thread.
                           </div>
                         )}
 
-                        <div className="flex flex-wrap items-center gap-3 text-xs text-[#8C8C8C] font-mono">
+                        <div className="flex flex-wrap items-center gap-3 text-[10px] text-[#666] font-mono tracking-widest uppercase">
                           <span>Channel: {req.serviceType || "Membership Discussion"}</span>
-                          <span>•</span>
+                          <span>·</span>
                           <span>{msgCount} {msgCount === 1 ? "Message" : "Messages"}</span>
                           {matchingOrder && (
                             <>
-                              <span>•</span>
-                              <span className="text-amber-400">Order: {matchingOrder.plan} ({matchingOrder.status})</span>
+                              <span>·</span>
+                              <span className="text-amber-500/80">Order: {matchingOrder.plan} ({matchingOrder.status})</span>
                             </>
                           )}
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-3 self-end md:self-auto shrink-0">
+                      <div className="flex items-center gap-6 pt-2 md:pt-0 shrink-0 self-start md:self-center">
                         <button
                           type="button"
                           onClick={() => {
                             setSelectedOrder(matchingOrder || null);
                             setActiveNegotiationThread(req);
                           }}
-                          className="px-3 py-2 bg-amber-400 hover:bg-amber-300 text-black font-bold text-xs uppercase rounded transition-colors flex items-center justify-center shadow"
+                          className="text-[10px] text-amber-500 hover:text-amber-400 font-semibold uppercase tracking-widest flex items-center gap-1.5 transition-colors"
                           title="Open Live Chat"
                         >
-                          <MessageSquare className="w-4 h-4" />
+                          <MessageSquare className="w-3.5 h-3.5" />
+                          <span>Chat</span>
                         </button>
 
                         {athleteUser && (
                           <button
                             type="button"
                             onClick={() => setSelectedDossierAthlete(athleteUser)}
-                            className="px-3 py-2 bg-white/5 hover:bg-white/10 text-white/90 border border-white/10 rounded flex items-center justify-center transition-colors"
+                            className="text-[10px] text-[#8C8C8C] hover:text-white font-semibold uppercase tracking-widest flex items-center gap-1.5 transition-colors"
                             title="Dossier"
                           >
-                            <Eye className="w-4 h-4" />
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>Dossier</span>
                           </button>
                         )}
 
                         <button
                           type="button"
                           onClick={() => removeConsultationRequest(req.id)}
-                          className="px-3 py-2 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded font-mono text-[10px] uppercase font-bold transition-colors"
+                          className="text-[10px] text-red-500 hover:text-red-400 font-semibold uppercase tracking-widest flex items-center gap-1.5 transition-colors"
                           title="Delete Chat Thread"
                         >
-                          Delete
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Delete</span>
                         </button>
                       </div>
                     </div>
