@@ -619,187 +619,79 @@ export default function AdminDashboard() {
         {/* 1. Overview KPIs with Modern Circular Animated Radial Gauges */}
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
 
-          {/* Circular Graph 1: Floor Occupancy */}
-          <div className="p-5 bg-[#141414] border border-white/10 rounded-sm flex items-center justify-between gap-4 shadow-lg hover:border-white/25 transition-all group">
-            <div className="space-y-1">
-              <div className="flex items-center gap-1.5 text-[11px] text-[#8C8C8C] uppercase font-mono tracking-wider whitespace-nowrap">
-                <Activity className="w-3.5 h-3.5 text-white shrink-0" />
-                <span>Floor Occupancy</span>
-              </div>
-              <div className="font-display text-2xl xl:text-3xl font-extrabold text-white">
-                {adminStats.todayOccupancy}%
-              </div>
-              <p className="text-[10px] text-[#8C8C8C] whitespace-nowrap">
-                {totalBookingsCount > 0 ? `${totalBookingsCount} arena bookings scheduled` : "Live arena floor status"}
-              </p>
+          {/* Card 1: Floor Occupancy */}
+          <div className="relative p-5 bg-[#141414] border border-white/10 rounded-sm flex flex-col justify-center gap-1.5 shadow-lg hover:border-white/25 transition-all group overflow-hidden">
+            <div className="flex items-center gap-1.5 text-[11px] text-[#8C8C8C] uppercase font-mono tracking-wider whitespace-nowrap">
+              <Activity className="w-3.5 h-3.5 text-white shrink-0" />
+              <span>Floor Occupancy</span>
             </div>
-
-            {/* Circular Gauge */}
-            <div className="relative w-14 h-14 shrink-0 flex items-center justify-center">
-              <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="38"
-                  className="text-white/10"
-                  strokeWidth="8"
-                  stroke="currentColor"
-                  fill="none"
-                />
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="38"
-                  className="text-white drop-shadow-[0_0_6px_rgba(255,255,255,0.7)] transition-all duration-1000 ease-out"
-                  strokeDasharray={2 * Math.PI * 38}
-                  strokeDashoffset={2 * Math.PI * 38 * (1 - adminStats.todayOccupancy / 100)}
-                  strokeWidth="8"
-                  strokeLinecap="round"
-                  stroke="currentColor"
-                  fill="none"
-                />
-              </svg>
-              <span className="absolute font-mono text-[10px] font-bold text-white">
-                {adminStats.todayOccupancy}%
-              </span>
+            <div className="font-display text-2xl xl:text-3xl font-extrabold text-white">
+              {adminStats.todayOccupancy}%
+            </div>
+            <p className="text-[10px] text-[#8C8C8C] whitespace-nowrap">
+              {totalBookingsCount > 0 ? `${totalBookingsCount} arena bookings scheduled` : "Live arena floor status"}
+            </p>
+            
+            {/* Minimal Progress Bar */}
+            <div className="absolute bottom-0 left-0 w-full h-[2px] bg-white/5">
+              <div className="h-full bg-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)] transition-all duration-1000 ease-out" style={{ width: `${adminStats.todayOccupancy}%` }} />
             </div>
           </div>
 
-          {/* Circular Graph 2: Revenue Target Fulfilment */}
-          <div className="p-5 bg-[#141414] border border-white/10 rounded-sm flex items-center justify-between gap-4 shadow-lg hover:border-white/25 transition-all group">
-            <div className="space-y-1">
-              <div className="flex items-center gap-1.5 text-[11px] text-[#8C8C8C] uppercase font-mono tracking-wider whitespace-nowrap">
-                <Target className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <span>Monthly Revenue</span>
-              </div>
-              <div className="font-display text-2xl xl:text-3xl font-extrabold text-white whitespace-nowrap">
-                ${revenueValue.toLocaleString()}
-              </div>
-              <p className="text-[10px] text-emerald-400 font-mono whitespace-nowrap">
-                Target: ${revenueTarget.toLocaleString()} ({revenuePercent}%)
-              </p>
+          {/* Card 2: Revenue Target Fulfilment */}
+          <div className="relative p-5 bg-[#141414] border border-white/10 rounded-sm flex flex-col justify-center gap-1.5 shadow-lg hover:border-white/25 transition-all group overflow-hidden">
+            <div className="flex items-center gap-1.5 text-[11px] text-[#8C8C8C] uppercase font-mono tracking-wider whitespace-nowrap">
+              <Target className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+              <span>Monthly Revenue</span>
             </div>
+            <div className="font-display text-2xl xl:text-3xl font-extrabold text-white whitespace-nowrap">
+              ${revenueValue.toLocaleString()}
+            </div>
+            <p className="text-[10px] text-emerald-400 font-mono whitespace-nowrap">
+              Target: ${revenueTarget.toLocaleString()} ({revenuePercent}%)
+            </p>
 
-            {/* Circular Gauge */}
-            <div className="relative w-14 h-14 shrink-0 flex items-center justify-center">
-              <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="38"
-                  className="text-white/10"
-                  strokeWidth="8"
-                  stroke="currentColor"
-                  fill="none"
-                />
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="38"
-                  className="text-emerald-400 drop-shadow-[0_0_6px_rgba(52,211,153,0.7)] transition-all duration-1000 ease-out"
-                  strokeDasharray={2 * Math.PI * 38}
-                  strokeDashoffset={2 * Math.PI * 38 * (1 - revenuePercent / 100)}
-                  strokeWidth="8"
-                  strokeLinecap="round"
-                  stroke="currentColor"
-                  fill="none"
-                />
-              </svg>
-              <span className="absolute font-mono text-[10px] font-bold text-emerald-400">
-                {revenuePercent}%
-              </span>
+            {/* Minimal Progress Bar */}
+            <div className="absolute bottom-0 left-0 w-full h-[2px] bg-emerald-500/10">
+              <div className="h-full bg-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.8)] transition-all duration-1000 ease-out" style={{ width: `${revenuePercent}%` }} />
             </div>
           </div>
 
-          {/* Circular Graph 3: Active Athlete Retention */}
-          <div className="p-5 bg-[#141414] border border-white/10 rounded-sm flex items-center justify-between gap-4 shadow-lg hover:border-white/25 transition-all group">
-            <div className="space-y-1">
-              <div className="flex items-center gap-1.5 text-[11px] text-[#8C8C8C] uppercase font-mono tracking-wider whitespace-nowrap">
-                <Users className="w-3.5 h-3.5 text-white shrink-0" />
-                <span>Active Athletes</span>
-              </div>
-              <div className="font-display text-2xl xl:text-3xl font-extrabold text-white">
-                {activeMembersCount}
-              </div>
-              <p className="text-[10px] text-white/60 whitespace-nowrap">
-                Target: {membersTarget} ({membersPercent}%)
-              </p>
+          {/* Card 3: Active Athlete Retention */}
+          <div className="relative p-5 bg-[#141414] border border-white/10 rounded-sm flex flex-col justify-center gap-1.5 shadow-lg hover:border-white/25 transition-all group overflow-hidden">
+            <div className="flex items-center gap-1.5 text-[11px] text-[#8C8C8C] uppercase font-mono tracking-wider whitespace-nowrap">
+              <Users className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span>Active Athletes</span>
             </div>
+            <div className="font-display text-2xl xl:text-3xl font-extrabold text-white">
+              {activeMembersCount}
+            </div>
+            <p className="text-[10px] text-amber-400/80 font-mono whitespace-nowrap">
+              Target: {membersTarget} ({membersPercent}%)
+            </p>
 
-            {/* Circular Gauge */}
-            <div className="relative w-14 h-14 shrink-0 flex items-center justify-center">
-              <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="38"
-                  className="text-white/10"
-                  strokeWidth="8"
-                  stroke="currentColor"
-                  fill="none"
-                />
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="38"
-                  className="text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.7)] transition-all duration-1000 ease-out"
-                  strokeDasharray={2 * Math.PI * 38}
-                  strokeDashoffset={2 * Math.PI * 38 * (1 - membersPercent / 100)}
-                  strokeWidth="8"
-                  strokeLinecap="round"
-                  stroke="currentColor"
-                  fill="none"
-                />
-              </svg>
-              <span className="absolute font-mono text-[10px] font-bold text-amber-400">
-                {membersPercent}%
-              </span>
+            {/* Minimal Progress Bar */}
+            <div className="absolute bottom-0 left-0 w-full h-[2px] bg-amber-500/10">
+              <div className="h-full bg-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.8)] transition-all duration-1000 ease-out" style={{ width: `${membersPercent}%` }} />
             </div>
           </div>
 
-          {/* Circular Graph 4: Class Booking Utilization */}
-          <div className="p-5 bg-[#141414] border border-white/10 rounded-sm flex items-center justify-between gap-4 shadow-lg hover:border-white/25 transition-all group">
-            <div className="space-y-1">
-              <div className="flex items-center gap-1.5 text-[11px] text-[#8C8C8C] uppercase font-mono tracking-wider whitespace-nowrap">
-                <Zap className="w-3.5 h-3.5 text-white shrink-0" />
-                <span>Total Bookings</span>
-              </div>
-              <div className="font-display text-2xl xl:text-3xl font-extrabold text-white">
-                {totalBookingsCount}
-              </div>
-              <p className="text-[10px] text-blue-400 font-mono whitespace-nowrap">
-                Capacity: {bookingsTarget} ({bookingsPercent}%)
-              </p>
+          {/* Card 4: Class Booking Utilization */}
+          <div className="relative p-5 bg-[#141414] border border-white/10 rounded-sm flex flex-col justify-center gap-1.5 shadow-lg hover:border-white/25 transition-all group overflow-hidden">
+            <div className="flex items-center gap-1.5 text-[11px] text-[#8C8C8C] uppercase font-mono tracking-wider whitespace-nowrap">
+              <Zap className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+              <span>Total Bookings</span>
             </div>
+            <div className="font-display text-2xl xl:text-3xl font-extrabold text-white">
+              {totalBookingsCount}
+            </div>
+            <p className="text-[10px] text-blue-400/80 font-mono whitespace-nowrap">
+              Capacity: {bookingsTarget} ({bookingsPercent}%)
+            </p>
 
-            {/* Circular Gauge */}
-            <div className="relative w-14 h-14 shrink-0 flex items-center justify-center">
-              <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="38"
-                  className="text-white/10"
-                  strokeWidth="8"
-                  stroke="currentColor"
-                  fill="none"
-                />
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="38"
-                  className="text-blue-400 drop-shadow-[0_0_6px_rgba(96,165,250,0.7)] transition-all duration-1000 ease-out"
-                  strokeDasharray={2 * Math.PI * 38}
-                  strokeDashoffset={2 * Math.PI * 38 * (1 - bookingsPercent / 100)}
-                  strokeWidth="8"
-                  strokeLinecap="round"
-                  stroke="currentColor"
-                  fill="none"
-                />
-              </svg>
-              <span className="absolute font-mono text-[10px] font-bold text-blue-400">
-                {bookingsPercent}%
-              </span>
+            {/* Minimal Progress Bar */}
+            <div className="absolute bottom-0 left-0 w-full h-[2px] bg-blue-500/10">
+              <div className="h-full bg-blue-400 drop-shadow-[0_0_8px_rgba(96,165,250,0.8)] transition-all duration-1000 ease-out" style={{ width: `${bookingsPercent}%` }} />
             </div>
           </div>
 
