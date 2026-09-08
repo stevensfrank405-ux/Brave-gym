@@ -37,7 +37,7 @@ import {
 } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useGym } from "../../context/GymContext";
-import api from "../../services/api";
+import { api } from "../../services/api";
 
 export default function AdminDashboard() {
   const {
