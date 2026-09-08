@@ -887,14 +887,14 @@ export default function AdminDashboard() {
                                 {order.member}
                               </h3>
                               <span
-                                className={`text-[9px] uppercase font-mono tracking-widest font-bold ${isPending
-                                  ? "text-amber-400"
+                                className={`text-[9px] uppercase font-mono tracking-widest font-bold px-2 py-0.5 rounded-full ${isPending
+                                  ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
                                   : isConfirmed
-                                    ? "text-emerald-500"
-                                    : "text-red-500"
+                                    ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
+                                    : "bg-red-500/10 text-red-500 border border-red-500/20"
                                   }`}
                               >
-                                [{order.status}]
+                                {order.status}
                               </span>
                             </div>
 
@@ -1131,8 +1131,8 @@ export default function AdminDashboard() {
                             <h4 className="font-display text-base font-bold text-white uppercase tracking-wide">
                               {ath.name || "Unnamed Athlete"}
                             </h4>
-                            <span className={`text-[9px] uppercase font-mono tracking-widest font-bold ${tierName.toLowerCase().includes("obsidian") ? "text-purple-400" : tierName.toLowerCase().includes("black") ? "text-amber-400" : "text-[#8C8C8C]"}`}>
-                              [{tierName}]
+                            <span className={`text-[9px] uppercase font-mono tracking-widest font-bold px-2 py-0.5 rounded-full ${tierName.toLowerCase().includes("obsidian") ? "bg-purple-500/10 text-purple-400 border border-purple-500/20" : tierName.toLowerCase().includes("black") ? "bg-amber-500/10 text-amber-400 border border-amber-500/20" : "bg-white/5 text-[#8C8C8C] border border-white/10"}`}>
+                              {tierName}
                             </span>
                           </div>
 
@@ -1326,11 +1326,11 @@ export default function AdminDashboard() {
                               {athleteUser.email}
                             </span>
                           )}
-                          <span className={`text-[9px] font-mono uppercase tracking-widest font-bold ${(athleteUser?.status || req.status) === "Pending"
-                            ? "text-amber-400"
-                            : "text-emerald-500"
+                          <span className={`text-[9px] font-mono uppercase tracking-widest font-bold px-2 py-0.5 rounded-full ${(athleteUser?.status || req.status) === "Pending"
+                            ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                            : "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20"
                             }`}>
-                            [{(athleteUser?.status || req.status || "Active")}]
+                            {(athleteUser?.status || req.status || "Active")}
                           </span>
                         </div>
 
