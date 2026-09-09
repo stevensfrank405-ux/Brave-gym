@@ -7,6 +7,9 @@ import Reveal from "../common/Reveal";
 export default function ProgramsPinned() {
   const { programs } = useGym();
   const [activeIdx, setActiveIdx] = useState(0);
+
+  if (!programs || programs.length === 0) return null;
+
   const activeProg = programs[activeIdx] || programs[0];
 
   const programImages = [
