@@ -1430,7 +1430,15 @@ export default function AdminDashboard() {
                 <h2 className="font-display text-2xl font-bold text-white uppercase">Weekly Session Roster</h2>
               </div>
               <button
-                onClick={() => setNewClassModal(true)}
+                onClick={() => {
+                  const defaultProg = programs && programs.length > 0 ? programs[0] : null;
+                  setNewClassData(prev => ({
+                    ...prev,
+                    classTitle: defaultProg ? defaultProg.title : "Championship Boxing",
+                    trainer: defaultProg ? defaultProg.trainer : (prev.trainer || "Marcus Vance")
+                  }));
+                  setNewClassModal(true);
+                }}
                 className="px-4 py-2 bg-white text-black font-bold text-xs uppercase tracking-wider rounded-sm hover:bg-[#F5F5F3] flex items-center gap-1.5"
               >
                 <Plus className="w-3.5 h-3.5" /> Schedule Class
@@ -1845,33 +1853,77 @@ export default function AdminDashboard() {
                 </div>
 
                 <div>
-                  <label htmlFor="session-discipline" className="uppercase font-mono text-[#8C8C8C] block mb-1">Discipline</label>
+                  <label htmlFor="session-discipline" className="uppercase font-mono text-[#8C8C8C] block mb-1">Discipline (Curriculum & Programs)</label>
                   <select
                     id="session-discipline"
                     name="sessionDiscipline"
                     value={newClassData.classTitle}
-                    onChange={(e) => setNewClassData({ ...newClassData, classTitle: e.target.value })}
+                    onChange={(e) => {
+                      const selectedTitle = e.target.value;
+                      const matchedProg = programs?.find(p => p.title === selectedTitle);
+                      setNewClassData(prev => ({
+                        ...prev,
+                        classTitle: selectedTitle,
+                        trainer: matchedProg?.trainer || prev.trainer
+                      }));
+                    }}
                     className="w-full px-3 py-2 bg-[#1F1F1F] border border-white/15 rounded text-white text-sm focus:outline-none"
                   >
-                    <option>Championship Boxing</option>
-                    <option>Iron Discipline Strength</option>
-                    <option>Metabolic Warfare</option>
-                    <option>Kinetic Reset & Ice Protocol</option>
+                    {programs && programs.length > 0 ? (
+                      programs.map((prog) => (
+                        <option key={prog.id} value={prog.title}>
+                          {prog.title} ({prog.category || "GENERAL"})
+                        </option>
+                      ))
+                    ) : (
+                      <>
+                        <option value="Championship Boxing">Championship Boxing</option>
+                        <option value="Iron Discipline Strength">Iron Discipline Strength</option>
+                        <option value="Metabolic Warfare">Metabolic Warfare</option>
+                        <option value="Kinetic Reset & Ice Protocol">Kinetic Reset & Ice Protocol</option>
+                      </>
+                    )}
                   </select>
                 </div>
 
                 <div>
                   <label htmlFor="session-coach" className="uppercase font-mono text-[#8C8C8C] block mb-1">Lead Coach</label>
-                  <input
-                    id="session-coach"
-                    name="sessionCoach"
-                    type="text"
-                    required
-                    placeholder="e.g. Marcus Vance"
-                    value={newClassData.trainer}
-                    onChange={(e) => setNewClassData({ ...newClassData, trainer: e.target.value })}
-                    className="w-full px-3 py-2 bg-[#1F1F1F] border border-white/15 rounded text-white text-sm focus:outline-none"
-                  />
+                  {trainers && trainers.length > 0 ? (
+                    <div className="space-y-1.5">
+                      <select
+                        id="session-coach-select"
+                        value={newClassData.trainer}
+                        onChange={(e) => setNewClassData({ ...newClassData, trainer: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#1F1F1F] border border-white/15 rounded text-white text-sm focus:outline-none"
+                      >
+                        <option value="">-- Select or type below --</option>
+                        {trainers.map((t) => (
+                          <option key={t.id || t.name} value={t.name}>{t.name} ({t.role || "Coach"})</option>
+                        ))}
+                      </select>
+                      <input
+                        id="session-coach"
+                        name="sessionCoach"
+                        type="text"
+                        required
+                        placeholder="e.g. Marcus Vance"
+                        value={newClassData.trainer}
+                        onChange={(e) => setNewClassData({ ...newClassData, trainer: e.target.value })}
+                        className="w-full px-3 py-2 bg-[#1F1F1F] border border-white/15 rounded text-white text-sm focus:outline-none"
+                      />
+                    </div>
+                  ) : (
+                    <input
+                      id="session-coach"
+                      name="sessionCoach"
+                      type="text"
+                      required
+                      placeholder="e.g. Marcus Vance"
+                      value={newClassData.trainer}
+                      onChange={(e) => setNewClassData({ ...newClassData, trainer: e.target.value })}
+                      className="w-full px-3 py-2 bg-[#1F1F1F] border border-white/15 rounded text-white text-sm focus:outline-none"
+                    />
+                  )}
                 </div>
 
                 <div>
