@@ -112,20 +112,25 @@ export function GymProvider({ children }) {
 
       // 3. Load Membership Tiers
       const remoteTiers = await api.getMembershipTiers().catch(() => null);
-      if (Array.isArray(remoteTiers) && remoteTiers.length > 0) {
-        const mappedTiers = remoteTiers.map((t) => ({
-          id: t.id,
-          name: t.name,
-          price: Number(t.price),
-          interval: t.interval || t.billing || "monthly",
-          billing: t.billing || t.interval || "monthly",
-          description: t.description || "",
-          features: Array.isArray(t.features) ? t.features : [],
-          popular: !!t.popular,
-          cta: t.cta || `Claim ${t.name}`
-        }));
-        setMemberships(mappedTiers);
-        localStorage.setItem("brave_memberships", JSON.stringify(mappedTiers));
+      if (Array.isArray(remoteTiers)) {
+        if (remoteTiers.length > 0) {
+          const mappedTiers = remoteTiers.map((t) => ({
+            id: t.id,
+            name: t.name,
+            price: Number(t.price),
+            interval: t.interval || t.billing || "monthly",
+            billing: t.billing || t.interval || "monthly",
+            description: t.description || "",
+            features: Array.isArray(t.features) ? t.features : [],
+            popular: !!t.popular,
+            cta: t.cta || `Claim ${t.name}`
+          }));
+          setMemberships(mappedTiers);
+          localStorage.setItem("brave_memberships", JSON.stringify(mappedTiers));
+        } else {
+          setMemberships([]);
+          localStorage.setItem("brave_memberships", JSON.stringify([]));
+        }
       }
 
       // 3. Load Consultations
