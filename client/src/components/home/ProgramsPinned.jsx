@@ -48,8 +48,8 @@ export default function ProgramsPinned() {
               <div className="relative aspect-[4/3] sm:aspect-[16/10] w-full overflow-hidden rounded-sm border border-white/10 group shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
                 <img
                   key={activeIdx}
-                  src={programImages[activeIdx % programImages.length]}
-                  alt={activeProg.title}
+                  src={activeProg?.poster || activeProg?.image || programImages[activeIdx % programImages.length]}
+                  alt={activeProg?.title || "Program"}
                   className="w-full h-full object-cover grayscale contrast-125 transition-all duration-700 group-hover:scale-105"
                   loading="lazy"
                 />
