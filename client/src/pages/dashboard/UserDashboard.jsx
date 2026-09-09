@@ -28,7 +28,8 @@ import {
   Camera,
   Upload,
   Send,
-  Minimize2
+  Minimize2,
+  Dumbbell
 } from "lucide-react";
 import { useGym } from "../../context/GymContext";
 import confetti from "canvas-confetti";
