@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT NOT NULL,
   name VARCHAR(255),
   role VARCHAR(50) NOT NULL DEFAULT 'user',
-  membership VARCHAR(100) DEFAULT 'Brave Trial',
+  membership VARCHAR(100) DEFAULT '',
   status VARCHAR(50) DEFAULT 'Pending',
   renewal_date VARCHAR(100) DEFAULT 'Pending Admin Approval',
   streak INT DEFAULT 0,

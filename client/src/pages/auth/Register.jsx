@@ -15,7 +15,7 @@ export default function Register() {
   const trainerName = searchParams.get("trainerName");
   const requestedTier = searchParams.get("tier");
 
-  const preselectedTier = requestedTier || (memberships?.[0]?.name || "");
+  const preselectedTier = requestedTier || (memberships && memberships.length > 0 ? memberships[0].name : "");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

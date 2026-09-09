@@ -331,7 +331,7 @@ export function GymProvider({ children }) {
     }
   };
 
-  const register = async (name, email, password, role = "user", initialMembership = "Brave Trial") => {
+  const register = async (name, email, password, role = "user", initialMembership = "") => {
     try {
       const { user } = await api.register(name, email, password, role, initialMembership);
       setCurrentUser(user);

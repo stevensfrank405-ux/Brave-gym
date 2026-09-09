@@ -57,7 +57,7 @@ class ApiService {
   }
 
   // Auth & Profile
-  async register(name, email, password, role = "user", membership = "Brave Trial") {
+  async register(name, email, password, role = "user", membership = "") {
     const res = await this.request("/auth/register", {
       method: "POST",
       body: JSON.stringify({ name, email, password, role, membership })

@@ -43,7 +43,7 @@ export class AuthViewModel {
 
     const isAdmin = cleanEmail.includes("admin") || role === "admin";
     const userRole = isAdmin ? "admin" : (role || "user");
-    const userTier = isAdmin ? "Staff Command" : (membership || "Brave Trial");
+    const userTier = isAdmin ? "Staff Command" : (membership || "");
     const userStatus = isAdmin ? "Active" : "Pending";
 
     const createdUser = await UserModel.create({
@@ -56,12 +56,28 @@ export class AuthViewModel {
     });
 
     if (!isAdmin) {
+      let finalAmount = "$0.00";
+      if (userTier) {
+        try {
+          const { MembershipTierModel } = await import("../models/MembershipTier.js");
+          const tiers = await MembershipTierModel.findAll();
+          const matchedTier = tiers.find(t => t.name.toLowerCase() === userTier.toLowerCase());
+          if (matchedTier) {
+            finalAmount = `$${matchedTier.price}`;
+          } else {
+             finalAmount = userTier.toLowerCase().includes("trial") ? "$0.00" : "$99.00";
+          }
+        } catch (err) {
+          finalAmount = userTier.toLowerCase().includes("trial") ? "$0.00" : "$99.00";
+        }
+      }
+
       const { MembershipOrderModel } = await import("../models/MembershipOrder.js");
       await MembershipOrderModel.create({
         userId: createdUser.id,
         member: createdUser.name,
-        plan: userTier,
-        amount: userTier.toLowerCase().includes("trial") ? "$0.00" : "$99.00", // placeholder or map to tier price
+        plan: userTier || "No Tier Selected",
+        amount: finalAmount,
         status: "Pending",
         date: new Date().toISOString().split("T")[0]
       });

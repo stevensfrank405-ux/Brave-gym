@@ -1052,7 +1052,7 @@ export default function AdminDashboard() {
                     ath.weight_class?.toLowerCase().includes(q) ||
                     ath.id?.toLowerCase().includes(q);
 
-                  const tier = ath.membership || ath.membership_tier || "Brave Trial";
+                  const tier = ath.membership || ath.membership_tier || "";
                   const matchesTier =
                     athleteFilterTier === "ALL" ||
                     (athleteFilterTier === "Free Tier" && (tier.toLowerCase().includes("free") || tier.toLowerCase().includes("trial") || tier.toLowerCase().includes("standard"))) ||
@@ -1089,7 +1089,7 @@ export default function AdminDashboard() {
                       (ath.email && r.athleteEmail?.toLowerCase() === ath.email?.toLowerCase())
                   );
 
-                  const tierName = ath.membership || ath.membership_tier || "Brave Trial";
+                  const tierName = ath.membership || ath.membership_tier || "";
                   const tierColor = tierName.toLowerCase().includes("obsidian")
                     ? "bg-purple-500/20 text-purple-300 border-purple-500/30"
                     : tierName.toLowerCase().includes("black")
@@ -2835,7 +2835,7 @@ export default function AdminDashboard() {
                   <div className="px-3">
                     <span className="text-[10px] font-mono uppercase text-[#8C8C8C] block">Membership Tier</span>
                     <strong className="text-amber-400 font-display text-sm uppercase truncate block">
-                      {selectedDossierAthlete.membership || selectedDossierAthlete.membership_tier || "Brave Trial"}
+                      {selectedDossierAthlete.membership || selectedDossierAthlete.membership_tier || ""}
                     </strong>
                   </div>
                   <div className="px-3">

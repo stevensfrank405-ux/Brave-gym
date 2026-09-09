@@ -83,7 +83,7 @@ export class UserModel {
     return [];
   }
 
-  static async create({ email, password, name, role = "user", membership = "Brave Trial" }) {
+  static async create({ email, password, name, role = "user", membership = "" }) {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
     const cleanEmail = email.trim().toLowerCase();
@@ -93,7 +93,7 @@ export class UserModel {
       passwordHash,
       name: name || cleanEmail.split("@")[0],
       role,
-      membership: membership || "Brave Trial",
+      membership: membership || "",
       status: role === "admin" ? "Active" : "Pending",
       renewalDate: role === "admin" ? "Staff Sovereign" : "Pending Admin Approval",
       streak: role === "admin" ? 42 : 0,
