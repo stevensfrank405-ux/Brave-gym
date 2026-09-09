@@ -92,19 +92,6 @@ export class MembershipTierModel {
           return res.rows.map(mapPgRowToTier);
         }
         
-        // If DB table is empty, seed defaults into PostgreSQL
-        for (const tier of defaultTiers) {
-          await db.query(
-            `INSERT INTO membership_tiers (id, name, price, interval, billing, description, features, popular, cta, created_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW()) ON CONFLICT (id) DO NOTHING`,
-            [
-              tier.id, tier.name, tier.price, tier.interval, tier.billing,
-              tier.description, JSON.stringify(tier.features), tier.popular, tier.cta
-            ]
-          );
-        }
-        const seeded = await db.query("SELECT * FROM membership_tiers ORDER BY price ASC");
-        if (seeded && seeded.rows) return seeded.rows.map(mapPgRowToTier);
         return [];
       } catch (err) {
         console.error("PostgreSQL membership_tiers findAll error:", err.message);

@@ -95,18 +95,6 @@ export class ProgramModel {
       if (res && res.rows && res.rows.length > 0) {
         return res.rows.map(mapPgRowToProgram);
       }
-      
-      // Seed defaults if empty
-      for (const p of defaultPrograms) {
-        await db.query(
-          `INSERT INTO programs (id, category, tag, title, subtitle, duration, intensity, trainer, capacity, enrolled, image, poster, details, created_at)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW()) ON CONFLICT (id) DO NOTHING`,
-          [p.id, p.category, p.tag, p.title, p.subtitle, p.duration, p.intensity, p.trainer, p.capacity, p.enrolled, p.image, p.poster, p.details]
-        );
-      }
-      
-      const seeded = await db.query("SELECT * FROM programs ORDER BY created_at ASC");
-      if (seeded && seeded.rows) return seeded.rows.map(mapPgRowToProgram);
       return [];
     } catch (err) {
       console.error("PostgreSQL programs findAll error:", err.message);

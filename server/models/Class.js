@@ -36,16 +36,6 @@ export class ClassModel {
         if (res && res.rows && res.rows.length > 0) {
           return res.rows.map(mapPgRowToClass);
         }
-        // If DB table is empty, seed defaults into PostgreSQL
-        for (const cls of defaultClasses) {
-          await db.query(
-            `INSERT INTO classes (id, day, time, class_title, trainer, spots_left, total, created_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, NOW()) ON CONFLICT (id) DO NOTHING`,
-            [cls.id, cls.day, cls.time, cls.classTitle, cls.trainer, cls.spotsLeft, cls.total]
-          );
-        }
-        const seeded = await db.query("SELECT * FROM classes ORDER BY id ASC");
-        if (seeded && seeded.rows) return seeded.rows.map(mapPgRowToClass);
         return [];
       } catch (err) {
         console.error("PostgreSQL classes findAll error:", err.message);
