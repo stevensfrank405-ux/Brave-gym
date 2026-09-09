@@ -418,41 +418,63 @@ export default function AdminDashboard() {
       )
   );
 
-  const [viewedCounts, setViewedCounts] = useState(() => {
-    const saved = localStorage.getItem('braveAdminViewedCounts');
-    return saved ? JSON.parse(saved) : {
-      orders: 0,
-      athletes: 0,
-      bookings: 0,
-      requests: 0
-    };
+  // 1. Pending Bookings that need admin action (Accept / Reject)
+  const pendingBookingsList = (adminBookings || []).filter(b => (b.status || "").toLowerCase() === "pending");
+  const pendingBookingsCount = pendingBookingsList.length;
+
+  // 2. Track read chat thread message counts in localStorage so new messages trigger counter
+  const [readChatCounts, setReadChatCounts] = useState(() => {
+    try {
+      const saved = localStorage.getItem("braveAdminReadChatCounts");
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
   });
 
+  // Calculate unread chat messages from athletes
+  const unreadChatCount = athleteConsultationRequests.reduce((total, req) => {
+    const msgs = req.chatMessages || req.chatHistory || [];
+    const athleteMsgs = msgs.filter(m => m.sender !== "admin" && m.sender !== "assistant");
+    const readForThis = readChatCounts[req.id] ?? 0;
+    const unreadInThread = Math.max(0, athleteMsgs.length - readForThis);
+    return total + unreadInThread;
+  }, 0);
+
+  // When admin opens active chat drawer, mark that specific thread as read
   useEffect(() => {
-    const currentCounts = {
-      orders: pendingOrdersCount,
-      athletes: athleteRoster.length,
-      bookings: adminBookings?.length || 0,
-      requests: athleteConsultationRequests.length
-    };
+    if (activeNegotiationThread?.id) {
+      const threadId = activeNegotiationThread.id;
+      const targetReq = athleteConsultationRequests.find(r => r.id === threadId);
+      const msgs = targetReq?.chatMessages || targetReq?.chatHistory || activeNegotiationThread.chatMessages || activeNegotiationThread.chatHistory || [];
+      const athleteMsgsCount = msgs.filter(m => m.sender !== "admin" && m.sender !== "assistant").length;
 
-    if (["orders", "athletes", "bookings", "requests"].includes(activeTab)) {
-      if (viewedCounts[activeTab] !== currentCounts[activeTab]) {
-        const newCounts = { ...viewedCounts, [activeTab]: currentCounts[activeTab] };
-        setViewedCounts(newCounts);
-        localStorage.setItem('braveAdminViewedCounts', JSON.stringify(newCounts));
-      }
+      setReadChatCounts(prev => {
+        const next = { ...prev, [threadId]: athleteMsgsCount };
+        localStorage.setItem("braveAdminReadChatCounts", JSON.stringify(next));
+        return next;
+      });
     }
-  }, [activeTab, pendingOrdersCount, athleteRoster.length, adminBookings?.length, athleteConsultationRequests.length, viewedCounts]);
+  }, [activeNegotiationThread, consultationRequests]);
 
-  const getUnreadCount = (tabId, currentCount) => Math.max(0, currentCount - (viewedCounts[tabId] || 0));
+  // When admin clicks on Requests/Chats tab, clear overall unread
+  const handleMarkAllChatsRead = () => {
+    const updated = {};
+    athleteConsultationRequests.forEach(req => {
+      const msgs = req.chatMessages || req.chatHistory || [];
+      const athleteMsgsCount = msgs.filter(m => m.sender !== "admin" && m.sender !== "assistant").length;
+      updated[req.id] = athleteMsgsCount;
+    });
+    setReadChatCounts(updated);
+    localStorage.setItem("braveAdminReadChatCounts", JSON.stringify(updated));
+  };
 
   const sidebarNavItems = [
     { id: "overview", label: "Dashboard Overview", icon: LayoutDashboard, desc: "Live KPI Telemetry" },
-    { id: "orders", label: "Membership Orders", icon: ShieldCheck, badge: getUnreadCount("orders", pendingOrdersCount), desc: "Verify Athlete Subscriptions" },
-    { id: "athletes", label: "Athlete Monitoring", icon: UserCheck, badge: getUnreadCount("athletes", athleteRoster.length), desc: "Full Client Dossier Monitoring" },
-    { id: "bookings", label: "Athlete Bookings", icon: Users, badge: getUnreadCount("bookings", adminBookings?.length || 0), desc: "Reserved Spots Roster" },
-    { id: "requests", label: "Live Athlete Chats", icon: MessageSquare, badge: getUnreadCount("requests", athleteConsultationRequests.length), desc: "Real-Time Direct Negotiations" },
+    { id: "orders", label: "Membership Orders", icon: ShieldCheck, badge: pendingOrdersCount, desc: "Verify Athlete Subscriptions" },
+    { id: "athletes", label: "Athlete Monitoring", icon: UserCheck, desc: "Full Client Dossier Monitoring" },
+    { id: "bookings", label: "Athlete Bookings", icon: Users, badge: pendingBookingsCount, desc: "Pending Class Reservations" },
+    { id: "requests", label: "Live Athlete Chats", icon: MessageSquare, badge: unreadChatCount, desc: "Real-Time Direct Negotiations" },
     { id: "programs", label: "Curriculum / Programs", icon: Flame, desc: "Manage Program Disciplines" },
     { id: "schedule", label: "Timetable & Classes", icon: Calendar, desc: "Arena Scheduling" },
     { id: "finances", label: "Finances & Spatial", icon: DollarSign, desc: "Revenue & Zone Share" },
@@ -540,6 +562,9 @@ export default function AdminDashboard() {
                 onClick={() => {
                   setActiveTab(item.id);
                   setMobileAdminMenu(false);
+                  if (item.id === "requests") {
+                    handleMarkAllChatsRead();
+                  }
                 }}
                 className={`w-full flex items-center gap-3.5 px-3.5 py-3 rounded-sm transition-all text-left group relative ${isActive
                   ? "bg-white text-black font-bold shadow-lg"
@@ -1216,6 +1241,11 @@ export default function AdminDashboard() {
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-white text-black shadow-sm">
                     {adminBookings?.length || 0} Booked
                   </span>
+                  {pendingBookingsCount > 0 && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-amber-400 text-black animate-pulse shadow-sm">
+                      {pendingBookingsCount} Pending Approval
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -1356,6 +1386,16 @@ export default function AdminDashboard() {
                             }`}>
                             {(athleteUser?.status || req.status || "Active")}
                           </span>
+                          {(() => {
+                            const msgs = req.chatMessages || req.chatHistory || [];
+                            const athleteMsgs = msgs.filter(m => m.sender !== "admin" && m.sender !== "assistant");
+                            const unread = Math.max(0, athleteMsgs.length - (readChatCounts[req.id] ?? 0));
+                            return unread > 0 ? (
+                              <span className="text-[9px] font-mono uppercase tracking-widest font-bold px-2 py-0.5 rounded-full bg-amber-400 text-black animate-pulse">
+                                {unread} New
+                              </span>
+                            ) : null;
+                          })()}
                         </div>
 
                         {latestMsg ? (
