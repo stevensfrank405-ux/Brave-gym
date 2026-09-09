@@ -1,6 +1,6 @@
 import express from "express";
 import { ProgramController } from "../controllers/programController.js";
-import { requireAdmin } from "../middleware/authMiddleware.js";
+import { authenticate, requireAdmin } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
@@ -9,8 +9,8 @@ router.get("/", ProgramController.getAll);
 router.get("/:id", ProgramController.getOne);
 
 // Admin only routes
-router.post("/", requireAdmin, ProgramController.create);
-router.put("/:id", requireAdmin, ProgramController.update);
-router.delete("/:id", requireAdmin, ProgramController.delete);
+router.post("/", authenticate, requireAdmin, ProgramController.create);
+router.put("/:id", authenticate, requireAdmin, ProgramController.update);
+router.delete("/:id", authenticate, requireAdmin, ProgramController.delete);
 
 export default router;
