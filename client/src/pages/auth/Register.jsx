@@ -15,7 +15,7 @@ export default function Register() {
   const trainerName = searchParams.get("trainerName");
   const requestedTier = searchParams.get("tier");
 
-  const preselectedTier = requestedTier || (memberships?.[0]?.name || "Brave Trial");
+  const preselectedTier = requestedTier || (memberships?.[0]?.name || "");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -230,11 +230,7 @@ export default function Register() {
                       </option>
                     ))
                   ) : (
-                    <>
-                      <option value="Brave Trial" className="bg-[#1C1C1C] text-white">Brave Trial — $39 / pass</option>
-                      <option value="Black Tier" className="bg-[#1C1C1C] text-white">Black Tier — $189 / monthly</option>
-                      <option value="Obsidian Private" className="bg-[#1C1C1C] text-white">Obsidian Private — $349 / monthly</option>
-                    </>
+                    <option value="" disabled className="bg-[#1C1C1C] text-[#8C8C8C]">No memberships currently available</option>
                   )}
                 </select>
               </div>
