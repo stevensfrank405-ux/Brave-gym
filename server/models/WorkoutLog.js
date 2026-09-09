@@ -7,10 +7,13 @@ function mapPgRowToLog(r) {
     id: r.id,
     userId: r.user_id,
     user_id: r.user_id,
+    userName: r.user_name || "Athlete",
+    userEmail: r.user_email || "",
     exercise: r.exercise,
     weight: r.weight,
     notes: r.notes,
     date: r.date,
+    status: r.status || "Pending",
     createdAt: r.created_at
   };
 }
@@ -19,9 +22,19 @@ export class WorkoutLogModel {
   static async findAll() {
     if (db.isConfigured()) {
       try {
-        const res = await db.query("SELECT * FROM workout_logs ORDER BY created_at DESC");
+        const res = await db.query(`
+          SELECT wl.*, u.name as join_user_name, u.email as join_user_email
+          FROM workout_logs wl
+          LEFT JOIN users u ON wl.user_id = u.id
+          ORDER BY wl.created_at DESC
+        `);
         if (res && res.rows) {
-          return res.rows.map(mapPgRowToLog);
+          return res.rows.map(r => {
+            const mapped = mapPgRowToLog(r);
+            if (!r.user_name && r.join_user_name) mapped.userName = r.join_user_name;
+            if (!r.user_email && r.join_user_email) mapped.userEmail = r.join_user_email;
+            return mapped;
+          });
         }
         return [];
       } catch (err) {
@@ -33,11 +46,41 @@ export class WorkoutLogModel {
     }
   }
 
+  static async findById(id) {
+    if (!id) return null;
+    if (db.isConfigured()) {
+      try {
+        const res = await db.query(`
+          SELECT wl.*, u.name as join_user_name, u.email as join_user_email
+          FROM workout_logs wl
+          LEFT JOIN users u ON wl.user_id = u.id
+          WHERE wl.id = $1 LIMIT 1
+        `, [id]);
+        if (res && res.rows && res.rows.length > 0) {
+          const r = res.rows[0];
+          const mapped = mapPgRowToLog(r);
+          if (!r.user_name && r.join_user_name) mapped.userName = r.join_user_name;
+          if (!r.user_email && r.join_user_email) mapped.userEmail = r.join_user_email;
+          return mapped;
+        }
+        return null;
+      } catch (err) {
+        console.error("PostgreSQL workout_logs findById error:", err.message);
+        throw err;
+      }
+    } else {
+      throw new Error("Database is not configured.");
+    }
+  }
+
   static async findByUserId(userId) {
     if (!userId) return [];
     if (db.isConfigured()) {
       try {
-        const res = await db.query("SELECT * FROM workout_logs WHERE user_id = $1 ORDER BY created_at DESC", [userId]);
+        const res = await db.query(
+          "SELECT * FROM workout_logs WHERE user_id = $1 ORDER BY created_at DESC",
+          [userId]
+        );
         if (res && res.rows) {
           return res.rows.map(mapPgRowToLog);
         }
@@ -55,30 +98,57 @@ export class WorkoutLogModel {
     const newLog = {
       id: data.id || `log-${uuidv4().slice(0, 8)}`,
       userId: data.userId,
+      userName: data.userName || "Athlete",
+      userEmail: data.userEmail || "",
       exercise: data.exercise,
       weight: data.weight || "Bodyweight",
       notes: data.notes || "",
       date: data.date || "Today",
+      status: data.status || "Pending",
       createdAt: new Date().toISOString()
     };
 
     if (db.isConfigured()) {
       try {
         await db.query(
-          `INSERT INTO workout_logs (id, user_id, exercise, weight, notes, date, created_at)
-           VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
+          `INSERT INTO workout_logs (id, user_id, user_name, user_email, exercise, weight, notes, date, status, created_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())`,
           [
             newLog.id,
             newLog.userId,
+            newLog.userName,
+            newLog.userEmail,
             newLog.exercise,
             newLog.weight,
             newLog.notes,
-            newLog.date
+            newLog.date,
+            newLog.status
           ]
         );
-        return newLog;
+        return await this.findById(newLog.id) || newLog;
       } catch (err) {
         console.error("PostgreSQL workout_logs insert error:", err.message);
+        throw err;
+      }
+    } else {
+      throw new Error("Database is not configured.");
+    }
+  }
+
+  static async updateStatus(id, status) {
+    if (!id || !status) return null;
+    if (db.isConfigured()) {
+      try {
+        const res = await db.query(
+          "UPDATE workout_logs SET status = $1 WHERE id = $2 RETURNING *",
+          [status, id]
+        );
+        if (res && res.rows && res.rows.length > 0) {
+          return await this.findById(id) || mapPgRowToLog(res.rows[0]);
+        }
+        return null;
+      } catch (err) {
+        console.error("PostgreSQL workout_logs updateStatus error:", err.message);
         throw err;
       }
     } else {

@@ -266,6 +266,38 @@ export function GymProvider({ children }) {
         setSchedule((prev) => prev.filter((sc) => sc.id !== id));
       });
 
+      socket.on("workoutLogCreated", (newLog) => {
+        const activeUserId = currentUserRef.current?.id;
+        const activeUserRole = currentUserRef.current?.role;
+
+        if (newLog.userId === activeUserId) {
+          setWorkoutLogs((prev) => {
+            if (prev.some((l) => l.id === newLog.id)) return prev;
+            // Filter out optimistic temp log if any
+            const filtered = prev.filter(
+              (l) => !(String(l.id || "").startsWith("log-") && l.exercise === newLog.exercise && l.date === newLog.date)
+            );
+            return [newLog, ...filtered];
+          });
+        }
+
+        if (activeUserRole === "admin") {
+          setAllWorkoutLogs((prev) => {
+            if (prev.some((l) => l.id === newLog.id)) return prev;
+            return [newLog, ...prev];
+          });
+        }
+      });
+
+      socket.on("workoutLogUpdated", (updatedLog) => {
+        setWorkoutLogs((prev) =>
+          prev.map((l) => (l.id === updatedLog.id ? updatedLog : l))
+        );
+        setAllWorkoutLogs((prev) =>
+          prev.map((l) => (l.id === updatedLog.id ? updatedLog : l))
+        );
+      });
+
       socket.on("refreshNotifications", async ({ userId }) => {
         if (userId === currentUserRef.current?.id) {
           const myNotifs = await api.getNotifications(userId).catch(() => []);
@@ -531,14 +563,51 @@ export function GymProvider({ children }) {
       throw new Error("Your membership is currently pending Admin verification. You cannot log workouts until your profile is active.");
     }
 
-    const newLog = { id: "log-" + Date.now(), ...entry };
+    const newLog = { 
+      id: "log-" + Date.now(), 
+      status: "Pending",
+      userName: currentUser?.name || "Athlete",
+      userEmail: currentUser?.email || "",
+      ...entry 
+    };
     setWorkoutLogs((prev) => [newLog, ...prev]);
 
     try {
-      await api.addWorkoutLog(entry);
+      const saved = await api.addWorkoutLog({
+        ...entry,
+        userName: currentUser?.name,
+        userEmail: currentUser?.email
+      });
+      if (saved) {
+        setWorkoutLogs((prev) => prev.map((l) => (l.id === newLog.id ? saved : l)));
+      }
     } catch (err) {
       console.warn("Saved workout log locally:", err.message);
     }
+  };
+
+  const updateWorkoutLogStatus = async (logId, status) => {
+    // Optimistic UI update
+    setWorkoutLogs((prev) =>
+      prev.map((l) => (l.id === logId ? { ...l, status } : l))
+    );
+    setAllWorkoutLogs((prev) =>
+      prev.map((l) => (l.id === logId ? { ...l, status } : l))
+    );
+
+    try {
+      await api.updateWorkoutLogStatus(logId, status);
+    } catch (err) {
+      console.error("Failed to update workout log status on server:", err.message);
+    }
+  };
+
+  const approveWorkoutLog = async (logId) => {
+    return await updateWorkoutLogStatus(logId, "Approved");
+  };
+
+  const rejectWorkoutLog = async (logId) => {
+    return await updateWorkoutLogStatus(logId, "Rejected");
   };
 
   // ==========================================
@@ -833,6 +902,9 @@ export function GymProvider({ children }) {
         cancelBooking,
         workoutLogs,
         addWorkoutLog,
+        updateWorkoutLogStatus,
+        approveWorkoutLog,
+        rejectWorkoutLog,
         consultationRequests,
         addConsultationRequest,
         updateConsultationStatus,

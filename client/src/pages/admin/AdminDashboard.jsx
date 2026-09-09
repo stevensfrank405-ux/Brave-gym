@@ -61,6 +61,8 @@ export default function AdminDashboard() {
     adminBookings,
     allUsersRoster,
     allWorkoutLogs,
+    approveWorkoutLog,
+    rejectWorkoutLog,
     programs,
     addProgram,
     editProgram,
@@ -105,6 +107,10 @@ export default function AdminDashboard() {
   const [manageBookingDate, setManageBookingDate] = useState("");
   const [manageBookingTime, setManageBookingTime] = useState("");
   const [manageBookingStatus, setManageBookingStatus] = useState("Pending");
+
+  // Athlete Workout Logs filter state
+  const [workoutLogFilter, setWorkoutLogFilter] = useState("ALL"); // "ALL" | "Pending" | "Approved" | "Rejected"
+  const [workoutLogSearch, setWorkoutLogSearch] = useState("");
 
   // Auto-scroll admin chat
   useEffect(() => {
@@ -216,7 +222,7 @@ export default function AdminDashboard() {
       setShowAdminProfileModal(true);
       setSearchParams({}, { replace: true });
     } else if (tabParam) {
-      if (["overview", "athletes", "bookings", "requests", "schedule", "finances", "tiers", "trainers"].includes(tabParam)) {
+      if (["overview", "athletes", "bookings", "requests", "workout-logs", "schedule", "finances", "tiers", "trainers"].includes(tabParam)) {
         setActiveTab(tabParam);
       }
       setSearchParams({}, { replace: true });
@@ -469,12 +475,19 @@ export default function AdminDashboard() {
     localStorage.setItem("braveAdminReadChatCounts", JSON.stringify(updated));
   };
 
+  // 3. Pending Athlete Workout Logs that need admin approval
+  const pendingWorkoutLogsList = (allWorkoutLogs || []).filter(
+    (l) => (l.status || "").toLowerCase() === "pending"
+  );
+  const pendingWorkoutLogsCount = pendingWorkoutLogsList.length;
+
   const sidebarNavItems = [
     { id: "overview", label: "Dashboard Overview", icon: LayoutDashboard, desc: "Live KPI Telemetry" },
     { id: "orders", label: "Membership Orders", icon: ShieldCheck, badge: pendingOrdersCount, desc: "Verify Athlete Subscriptions" },
     { id: "athletes", label: "Athlete Monitoring", icon: UserCheck, desc: "Full Client Dossier Monitoring" },
     { id: "bookings", label: "Athlete Bookings", icon: Users, badge: pendingBookingsCount, desc: "Pending Class Reservations" },
     { id: "requests", label: "Live Athlete Chats", icon: MessageSquare, badge: unreadChatCount, desc: "Real-Time Direct Negotiations" },
+    { id: "workout-logs", label: "Athlete Workout Logs", icon: Dumbbell, badge: pendingWorkoutLogsCount, desc: "Approve Athlete Performance Logs" },
     { id: "programs", label: "Curriculum / Programs", icon: Flame, desc: "Manage Program Disciplines" },
     { id: "schedule", label: "Timetable & Classes", icon: Calendar, desc: "Arena Scheduling" },
     { id: "finances", label: "Finances & Spatial", icon: DollarSign, desc: "Revenue & Zone Share" },
@@ -1462,6 +1475,185 @@ export default function AdminDashboard() {
                   </p>
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Tab Content: Athlete Workout Logs & Verification */}
+        {(activeTab === "overview" || activeTab === "workout-logs") && (
+          <div className="space-y-6 pt-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-white/10">
+              <div className="space-y-1">
+                <div className="flex flex-wrap items-center gap-3">
+                  <h2 className="font-display text-2xl font-bold text-white uppercase">
+                    Athlete Workout Logs & Requests
+                  </h2>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-white text-black shadow-sm">
+                    {allWorkoutLogs?.length || 0} Total Logs
+                  </span>
+                  {pendingWorkoutLogsCount > 0 && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-amber-400 text-black animate-pulse shadow-sm">
+                      {pendingWorkoutLogsCount} Pending Approval
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-[#8C8C8C]">
+                  Review performance logs, exercise requests, and training output submitted by athletes. Approve or reject entries in real time.
+                </p>
+              </div>
+
+              {/* Status Filter & Search Controls */}
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#8C8C8C]" />
+                  <input
+                    type="text"
+                    placeholder="Search athlete or exercise..."
+                    value={workoutLogSearch}
+                    onChange={(e) => setWorkoutLogSearch(e.target.value)}
+                    className="pl-8 pr-3 py-1.5 bg-[#161616] border border-white/15 rounded text-xs text-white placeholder:text-[#8C8C8C] focus:outline-none focus:border-white/40 w-48 sm:w-60"
+                  />
+                </div>
+
+                <div className="flex items-center gap-1 bg-[#161616] p-1 rounded border border-white/15 text-xs font-mono">
+                  {["ALL", "Pending", "Approved", "Rejected"].map((st) => (
+                    <button
+                      key={st}
+                      onClick={() => setWorkoutLogFilter(st)}
+                      className={`px-2.5 py-1 rounded transition-colors uppercase text-[10px] font-bold ${
+                        workoutLogFilter === st
+                          ? "bg-white text-black"
+                          : "text-[#8C8C8C] hover:text-white"
+                      }`}
+                    >
+                      {st}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* List of workout logs */}
+            <div className="bg-[#141414] border border-white/10 rounded-sm divide-y divide-white/10">
+              {(() => {
+                const filteredLogs = (allWorkoutLogs || []).filter((log) => {
+                  const status = log.status || "Pending";
+                  if (workoutLogFilter !== "ALL" && status.toLowerCase() !== workoutLogFilter.toLowerCase()) {
+                    return false;
+                  }
+                  if (workoutLogSearch.trim()) {
+                    const q = workoutLogSearch.toLowerCase();
+                    const matchAthlete = (log.userName || "").toLowerCase().includes(q) || (log.userEmail || "").toLowerCase().includes(q);
+                    const matchEx = (log.exercise || "").toLowerCase().includes(q);
+                    const matchNotes = (log.notes || "").toLowerCase().includes(q);
+                    if (!matchAthlete && !matchEx && !matchNotes) return false;
+                  }
+                  return true;
+                });
+
+                if (filteredLogs.length === 0) {
+                  return (
+                    <div className="p-12 text-center text-xs text-[#8C8C8C] space-y-2">
+                      <Dumbbell className="w-8 h-8 mx-auto text-white/30" />
+                      <p className="text-white/80 font-semibold uppercase font-display text-sm">
+                        {workoutLogFilter !== "ALL" ? `No ${workoutLogFilter} Workout Logs` : "No Workout Logs Found"}
+                      </p>
+                      <p className="text-[11px] max-w-sm mx-auto">
+                        When athletes log their workouts and training performance from their dashboard, their entries appear here for Admin verification.
+                      </p>
+                    </div>
+                  );
+                }
+
+                return filteredLogs.map((log) => {
+                  const status = log.status || "Pending";
+                  return (
+                    <div
+                      key={log.id}
+                      className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-white/[0.02] transition-colors"
+                    >
+                      <div className="space-y-1.5 flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                          <h4 className="font-display text-base sm:text-lg font-bold text-white uppercase truncate">
+                            {log.userName || "Athlete"}
+                          </h4>
+                          <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded border border-white/15 bg-white/5 text-white/90 font-bold">
+                            {log.exercise}
+                          </span>
+                          <span
+                            className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded font-bold border ${
+                              status === "Approved"
+                                ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+                                : status === "Rejected"
+                                ? "bg-rose-500/20 text-rose-400 border-rose-500/30"
+                                : "bg-amber-500/20 text-amber-400 border-amber-500/30 animate-pulse"
+                            }`}
+                          >
+                            {status === "Approved" ? "Approved" : status === "Rejected" ? "Rejected" : "Pending Review"}
+                          </span>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-4 text-xs text-[#8C8C8C]">
+                          {log.userEmail && (
+                            <span className="inline-flex items-center gap-1.5 text-white/70">
+                              <Mail className="w-3.5 h-3.5 text-[#8C8C8C]" />
+                              {log.userEmail}
+                            </span>
+                          )}
+                          <span className="inline-flex items-center gap-1.5 text-white/70">
+                            <span className="text-[#8C8C8C]">Intensity / Load:</span>
+                            <strong className="text-white font-mono px-1.5 py-0.5 rounded bg-white/10">{log.weight || "Bodyweight"}</strong>
+                          </span>
+                          <span className="text-white/20">•</span>
+                          <span className="text-white/60 font-mono text-[11px]">
+                            Logged: {log.date}
+                          </span>
+                        </div>
+
+                        {log.notes && (
+                          <p className="text-xs text-white/75 bg-white/5 px-3 py-1.5 rounded border border-white/10 italic max-w-2xl">
+                            "{log.notes}"
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Actions */}
+                      <div className="flex items-center gap-2.5 self-end md:self-auto shrink-0">
+                        {status !== "Approved" && (
+                          <button
+                            onClick={async () => {
+                              try {
+                                await approveWorkoutLog(log.id);
+                              } catch (err) {
+                                console.error("Failed to approve log:", err);
+                              }
+                            }}
+                            className="px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500 hover:text-black transition-colors rounded flex items-center gap-1"
+                          >
+                            <Check className="w-3.5 h-3.5" />
+                            <span>Approve</span>
+                          </button>
+                        )}
+                        {status !== "Rejected" && (
+                          <button
+                            onClick={async () => {
+                              try {
+                                await rejectWorkoutLog(log.id);
+                              } catch (err) {
+                                console.error("Failed to reject log:", err);
+                              }
+                            }}
+                            className="px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider bg-rose-500/20 text-rose-400 border border-rose-500/30 hover:bg-rose-500 hover:text-white transition-colors rounded flex items-center gap-1"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                            <span>Reject</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
             </div>
           </div>
         )}
@@ -2784,22 +2976,56 @@ export default function AdminDashboard() {
                     <div className="space-y-3">
                       {athleteLogs.length > 0 ? (
                         <div className="bg-[#181818] border border-white/10 rounded divide-y divide-white/10 text-xs">
-                          {athleteLogs.map((l) => (
-                            <div key={l.id} className="p-4 flex items-center justify-between">
-                              <div className="space-y-0.5">
-                                <h4 className="font-bold text-white uppercase font-display text-sm">
-                                  {l.exercise}
-                                </h4>
-                                {l.notes && <p className="text-[11px] text-[#8C8C8C]">"{l.notes}"</p>}
+                          {athleteLogs.map((l) => {
+                            const status = l.status || "Pending";
+                            return (
+                              <div key={l.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div className="space-y-1 flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <h4 className="font-bold text-white uppercase font-display text-sm">
+                                      {l.exercise}
+                                    </h4>
+                                    <span
+                                      className={`text-[9px] font-mono uppercase px-1.5 py-0.2 rounded font-bold border ${
+                                        status === "Approved"
+                                          ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+                                          : status === "Rejected"
+                                          ? "bg-rose-500/20 text-rose-400 border-rose-500/30"
+                                          : "bg-amber-500/20 text-amber-400 border-amber-500/30"
+                                      }`}
+                                    >
+                                      {status}
+                                    </span>
+                                  </div>
+                                  {l.notes && <p className="text-[11px] text-[#8C8C8C]">"{l.notes}"</p>}
+                                </div>
+                                <div className="flex items-center gap-3 font-mono justify-between sm:justify-end">
+                                  <span className="text-white/60 text-[11px]">{l.date}</span>
+                                  <span className="text-xs font-bold text-white px-2 py-0.5 rounded bg-white/10 border border-white/15">
+                                    {l.weight}
+                                  </span>
+                                  <div className="flex items-center gap-1.5 ml-2">
+                                    {status !== "Approved" && (
+                                      <button
+                                        onClick={() => approveWorkoutLog(l.id)}
+                                        className="px-2 py-0.5 text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500 hover:text-black rounded transition-colors"
+                                      >
+                                        Approve
+                                      </button>
+                                    )}
+                                    {status !== "Rejected" && (
+                                      <button
+                                        onClick={() => rejectWorkoutLog(l.id)}
+                                        className="px-2 py-0.5 text-[10px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30 hover:bg-rose-500 hover:text-white rounded transition-colors"
+                                      >
+                                        Reject
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
                               </div>
-                              <div className="flex items-center gap-3 font-mono text-right">
-                                <span className="text-white/60 text-[11px]">{l.date}</span>
-                                <span className="text-xs font-bold text-emerald-400 px-2 py-0.5 rounded bg-emerald-500/15 border border-emerald-500/30">
-                                  {l.weight}
-                                </span>
-                              </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       ) : (
                         <div className="p-12 text-center text-xs text-[#8C8C8C] bg-[#181818] rounded border border-white/10 space-y-1">

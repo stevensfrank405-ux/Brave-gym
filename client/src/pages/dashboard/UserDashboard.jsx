@@ -888,24 +888,56 @@ export default function UserDashboard() {
         {/* 4. Training Logs Tab */}
         {activeTab === "logs" && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h2 className="font-display text-2xl font-bold text-white uppercase">Workout Log</h2>
+                <p className="text-xs text-[#8C8C8C]">Log your training sessions. Entries undergo Admin verification.</p>
               </div>
+              <button
+                onClick={() => setShowLogModal(true)}
+                className="flex items-center justify-center gap-1.5 px-4 py-2 bg-white text-black hover:bg-white/90 rounded text-xs font-semibold uppercase tracking-wider transition-all self-start sm:self-auto"
+              >
+                <Plus className="w-3.5 h-3.5" /> Log Session
+              </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-              {workoutLogs.map((log) => (
-                <div key={log.id} className="p-6 bg-white/5 backdrop-blur-md border border-white/10 rounded-sm space-y-3 shadow-lg">
-                  <div className="flex justify-between items-baseline text-xs text-[#8C8C8C] font-mono">
-                    <span>{log.date}</span>
-                    <span className="text-white font-bold bg-white/10 px-2 py-0.5 rounded">{log.weight}</span>
-                  </div>
-                  <h4 className="font-display text-xl font-bold text-white uppercase">{log.exercise}</h4>
-                  <p className="text-xs text-[#8C8C8C] italic">"{log.notes}"</p>
-                </div>
-              ))}
-            </div>
+            {workoutLogs && workoutLogs.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                {workoutLogs.map((log) => {
+                  const status = log.status || "Pending";
+                  return (
+                    <div key={log.id} className="p-6 bg-white/5 backdrop-blur-md border border-white/10 rounded-sm space-y-3 shadow-lg hover:border-white/20 transition-all flex flex-col justify-between">
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center text-xs font-mono">
+                          <span className="text-[#8C8C8C]">{log.date}</span>
+                          <span className={`text-[10px] uppercase font-mono px-2 py-0.5 rounded font-bold border ${
+                            status === "Approved"
+                              ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+                              : status === "Rejected"
+                              ? "bg-rose-500/20 text-rose-400 border-rose-500/30"
+                              : "bg-amber-500/20 text-amber-400 border-amber-500/30 animate-pulse"
+                          }`}>
+                            {status === "Approved" ? "Approved" : status === "Rejected" ? "Rejected" : "Pending Review"}
+                          </span>
+                        </div>
+                        <h4 className="font-display text-xl font-bold text-white uppercase tracking-tight">{log.exercise}</h4>
+                        {log.notes && <p className="text-xs text-[#8C8C8C] italic">"{log.notes}"</p>}
+                      </div>
+                      <div className="pt-2 border-t border-white/10 flex justify-between items-center text-xs">
+                        <span className="text-[10px] font-mono text-[#8C8C8C] uppercase">Intensity / Load</span>
+                        <span className="text-white font-bold bg-white/10 px-2 py-0.5 rounded font-mono text-xs">{log.weight || "Bodyweight"}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="p-12 text-center text-xs text-[#8C8C8C] bg-white/5 border border-white/10 rounded-sm space-y-3">
+                <Dumbbell className="w-8 h-8 mx-auto text-white/30" />
+                <p className="text-white font-bold text-base uppercase font-display">No Workout Logs Yet</p>
+                <p className="text-xs text-[#8C8C8C] max-w-sm mx-auto">Click "Log Session" to record your routines, sets, reps, or weights. Once submitted, Admin will verify and approve your performance log.</p>
+              </div>
+            )}
           </div>
         )}
 

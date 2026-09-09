@@ -171,14 +171,18 @@ export async function initPostgresTables() {
     CREATE TABLE IF NOT EXISTS workout_logs (
       id VARCHAR(50) PRIMARY KEY,
       user_id VARCHAR(50) REFERENCES users(id) ON DELETE CASCADE,
+      user_name VARCHAR(255),
+      user_email VARCHAR(255),
       exercise VARCHAR(255) NOT NULL,
       weight VARCHAR(100),
       notes TEXT,
       date VARCHAR(100) DEFAULT 'Today',
+      status VARCHAR(50) DEFAULT 'Pending',
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 
     CREATE INDEX IF NOT EXISTS idx_workout_logs_user_id ON workout_logs (user_id);
+    CREATE INDEX IF NOT EXISTS idx_workout_logs_status ON workout_logs (status);
 
     CREATE TABLE IF NOT EXISTS trainers (
       id VARCHAR(50) PRIMARY KEY,
@@ -196,6 +200,18 @@ export async function initPostgresTables() {
   try {
     await pool.query(schemaSql);
     console.log("🐘 PostgreSQL schema initialized successfully!");
+
+    // Ensure columns exist if table was previously created without them
+    try {
+      await pool.query(`
+        ALTER TABLE workout_logs ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'Pending';
+        ALTER TABLE workout_logs ADD COLUMN IF NOT EXISTS user_name VARCHAR(255);
+        ALTER TABLE workout_logs ADD COLUMN IF NOT EXISTS user_email VARCHAR(255);
+        CREATE INDEX IF NOT EXISTS idx_workout_logs_status ON workout_logs (status);
+      `);
+    } catch (migErr) {
+      console.warn("workout_logs schema column migration note:", migErr.message);
+    }
 
     // Auto-update trigger for users.updated_at
     try {

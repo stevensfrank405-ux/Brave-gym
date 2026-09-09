@@ -10,7 +10,7 @@ export class AdminViewModel {
     const users = await UserModel.findAll();
     const classes = await ClassModel.findAll();
     const bookings = await BookingModel.findAll();
-    const workoutLogs = WorkoutLogModel.findAll();
+    const workoutLogs = await WorkoutLogModel.findAll();
 
     const athleteUsers = (users || []).filter(
       (u) => u.role !== "admin" && u.id !== "usr-admin"

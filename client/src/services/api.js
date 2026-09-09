@@ -215,6 +215,14 @@ class ApiService {
     return res.data;
   }
 
+  async updateWorkoutLogStatus(logId, status) {
+    const res = await this.request(`/workouts/${logId}/status`, {
+      method: "PUT",
+      body: JSON.stringify({ status })
+    });
+    return res.data;
+  }
+
   // Consultations & Intake Leads
   async getConsultations() {
     const res = await this.request("/consultations");
