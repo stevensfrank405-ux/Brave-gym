@@ -54,66 +54,76 @@ export default function TrainersRoster() {
         </Reveal>
 
         {/* Horizontal Drag & Scroll Roster */}
-        <Reveal delay={0.15}>
-          <div
-            ref={scrollContainerRef}
-            className="flex gap-6 overflow-x-auto pb-8 no-scrollbar scroll-smooth snap-x snap-mandatory"
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-          >
-            {trainers.map((trainer, idx) => (
-              <div
-                key={trainer.id}
-                className="min-w-[300px] sm:min-w-[380px] lg:min-w-[420px] bg-[#161616] border border-white/10 rounded-sm overflow-hidden flex flex-col snap-start group hover:border-white/30 transition-all duration-300"
-              >
-                {/* Photo */}
-                <div className="relative aspect-[3/4] w-full overflow-hidden bg-black">
-                  <img
-                    src={trainer.image}
-                    alt={trainer.name}
-                    loading="lazy"
-                    className="w-full h-full object-cover grayscale contrast-125 filter group-hover:scale-105 transition-transform duration-700"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#161616] via-transparent to-black/20" />
+        {trainers && trainers.length > 0 ? (
+          <Reveal delay={0.15}>
+            <div
+              ref={scrollContainerRef}
+              className="flex gap-6 overflow-x-auto pb-8 no-scrollbar scroll-smooth snap-x snap-mandatory"
+              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            >
+              {trainers.map((trainer) => (
+                <div
+                  key={trainer.id}
+                  className="w-[280px] sm:w-[320px] shrink-0 bg-[#161616] border border-white/10 rounded-sm overflow-hidden flex flex-col snap-start group hover:border-white/30 transition-all duration-300"
+                >
+                  {/* Photo */}
+                  <div className="relative aspect-[3/4] w-full overflow-hidden bg-black shrink-0">
+                    <img
+                      src={trainer.image}
+                      alt={trainer.name}
+                      loading="lazy"
+                      className="w-full h-full object-cover grayscale contrast-125 filter group-hover:scale-105 transition-transform duration-700"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#161616] via-transparent to-black/20" />
 
-                  <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded text-[11px] uppercase tracking-wider text-white/90 border border-white/10">
-                    {trainer.role}
+                    <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded text-[10px] uppercase tracking-wider text-white/90 border border-white/10">
+                      {trainer.role}
+                    </div>
+                  </div>
+
+                  {/* Info Details */}
+                  <div className="p-5 flex flex-col justify-between flex-1 space-y-4">
+                    <div>
+                      <h3 className="font-display text-xl font-bold text-white uppercase tracking-tight truncate">
+                        {trainer.name}
+                      </h3>
+                      {trainer.creds && (
+                        <p className="text-xs text-[#8C8C8C] mt-1 flex items-center gap-1.5 truncate">
+                          <Award className="w-3.5 h-3.5 text-white/50 shrink-0" />
+                          <span className="truncate">{trainer.creds}</span>
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Specialties Badges */}
+                    <div className="flex flex-wrap gap-1.5">
+                      {(trainer.specialties || []).map((spec, i) => (
+                        <span
+                          key={i}
+                          className="text-[10px] tracking-wider uppercase px-2 py-0.5 bg-white/5 text-white/80 rounded border border-white/10"
+                        >
+                          {spec}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* Trainer Quote */}
+                    {trainer.quote && (
+                      <div className="pt-3 border-t border-white/10 text-xs italic text-[#8C8C8C] flex gap-2">
+                        <Quote className="w-3.5 h-3.5 shrink-0 text-white/30" />
+                        <span className="line-clamp-2">"{trainer.quote}"</span>
+                      </div>
+                    )}
                   </div>
                 </div>
-
-                {/* Info Details */}
-                <div className="p-6 flex flex-col justify-between flex-1 space-y-4">
-                  <div>
-                    <h3 className="font-display text-2xl font-bold text-white uppercase tracking-tight">
-                      {trainer.name}
-                    </h3>
-                    <p className="text-xs text-[#8C8C8C] mt-1 flex items-center gap-1.5">
-                      <Award className="w-3.5 h-3.5 text-white/50" />
-                      {trainer.creds}
-                    </p>
-                  </div>
-
-                  {/* Specialties Badges */}
-                  <div className="flex flex-wrap gap-1.5">
-                    {trainer.specialties.map((spec, i) => (
-                      <span
-                        key={i}
-                        className="text-[10px] tracking-wider uppercase px-2.5 py-1 bg-white/5 text-white/80 rounded border border-white/10"
-                      >
-                        {spec}
-                      </span>
-                    ))}
-                  </div>
-
-                  {/* Trainer Quote */}
-                  <div className="pt-4 border-t border-white/10 text-xs italic text-[#8C8C8C] flex gap-2">
-                    <Quote className="w-4 h-4 shrink-0 text-white/30" />
-                    <span>"{trainer.quote}"</span>
-                  </div>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
+          </Reveal>
+        ) : (
+          <div className="py-16 text-center text-xs text-[#8C8C8C] border border-white/10 rounded-sm bg-[#161616]/50">
+            No trainers currently listed. Add faculty members from the Admin Dashboard.
           </div>
-        </Reveal>
+        )}
 
         {/* Call to action bar */}
         <Reveal delay={0.25}>
