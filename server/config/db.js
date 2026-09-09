@@ -182,8 +182,6 @@ export async function initPostgresTables() {
     );
 
     CREATE INDEX IF NOT EXISTS idx_workout_logs_user_id ON workout_logs (user_id);
-    CREATE INDEX IF NOT EXISTS idx_workout_logs_status ON workout_logs (status);
-
     CREATE TABLE IF NOT EXISTS trainers (
       id VARCHAR(50) PRIMARY KEY,
       name VARCHAR(255) NOT NULL,
