@@ -201,17 +201,22 @@ export async function initPostgresTables() {
     await pool.query(schemaSql);
     console.log("🐘 PostgreSQL schema initialized successfully!");
 
+
     // Ensure columns exist if table was previously created without them
-    try {
-      await pool.query(`
-        ALTER TABLE workout_logs ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'Pending';
-        ALTER TABLE workout_logs ADD COLUMN IF NOT EXISTS user_name VARCHAR(255);
-        ALTER TABLE workout_logs ADD COLUMN IF NOT EXISTS user_email VARCHAR(255);
-        CREATE INDEX IF NOT EXISTS idx_workout_logs_status ON workout_logs (status);
-      `);
-    } catch (migErr) {
-      console.warn("workout_logs schema column migration note:", migErr.message);
+    // Run each ALTER separately so a failure on one doesn't block others
+    for (const migSql of [
+      `ALTER TABLE workout_logs ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'Pending'`,
+      `ALTER TABLE workout_logs ADD COLUMN IF NOT EXISTS user_name VARCHAR(255)`,
+      `ALTER TABLE workout_logs ADD COLUMN IF NOT EXISTS user_email VARCHAR(255)`,
+      `CREATE INDEX IF NOT EXISTS idx_workout_logs_status ON workout_logs (status)`
+    ]) {
+      try {
+        await pool.query(migSql);
+      } catch (migErr) {
+        console.warn("workout_logs migration step note:", migErr.message);
+      }
     }
+
 
     // Auto-update trigger for users.updated_at
     try {
