@@ -241,13 +241,7 @@ SELECT 'usr-athlete-1', 'athlete@bravegym.com',
 WHERE NOT EXISTS (SELECT 1 FROM users WHERE id = 'usr-athlete-1');
 
 
--- Seed membership tiers
-INSERT INTO membership_tiers (id, name, price, interval, billing, description, features, popular, cta)
-SELECT 'trial', 'Brave Trial', 39, '3-class pass', '3-class pass',
-       'Experience the facility, coaching precision, and community standard.',
-       '["Access to any 3 classes within 14 days", "Full locker room & sauna privileges", "1-on-1 movement assessment", "Complimentary hand wraps & glove rental"]'::jsonb,
-       false, 'Book Trial Pass'
-WHERE NOT EXISTS (SELECT 1 FROM membership_tiers WHERE id = 'trial');
+
 
 INSERT INTO membership_tiers (id, name, price, interval, billing, description, features, popular, cta)
 SELECT 'black-tier', 'Black Tier', 189, 'monthly', 'monthly',
