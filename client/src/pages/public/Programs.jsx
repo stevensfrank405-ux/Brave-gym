@@ -203,8 +203,8 @@ export default function Programs() {
             >
               <div className="relative aspect-[16/9] overflow-hidden bg-black">
                 <img
-                  src={prog.poster || prog.image || "/media/edgar-chaparro-sHfo3WOgGTU-unsplash.jpg"}
-                  alt={prog.title}
+                  src={prog?.poster || prog?.image || "/media/edgar-chaparro-sHfo3WOgGTU-unsplash.jpg"}
+                  alt={prog?.title || "Program"}
                   className="w-full h-full object-cover grayscale contrast-125 group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#141414] via-transparent to-black/20" />

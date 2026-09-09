@@ -4,42 +4,42 @@ export class ProgramController {
   static async getAll(req, res) {
     try {
       const programs = await ProgramModel.findAll();
-      res.json(programs);
+      res.json({ success: true, data: programs });
     } catch (err) {
       console.error("Error fetching programs:", err);
-      res.status(500).json({ error: "Failed to fetch programs" });
+      res.status(500).json({ success: false, message: "Failed to fetch programs" });
     }
   }
 
   static async getOne(req, res) {
     try {
       const program = await ProgramModel.findById(req.params.id);
-      if (!program) return res.status(404).json({ error: "Program not found" });
-      res.json(program);
+      if (!program) return res.status(404).json({ success: false, message: "Program not found" });
+      res.json({ success: true, data: program });
     } catch (err) {
       console.error("Error fetching program:", err);
-      res.status(500).json({ error: "Failed to fetch program" });
+      res.status(500).json({ success: false, message: "Failed to fetch program" });
     }
   }
 
   static async create(req, res) {
     try {
       const program = await ProgramModel.create(req.body);
-      res.status(201).json(program);
+      res.status(201).json({ success: true, data: program });
     } catch (err) {
       console.error("Error creating program:", err);
-      res.status(500).json({ error: "Failed to create program" });
+      res.status(500).json({ success: false, message: "Failed to create program" });
     }
   }
 
   static async update(req, res) {
     try {
       const program = await ProgramModel.update(req.params.id, req.body);
-      if (!program) return res.status(404).json({ error: "Program not found" });
-      res.json(program);
+      if (!program) return res.status(404).json({ success: false, message: "Program not found" });
+      res.json({ success: true, data: program });
     } catch (err) {
       console.error("Error updating program:", err);
-      res.status(500).json({ error: "Failed to update program" });
+      res.status(500).json({ success: false, message: "Failed to update program" });
     }
   }
 

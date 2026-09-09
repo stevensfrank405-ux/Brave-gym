@@ -1168,12 +1168,12 @@ export default function AdminDashboard() {
                   <div key={prog.id} className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6 hover:bg-white/[0.02]">
                     <div className="flex items-start gap-4">
                       <div className="w-24 h-16 shrink-0 bg-black rounded overflow-hidden">
-                        <img src={prog.poster || "/media/edgar-chaparro-sHfo3WOgGTU-unsplash.jpg"} className="w-full h-full object-cover grayscale contrast-125" alt={prog.title} />
+                        <img src={prog?.poster || "/media/edgar-chaparro-sHfo3WOgGTU-unsplash.jpg"} className="w-full h-full object-cover grayscale contrast-125" alt={prog?.title || "Program"} />
                       </div>
                       <div>
-                        <h4 className="font-display text-sm sm:text-base font-bold text-white uppercase">{prog.title}</h4>
-                        <span className="text-[10px] sm:text-xs font-mono text-[#8C8C8C] bg-white/5 px-2 py-0.5 rounded mr-2">{prog.category || "ALL"}</span>
-                        <span className="text-[10px] sm:text-xs font-mono text-[#8C8C8C]">{prog.duration} • {prog.intensity}</span>
+                        <h4 className="font-display text-sm sm:text-base font-bold text-white uppercase">{prog?.title}</h4>
+                        <span className="text-[10px] sm:text-xs font-mono text-[#8C8C8C] bg-white/5 px-2 py-0.5 rounded mr-2">{prog?.category || "ALL"}</span>
+                        <span className="text-[10px] sm:text-xs font-mono text-[#8C8C8C]">{prog?.duration} • {prog?.intensity}</span>
                       </div>
                     </div>
 
