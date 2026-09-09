@@ -704,9 +704,14 @@ export function GymProvider({ children }) {
   };
 
   const removeAthlete = async (userId) => {
+    // Optimistically remove user and their records from Admin state
+    setAllUsersRoster((prev) => prev.filter((u) => u.id !== userId));
+    setAdminBookings((prev) => prev.filter((b) => b.userId !== userId));
+    setConsultationRequests((prev) => prev.filter((c) => c.userId !== userId));
+    setAllWorkoutLogs((prev) => prev.filter((w) => w.userId !== userId));
+
     try {
       await api.deleteUser(userId);
-      // Refresh admin data to pull updated stats, bookings, etc.
       if (currentUser?.role === "admin") {
         await loadRemoteData(currentUser.id, currentUser.role);
       }

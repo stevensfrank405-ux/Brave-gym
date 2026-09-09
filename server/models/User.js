@@ -181,13 +181,30 @@ export class UserModel {
       try {
         await db.query("BEGIN");
         
-        // Cascading deletes for all related data
-        await db.query("DELETE FROM bookings WHERE user_id = $1", [id]);
+        // Find user to get email for complete cascade wipe
+        const uRes = await db.query("SELECT id, email FROM users WHERE id = $1 LIMIT 1", [id]);
+        const userEmail = uRes.rows.length > 0 ? uRes.rows[0].email : null;
+
+        // 1. Delete all bookings associated by user_id OR email
+        if (userEmail) {
+          await db.query("DELETE FROM bookings WHERE user_id = $1 OR LOWER(user_email) = LOWER($2)", [id, userEmail]);
+        } else {
+          await db.query("DELETE FROM bookings WHERE user_id = $1", [id]);
+        }
+
+        // 2. Delete all consultation chats & support threads
         await db.query("DELETE FROM consultations WHERE user_id = $1", [id]);
+
+        // 3. Delete all membership orders & payment records
         await db.query("DELETE FROM membership_orders WHERE user_id = $1", [id]);
+
+        // 4. Delete all athlete notifications
         await db.query("DELETE FROM notifications WHERE user_id = $1", [id]);
+
+        // 5. Delete all workout logs
         await db.query("DELETE FROM workout_logs WHERE user_id = $1", [id]);
 
+        // 6. Delete user profile
         const res = await db.query("DELETE FROM users WHERE id = $1 RETURNING id", [id]);
         
         if (res.rows.length === 0) {
