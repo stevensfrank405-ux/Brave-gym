@@ -355,7 +355,7 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleCreateClass = (e) => {
+  const handleCreateClass = async (e) => {
     e.preventDefault();
     const newEntry = {
       day: newClassData.day,
@@ -364,8 +364,12 @@ export default function AdminDashboard() {
       trainer: newClassData.trainer,
       total: Number(newClassData.total)
     };
-    addScheduleClass(newEntry);
-    setNewClassModal(false);
+    try {
+      await addScheduleClass(newEntry);
+      setNewClassModal(false);
+    } catch (err) {
+      alert("Failed to schedule session: " + err.message);
+    }
   };
 
   const handleCreateTier = (e) => {

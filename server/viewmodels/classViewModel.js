@@ -1,8 +1,8 @@
 import { ClassModel } from "../models/Class.js";
 
 export class ClassViewModel {
-  static getSchedule() {
-    const classes = ClassModel.findAll();
+  static async getSchedule() {
+    const classes = await ClassModel.findAll();
     return classes.map((c) => ({
       id: c.id,
       day: c.day,
@@ -14,14 +14,14 @@ export class ClassViewModel {
     }));
   }
 
-  static createClass(data) {
+  static async createClass(data) {
     if (!data.classTitle || !data.trainer || !data.day || !data.time) {
       throw new Error("Class title, trainer, day, and time are required");
     }
-    return ClassModel.create(data);
+    return await ClassModel.create(data);
   }
 
-  static deleteClass(id) {
-    return ClassModel.delete(id);
+  static async deleteClass(id) {
+    return await ClassModel.delete(id);
   }
 }

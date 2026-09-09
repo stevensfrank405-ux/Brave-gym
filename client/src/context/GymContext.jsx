@@ -255,6 +255,17 @@ export function GymProvider({ children }) {
         setAdminBookings((prev) => prev.filter((b) => b.id !== id));
       });
 
+      socket.on("scheduleClassCreated", (newClass) => {
+        setSchedule((prev) => {
+          if (prev.some(sc => sc.id === newClass.id)) return prev;
+          return [newClass, ...prev];
+        });
+      });
+
+      socket.on("scheduleClassDeleted", ({ id }) => {
+        setSchedule((prev) => prev.filter((sc) => sc.id !== id));
+      });
+
       socket.on("refreshNotifications", async ({ userId }) => {
         if (userId === currentUserRef.current?.id) {
           const myNotifs = await api.getNotifications(userId).catch(() => []);
@@ -676,8 +687,9 @@ export function GymProvider({ children }) {
   // ==========================================
 
   const addScheduleClass = async (classData) => {
+    const tempId = "sc-" + Date.now();
     const newEntry = {
-      id: "sc-" + Date.now(),
+      id: tempId,
       day: classData.day,
       time: classData.time,
       classTitle: classData.classTitle,
@@ -688,9 +700,14 @@ export function GymProvider({ children }) {
     setSchedule((prev) => [newEntry, ...prev]);
 
     try {
-      await api.createClass(newEntry);
+      const res = await api.createClass(newEntry);
+      if (res) {
+        setSchedule((prev) => prev.map((sc) => (sc.id === tempId ? res : sc)));
+      }
+      return res || newEntry;
     } catch (err) {
-      console.warn("Created class locally:", err.message);
+      console.error("Failed to save class to database:", err.message);
+      throw err;
     }
   };
 
