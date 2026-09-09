@@ -247,49 +247,7 @@ export async function initPostgresTables() {
       `);
     }
 
-    // Seed default classes if empty
-    const classCheck = await pool.query("SELECT COUNT(*) FROM classes");
-    if (Number(classCheck.rows[0].count) === 0) {
-      console.log("🌱 Seeding initial timetable classes...");
-      await pool.query(`
-        INSERT INTO classes (id, day, time, class_title, trainer, spots_left, total) VALUES
-          ('sc-1', 'Monday', '06:30 AM', 'Metabolic Warfare', 'Jaxson Cole', 3, 20),
-          ('sc-2', 'Monday', '08:00 AM', 'Championship Boxing', 'Marcus Vance', 2, 16),
-          ('sc-3', 'Monday', '05:30 PM', 'Iron Discipline Strength', 'Elena Rostova', 1, 12),
-          ('sc-4', 'Tuesday', '07:00 AM', 'Championship Boxing', 'Marcus Vance', 5, 16),
-          ('sc-5', 'Tuesday', '06:00 PM', 'Kinetic Reset & Ice Protocol', 'Dr. Maya Lin', 2, 8),
-          ('sc-6', 'Wednesday', '06:30 AM', 'Iron Discipline Strength', 'Elena Rostova', 4, 12),
-          ('sc-7', 'Wednesday', '05:30 PM', 'Metabolic Warfare', 'Jaxson Cole', 0, 20),
-          ('sc-8', 'Thursday', '07:00 AM', 'Championship Boxing', 'Marcus Vance', 3, 16),
-          ('sc-9', 'Friday', '05:30 PM', 'Friday Night Sparring & Conditioning', 'Marcus Vance', 6, 16),
-          ('sc-10', 'Saturday', '09:00 AM', 'Brave Community Combine', 'All Coaches', 8, 30);
-      `);
-    }
 
-    // Seed default membership tiers if empty
-    const tierCheck = await pool.query("SELECT COUNT(*) FROM membership_tiers");
-    if (Number(tierCheck.rows[0].count) === 0) {
-      console.log("🌱 Seeding initial membership tiers...");
-      await pool.query(`
-        INSERT INTO membership_tiers (id, name, price, interval, billing, description, features, popular, cta) VALUES
-          ('trial', 'Brave Trial', 39, '3-class pass', '3-class pass', 'Experience the facility, coaching precision, and community standard.', '["Access to any 3 classes within 14 days", "Full locker room & sauna privileges", "1-on-1 movement assessment", "Complimentary hand wraps & glove rental"]', false, 'Book Trial Pass'),
-          ('black-tier', 'Black Tier', 189, 'monthly', 'monthly', 'The complete athletic standard for disciplined, dedicated daily athletes.', '["Unlimited group classes (Boxing, Strength, HIIT)", "Priority 7-day advance booking window", "Recovery suite (Sauna & Cold Plunge)", "Quarterly body composition & biomarker scan", "1 Guest pass per month"]', true, 'Claim Black Tier'),
-          ('obsidian-tier', 'Obsidian Private', 349, 'monthly', 'monthly', 'High-touch coaching with individualized programming and biometric oversight.', '["All Black Tier privileges included", "4 Private 1-on-1 coaching sessions per month", "Custom nutrition & recovery protocol", "Private locker with daily laundry service", "24/7 dedicated coach direct messaging"]', false, 'Apply for Obsidian');
-      `);
-    }
-
-    // Seed default trainers if empty
-    const trainerCheck = await pool.query("SELECT COUNT(*) FROM trainers");
-    if (Number(trainerCheck.rows[0].count) === 0) {
-      console.log("🌱 Seeding initial professional trainers...");
-      await pool.query(`
-        INSERT INTO trainers (id, name, role, image, bio, quote, specialties) VALUES
-          ('tr-1', 'Marcus Vance', 'Head Boxing Director & Founder', '/media/chris-kendall-sJ6az6-T1u8-unsplash.jpg', 'Former professional cruiserweight with a 24-2 record. Marcus founded Brave Gym to bring professional fighting standards to the public. He focuses on technical precision, ring IQ, and building mental fortitude.', 'Discipline is the bridge between goals and accomplishment.', '["Championship Boxing", "Fight Prep", "Mental Conditioning"]'),
-          ('tr-2', 'Elena Rostova', 'Lead Strength & Conditioning', '/media/edgar-chaparro-sHfo3WOgGTU-unsplash.jpg', 'Olympic weightlifting bronze medalist. Elena rebuilds athletes from the ground up, prioritizing structural integrity, raw power, and injury resilience.', 'Weakness is a choice. Strength is a commitment.', '["Olympic Lifting", "Power Output", "Structural Resilience"]'),
-          ('tr-3', 'Jaxson Cole', 'Metabolic & HIIT Specialist', '/media/hermes-rivera-qbf59TU077Q-unsplash.jpg', 'Ex-military fitness instructor known for grueling, high-volume conditioning sessions that push the human cardiovascular system to its absolute limits.', 'When your lungs burn, your character is forged.', '["VO2 Max Protocol", "Combat Endurance", "High-Volume Calisthenics"]'),
-          ('tr-4', 'David Guliciuc', 'Tactical Striking Coach', '/media/david-guliciuc-o2zrjlM5s5o-unsplash.jpg', 'Doctor of Physical Therapy and biomechanics expert. Dr. Lin ensures athletes recover faster, correct muscular imbalances, and maintain peak longevity.', 'You can only train as hard as you can recover.', '["Kinetic Chain Repair", "Ice/Heat Protocol", "Mobility Mapping"]');
-      `);
-    }
 
     console.log("✨ PostgreSQL auto-setup and initial seeding complete!");
     return true;
