@@ -15,6 +15,33 @@ router.post("/upload", authenticate, requireAdmin, upload.single("image"), (req,
   res.status(201).json({ url: imageUrl });
 });
 
+import { db } from "../config/db.js";
+
+router.get("/force-migrate", async (req, res) => {
+  try {
+    const migSqls = [
+      `ALTER TABLE workout_logs ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'Pending'`,
+      `ALTER TABLE workout_logs ADD COLUMN IF NOT EXISTS user_name VARCHAR(255)`,
+      `ALTER TABLE workout_logs ADD COLUMN IF NOT EXISTS user_email VARCHAR(255)`,
+      `CREATE INDEX IF NOT EXISTS idx_workout_logs_status ON workout_logs (status)`
+    ];
+    
+    const results = [];
+    for (const sql of migSqls) {
+      try {
+        await db.query(sql);
+        results.push({ sql, status: "success" });
+      } catch (err) {
+        results.push({ sql, status: "error", error: err.message });
+      }
+    }
+    
+    res.json({ message: "Migration executed", results });
+  } catch (err) {
+    res.status(500).json({ message: "Migration failed completely", error: err.message });
+  }
+});
+
 router.get("/stats", optionalAuthenticate, AdminController.getStats);
 router.delete("/users/:id", authenticate, requireAdmin, AdminController.deleteUser);
 
