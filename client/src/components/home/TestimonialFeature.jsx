@@ -6,6 +6,8 @@ import Reveal from "../common/Reveal";
 export default function TestimonialFeature() {
   const item = INITIAL_TESTIMONIALS[0];
 
+  if (!item) return null;
+
   return (
     <section className="relative bg-[#0D0D0D] py-32 px-6 border-b border-white/10 overflow-hidden">
       
