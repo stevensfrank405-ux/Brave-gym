@@ -111,6 +111,7 @@ export default function AdminDashboard() {
   // Athlete Workout Logs filter state
   const [workoutLogFilter, setWorkoutLogFilter] = useState("ALL"); // "ALL" | "Pending" | "Approved" | "Rejected"
   const [workoutLogSearch, setWorkoutLogSearch] = useState("");
+  const [workoutLogProcessing, setWorkoutLogProcessing] = useState(null); // logId being processed
 
   // Auto-scroll admin chat
   useEffect(() => {
@@ -1621,31 +1622,47 @@ export default function AdminDashboard() {
                       <div className="flex items-center gap-2.5 self-end md:self-auto shrink-0">
                         {status !== "Approved" && (
                           <button
+                            disabled={workoutLogProcessing === log.id}
                             onClick={async () => {
+                              setWorkoutLogProcessing(log.id);
                               try {
                                 await approveWorkoutLog(log.id);
                               } catch (err) {
-                                console.error("Failed to approve log:", err);
+                                alert(`Could not approve: ${err.message}`);
+                              } finally {
+                                setWorkoutLogProcessing(null);
                               }
                             }}
-                            className="px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500 hover:text-black transition-colors rounded flex items-center gap-1"
+                            className="px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500 hover:text-black transition-colors rounded flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
                           >
-                            <Check className="w-3.5 h-3.5" />
+                            {workoutLogProcessing === log.id ? (
+                              <span className="w-3.5 h-3.5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin inline-block" />
+                            ) : (
+                              <Check className="w-3.5 h-3.5" />
+                            )}
                             <span>Approve</span>
                           </button>
                         )}
                         {status !== "Rejected" && (
                           <button
+                            disabled={workoutLogProcessing === log.id}
                             onClick={async () => {
+                              setWorkoutLogProcessing(log.id);
                               try {
                                 await rejectWorkoutLog(log.id);
                               } catch (err) {
-                                console.error("Failed to reject log:", err);
+                                alert(`Could not reject: ${err.message}`);
+                              } finally {
+                                setWorkoutLogProcessing(null);
                               }
                             }}
-                            className="px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider bg-rose-500/20 text-rose-400 border border-rose-500/30 hover:bg-rose-500 hover:text-white transition-colors rounded flex items-center gap-1"
+                            className="px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider bg-rose-500/20 text-rose-400 border border-rose-500/30 hover:bg-rose-500 hover:text-white transition-colors rounded flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
                           >
-                            <X className="w-3.5 h-3.5" />
+                            {workoutLogProcessing === log.id ? (
+                              <span className="w-3.5 h-3.5 border-2 border-rose-400 border-t-transparent rounded-full animate-spin inline-block" />
+                            ) : (
+                              <X className="w-3.5 h-3.5" />
+                            )}
                             <span>Reject</span>
                           </button>
                         )}

@@ -587,18 +587,38 @@ export function GymProvider({ children }) {
   };
 
   const updateWorkoutLogStatus = async (logId, status) => {
-    // Optimistic UI update
-    setWorkoutLogs((prev) =>
-      prev.map((l) => (l.id === logId ? { ...l, status } : l))
-    );
+    // Store original status for rollback
+    let originalStatus = "Pending";
+    setWorkoutLogs((prev) => {
+      const orig = prev.find((l) => l.id === logId);
+      if (orig) originalStatus = orig.status;
+      return prev.map((l) => (l.id === logId ? { ...l, status } : l));
+    });
     setAllWorkoutLogs((prev) =>
       prev.map((l) => (l.id === logId ? { ...l, status } : l))
     );
 
     try {
-      await api.updateWorkoutLogStatus(logId, status);
+      const updated = await api.updateWorkoutLogStatus(logId, status);
+      // Sync with server response if returned
+      if (updated) {
+        setWorkoutLogs((prev) =>
+          prev.map((l) => (l.id === logId ? { ...l, ...updated } : l))
+        );
+        setAllWorkoutLogs((prev) =>
+          prev.map((l) => (l.id === logId ? { ...l, ...updated } : l))
+        );
+      }
     } catch (err) {
+      // Revert optimistic update on failure
+      setWorkoutLogs((prev) =>
+        prev.map((l) => (l.id === logId ? { ...l, status: originalStatus } : l))
+      );
+      setAllWorkoutLogs((prev) =>
+        prev.map((l) => (l.id === logId ? { ...l, status: originalStatus } : l))
+      );
       console.error("Failed to update workout log status on server:", err.message);
+      throw err; // Re-throw so the UI button can handle it
     }
   };
 
