@@ -9,7 +9,8 @@ const SERVER_BASE_URL = import.meta.env.VITE_SERVER_URL || (isClientBrowser && !
 
 class ApiService {
   getToken() {
-    return localStorage.getItem("brave_token") || "";
+    let token = localStorage.getItem("brave_token") || "";
+    return token;
   }
 
   setToken(token) {
@@ -32,12 +33,25 @@ class ApiService {
     return headers;
   }
 
-  async request(endpoint, options = {}) {
+  async request(endpoint, options = {}, isRetry = false) {
     const url = `${API_BASE_URL}${endpoint}`;
+    let token = this.getToken();
+
+    // Auto-heal missing token before request if user profile exists
+    if (!token && !endpoint.startsWith("/auth/")) {
+      const synced = await this.syncToken();
+      if (synced?.token) {
+        token = synced.token;
+      }
+    }
+
     const headers = {
       ...this.getHeaders(options.isMultipart),
       ...options.headers
     };
+    if (token && !headers["Authorization"]) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
 
     try {
       const response = await fetch(url, {
@@ -47,6 +61,14 @@ class ApiService {
 
       const data = await response.json();
       if (!response.ok) {
+        // If 401 and not already retried and not an auth call, try syncing token once
+        if (response.status === 401 && !isRetry && !endpoint.startsWith("/auth/")) {
+          console.log(`[API] 401 received for ${endpoint}. Auto-renewing token...`);
+          const renewed = await this.syncToken();
+          if (renewed?.token) {
+            return this.request(endpoint, options, true);
+          }
+        }
         throw new Error(data.message || `Request failed with status ${response.status}`);
       }
       return data;
@@ -79,13 +101,49 @@ class ApiService {
     return res.data;
   }
 
+  async syncToken(userMeta = null) {
+    try {
+      let payload = userMeta;
+      if (!payload) {
+        const saved = localStorage.getItem("brave_user");
+        if (saved) payload = JSON.parse(saved);
+      }
+      if (!payload?.email && !payload?.id) return null;
+
+      const res = await this.request("/auth/sync-token", {
+        method: "POST",
+        body: JSON.stringify({ email: payload.email, id: payload.id })
+      });
+      if (res.data?.token) {
+        this.setToken(res.data.token);
+      }
+      return res.data;
+    } catch (err) {
+      console.warn("[API] Token sync error:", err.message);
+      return null;
+    }
+  }
+
   async getCurrentUser() {
-    const token = this.getToken();
-    if (!token) return null;
+    let token = this.getToken();
+    if (!token) {
+      // Auto-heal token if user profile exists in localStorage
+      const synced = await this.syncToken();
+      if (synced?.token) {
+        token = synced.token;
+      } else {
+        return null;
+      }
+    }
     try {
       const res = await this.request("/auth/me");
       return res.data;
     } catch {
+      // Try one self-healing sync attempt before giving up
+      const synced = await this.syncToken();
+      if (synced?.user) {
+        return synced.user;
+      }
       this.setToken(null);
       return null;
     }

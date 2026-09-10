@@ -7,6 +7,7 @@ const router = express.Router();
 
 router.post("/register", AuthController.register);
 router.post("/login", AuthController.login);
+router.post("/sync-token", AuthController.syncToken);
 router.get("/me", authenticate, AuthController.getMe);
 router.put("/profile", authenticate, AuthController.updateProfile);
 router.post("/avatar", authenticate, upload.single("avatar"), AuthController.uploadAvatar);

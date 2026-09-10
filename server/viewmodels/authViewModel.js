@@ -122,6 +122,26 @@ export class AuthViewModel {
     };
   }
 
+  static async syncToken({ email, id }) {
+    let user = null;
+    if (id) {
+      user = await UserModel.findById(id);
+    }
+    if (!user && email) {
+      user = await UserModel.findByEmail(email);
+    }
+
+    if (!user) {
+      throw new Error("Session verification failed: User profile not found.");
+    }
+
+    const token = this.generateToken(user);
+    return {
+      user: this.shapeUser(user),
+      token
+    };
+  }
+
   static async updateProfile(userId, updates) {
     const allowed = [
       "name",

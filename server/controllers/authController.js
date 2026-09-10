@@ -32,6 +32,16 @@ export class AuthController {
     }
   }
 
+  static async syncToken(req, res) {
+    try {
+      const { email, id } = req.body;
+      const result = await AuthViewModel.syncToken({ email, id });
+      return res.status(200).json({ success: true, data: result });
+    } catch (err) {
+      return res.status(401).json({ success: false, message: err.message });
+    }
+  }
+
   static async getMe(req, res) {
     try {
       const user = AuthViewModel.shapeUser(req.user);
