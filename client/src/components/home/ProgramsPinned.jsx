@@ -98,9 +98,16 @@ export default function ProgramsPinned() {
                         : "bg-[#141414] border-white/5 hover:border-white/20 hover:bg-[#181818]"
                     }`}
                   >
-                    <h4 className="font-display text-2xl font-bold text-white uppercase tracking-tight mb-2">
-                      {prog.title}
-                    </h4>
+                    <div className="flex items-center gap-2 mb-2">
+                      <h4 className="font-display text-2xl font-bold text-white uppercase tracking-tight">
+                        {prog.title}
+                      </h4>
+                      {prog.category && (
+                        <span className="text-[10px] font-mono font-bold uppercase bg-amber-400/20 text-amber-300 border border-amber-400/30 px-2 py-0.5 rounded-sm">
+                          {prog.category}
+                        </span>
+                      )}
+                    </div>
 
                     <p className="text-xs sm:text-sm text-[#8C8C8C] leading-relaxed mb-4">
                       {prog.subtitle}

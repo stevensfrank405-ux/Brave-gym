@@ -215,8 +215,17 @@ export default function Programs() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#141414] via-transparent to-black/20" />
                 
-                <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1 text-[10px] uppercase tracking-wider text-white border border-white/10">
-                  {prog.tag}
+                <div className="absolute top-4 left-4 flex items-center gap-1.5 flex-wrap">
+                  {prog.category && (
+                    <span className="bg-amber-400 text-black font-mono font-bold px-2.5 py-0.5 text-[10px] uppercase tracking-wider rounded-sm shadow">
+                      {prog.category}
+                    </span>
+                  )}
+                  {prog.tag && (
+                    <span className="bg-black/70 backdrop-blur-md px-2.5 py-0.5 text-[10px] uppercase tracking-wider text-white border border-white/10 rounded-sm">
+                      {prog.tag}
+                    </span>
+                  )}
                 </div>
 
                 <div className="absolute bottom-4 right-4 flex items-center gap-3 bg-black/70 backdrop-blur-md px-3 py-1.5 rounded text-xs text-white">
