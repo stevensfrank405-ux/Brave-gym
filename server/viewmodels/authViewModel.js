@@ -73,7 +73,7 @@ export class AuthViewModel {
       }
 
       const { MembershipOrderModel } = await import("../models/MembershipOrder.js");
-      await MembershipOrderModel.create({
+      const createdOrder = await MembershipOrderModel.create({
         userId: createdUser.id,
         member: createdUser.name,
         plan: userTier || "No Tier Selected",
@@ -81,11 +81,19 @@ export class AuthViewModel {
         status: "Pending",
         date: new Date().toISOString().split("T")[0]
       });
+
+      const token = this.generateToken(createdUser);
+      return {
+        user: this.shapeUser(createdUser),
+        order: createdOrder,
+        token
+      };
     }
 
     const token = this.generateToken(createdUser);
     return {
       user: this.shapeUser(createdUser),
+      order: null,
       token
     };
   }

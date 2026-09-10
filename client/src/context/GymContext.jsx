@@ -310,6 +310,116 @@ export function GymProvider({ children }) {
         }
       });
 
+      // 🥊 Real-time User Registration & Account State Updates
+      socket.on("userRegistered", ({ user: newUser, order }) => {
+        if (newUser) {
+          setAllUsersRoster((prev) => {
+            if (prev.some((u) => u.id === newUser.id)) return prev;
+            return [newUser, ...prev];
+          });
+          setAdminStats((prev) => ({
+            ...prev,
+            activeMembers: prev.activeMembers + 1,
+            newSignupsThisWeek: prev.newSignupsThisWeek + 1
+          }));
+        }
+        if (order) {
+          setAdminStats((prev) => {
+            if (prev.recentTransactions.some((t) => t.id === order.id)) return prev;
+            return {
+              ...prev,
+              recentTransactions: [order, ...prev.recentTransactions]
+            };
+          });
+        }
+      });
+
+      socket.on("userUpdated", (updatedUser) => {
+        const activeUserId = currentUserRef.current?.id;
+        if (updatedUser.id === activeUserId) {
+          setCurrentUser((prev) => {
+            const merged = { ...prev, ...updatedUser };
+            localStorage.setItem("brave_user", JSON.stringify(merged));
+            return merged;
+          });
+        }
+        setAllUsersRoster((prev) =>
+          prev.map((u) => (u.id === updatedUser.id ? { ...u, ...updatedUser } : u))
+        );
+      });
+
+      socket.on("membershipOrderCreated", (newOrder) => {
+        setAdminStats((prev) => {
+          if (prev.recentTransactions.some((t) => t.id === newOrder.id)) return prev;
+          return {
+            ...prev,
+            recentTransactions: [newOrder, ...prev.recentTransactions]
+          };
+        });
+      });
+
+      socket.on("membershipOrderApproved", ({ orderId, userId, planName, user: updatedUser }) => {
+        const activeUserId = currentUserRef.current?.id;
+        if (userId === activeUserId) {
+          setCurrentUser((prev) => {
+            const merged = {
+              ...prev,
+              ...(updatedUser || {}),
+              status: "Active",
+              membership: planName || prev?.membership,
+              renewalDate: "30 Days Active"
+            };
+            localStorage.setItem("brave_user", JSON.stringify(merged));
+            return merged;
+          });
+        }
+
+        setAllUsersRoster((prev) =>
+          prev.map((u) =>
+            u.id === userId
+              ? { ...u, ...(updatedUser || {}), status: "Active", membership: planName || u.membership, renewalDate: "30 Days Active" }
+              : u
+          )
+        );
+
+        setAdminStats((prev) => ({
+          ...prev,
+          recentTransactions: prev.recentTransactions.map((tx) =>
+            tx.id === orderId ? { ...tx, status: "Confirmed" } : tx
+          )
+        }));
+      });
+
+      socket.on("membershipOrderRejected", ({ orderId, userId, reason }) => {
+        const activeUserId = currentUserRef.current?.id;
+        if (userId === activeUserId) {
+          setCurrentUser((prev) => {
+            const merged = {
+              ...prev,
+              status: "Pending",
+              renewalDate: "Order Declined"
+            };
+            localStorage.setItem("brave_user", JSON.stringify(merged));
+            return merged;
+          });
+        }
+
+        setAllUsersRoster((prev) =>
+          prev.map((u) =>
+            u.id === userId
+              ? { ...u, status: "Pending", renewalDate: "Order Declined" }
+              : u
+          )
+        );
+
+        setAdminStats((prev) => ({
+          ...prev,
+          recentTransactions: prev.recentTransactions.map((tx) =>
+            tx.id === orderId ? { ...tx, status: "Declined" } : tx
+          )
+        }));
+      });
+
       // Synchronize created trainers in real-time
       socket.on("trainerCreated", (newTrainer) => {
         setTrainers((prev) => {

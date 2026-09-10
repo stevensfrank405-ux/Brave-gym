@@ -37,6 +37,15 @@ export class MembershipController {
         plan: req.body.plan,
         userMeta: req.body.userMeta || { name: req.user?.name }
       });
+
+      const io = req.app.get("io");
+      if (io && result.transaction) {
+        io.emit("membershipOrderCreated", result.transaction);
+        if (result.user) {
+          io.emit("userUpdated", result.user);
+        }
+      }
+
       return res.status(200).json({ success: true, data: result });
     } catch (err) {
       return res.status(400).json({ success: false, message: err.message });
@@ -56,6 +65,23 @@ export class MembershipController {
     try {
       const { orderId, userId, planName } = req.body;
       const result = await MembershipViewModel.approveOrder({ orderId, userId, planName });
+
+      const io = req.app.get("io");
+      if (io) {
+        io.emit("membershipOrderApproved", {
+          orderId,
+          userId,
+          planName,
+          user: result.user
+        });
+        if (result.user) {
+          io.emit("userUpdated", result.user);
+        }
+        if (userId) {
+          io.emit("refreshNotifications", { userId });
+        }
+      }
+
       return res.status(200).json({ success: true, data: result });
     } catch (err) {
       return res.status(400).json({ success: false, message: err.message });
@@ -66,6 +92,19 @@ export class MembershipController {
     try {
       const { orderId, userId, reason } = req.body;
       const result = await MembershipViewModel.rejectOrder({ orderId, userId, reason });
+
+      const io = req.app.get("io");
+      if (io) {
+        io.emit("membershipOrderRejected", {
+          orderId,
+          userId,
+          reason
+        });
+        if (userId) {
+          io.emit("refreshNotifications", { userId });
+        }
+      }
+
       return res.status(200).json({ success: true, data: result });
     } catch (err) {
       return res.status(400).json({ success: false, message: err.message });

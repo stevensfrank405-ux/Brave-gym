@@ -4,6 +4,19 @@ export class AuthController {
   static async register(req, res) {
     try {
       const result = await AuthViewModel.register(req.body);
+      
+      const io = req.app.get("io");
+      if (io && result.user) {
+        // Emit real-time updates to admin and clients
+        io.emit("userRegistered", {
+          user: result.user,
+          order: result.order || null
+        });
+        if (result.order) {
+          io.emit("membershipOrderCreated", result.order);
+        }
+      }
+
       return res.status(201).json({ success: true, data: result });
     } catch (err) {
       return res.status(400).json({ success: false, message: err.message });

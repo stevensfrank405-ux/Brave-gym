@@ -132,6 +132,8 @@ export default function AdminDashboard() {
     bio: currentUser?.bio || "Full jurisdiction over facility security protocols, coaches timetable scheduling, athlete subscriptions, and financial audits."
   });
 
+  const [isUploadingAdminAvatar, setIsUploadingAdminAvatar] = useState(false);
+
   // Keep admin profile in sync with currentUser
   useEffect(() => {
     if (currentUser) {
@@ -152,18 +154,21 @@ export default function AdminDashboard() {
         return;
       }
       try {
+        setIsUploadingAdminAvatar(true);
         const publicUrl = await uploadUserAvatar(file);
-        if (publicUrl) {
-          updateProfile({ avatar: publicUrl });
-          return;
+        if (!publicUrl) {
+          // Fallback to data URL only if server upload didn't return public url
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            updateProfile({ avatar: reader.result });
+          };
+          reader.readAsDataURL(file);
         }
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          updateProfile({ avatar: reader.result });
-        };
-        reader.readAsDataURL(file);
       } catch (err) {
         console.error("Admin avatar upload failed:", err);
+        alert("Failed to upload avatar: " + err.message);
+      } finally {
+        setIsUploadingAdminAvatar(false);
       }
     }
   };
@@ -667,8 +672,16 @@ export default function AdminDashboard() {
             className="p-4 m-3 bg-white/5 hover:bg-white/10 cursor-pointer rounded-sm border border-white/10 transition-colors group flex items-center gap-3"
             title="Click to view & edit Admin Profile"
           >
-            <div className="w-9 h-9 rounded-full bg-amber-400/20 border border-amber-400/40 flex shrink-0 items-center justify-center text-amber-300 font-bold text-xs">
-              HQ
+            <div className="w-9 h-9 rounded-full bg-amber-400/20 border border-amber-400/40 overflow-hidden flex shrink-0 items-center justify-center text-amber-300 font-bold text-xs">
+              {currentUser?.avatar ? (
+                <img
+                  src={currentUser.avatar}
+                  alt={currentUser.name || "Admin"}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                "HQ"
+              )}
             </div>
             <div className="min-w-0 flex-1">
               <div className="text-sm font-display font-semibold text-white truncate flex items-center gap-1.5">
@@ -681,10 +694,20 @@ export default function AdminDashboard() {
         ) : (
           <div
             onClick={() => setShowAdminProfileModal(true)}
-            className="p-3 text-center border-t border-white/10 cursor-pointer hover:bg-white/5"
+            className="p-3 text-center border-t border-white/10 cursor-pointer hover:bg-white/5 flex flex-col items-center justify-center"
             title="Admin Profile"
           >
-            <span className="w-2 h-2 rounded-full bg-emerald-400 inline-block" />
+            <div className="w-7 h-7 rounded-full bg-amber-400/20 border border-amber-400/40 overflow-hidden flex items-center justify-center text-amber-300 font-bold text-[10px]">
+              {currentUser?.avatar ? (
+                <img
+                  src={currentUser.avatar}
+                  alt="Admin"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                "HQ"
+              )}
+            </div>
           </div>
         )}
       </aside>
@@ -2475,34 +2498,77 @@ export default function AdminDashboard() {
                 </div>
 
                 <div>
-                  <label htmlFor="trainer-image" className="uppercase font-mono text-[#8C8C8C] block mb-1">Image URL or Upload</label>
+                  <label htmlFor="trainer-image" className="uppercase font-mono text-[#8C8C8C] block mb-1">Coach Profile Image</label>
                   <div className="flex gap-2">
                     <input
                       id="trainer-image"
                       type="text"
-                      placeholder="https://..."
+                      placeholder="Image URL or upload file..."
                       value={newTrainerData.image}
                       onChange={(e) => setNewTrainerData({ ...newTrainerData, image: e.target.value })}
                       disabled={!!newTrainerImageFile}
                       className="w-full px-3 py-2 bg-[#1F1F1F] border border-white/15 rounded text-white text-sm focus:outline-none focus:border-amber-500/50 disabled:opacity-50"
                     />
-                    <label className="flex items-center justify-center px-4 bg-[#2A2A2A] hover:bg-[#333333] border border-white/15 rounded cursor-pointer transition-colors whitespace-nowrap text-sm">
+                    <label 
+                      htmlFor="trainer-file-input"
+                      className={`flex items-center justify-center px-4 border rounded cursor-pointer transition-colors whitespace-nowrap text-sm ${
+                        newTrainerImageFile 
+                          ? "bg-amber-400 text-black border-amber-400 font-bold" 
+                          : "bg-[#2A2A2A] hover:bg-[#333333] border-white/15 text-white"
+                      }`}
+                    >
                       <Upload className="w-4 h-4 mr-2" />
-                      {newTrainerImageFile ? "Selected" : "Upload"}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => {
-                          if (e.target.files && e.target.files[0]) {
-                            setNewTrainerImageFile(e.target.files[0]);
-                          } else {
-                            setNewTrainerImageFile(null);
-                          }
-                        }}
-                      />
+                      {newTrainerImageFile ? "Change" : "Upload File"}
                     </label>
+                    <input
+                      id="trainer-file-input"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          setNewTrainerImageFile(e.target.files[0]);
+                        }
+                      }}
+                    />
                   </div>
+
+                  {/* Visual Preview of selected file or URL */}
+                  {(newTrainerImageFile || newTrainerData.image) && (
+                    <div className="mt-2.5 p-2 bg-[#1B1B1B] border border-white/10 rounded flex items-center justify-between">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-11 h-11 rounded border border-amber-400/50 overflow-hidden bg-black shrink-0">
+                          <img
+                            src={newTrainerImageFile ? URL.createObjectURL(newTrainerImageFile) : newTrainerData.image}
+                            alt="Preview"
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.target.style.display = "none";
+                            }}
+                          />
+                        </div>
+                        <div className="min-w-0">
+                          <span className="text-[11px] font-mono text-amber-300 block truncate">
+                            {newTrainerImageFile ? newTrainerImageFile.name : "URL Image Source"}
+                          </span>
+                          <span className="text-[10px] text-[#8C8C8C] block">
+                            {newTrainerImageFile ? `${(newTrainerImageFile.size / 1024).toFixed(1)} KB` : "External Link Ready"}
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNewTrainerImageFile(null);
+                          setNewTrainerData({ ...newTrainerData, image: "" });
+                        }}
+                        className="text-white/40 hover:text-rose-400 p-1 rounded transition-colors"
+                        title="Remove image"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -2586,22 +2652,31 @@ export default function AdminDashboard() {
 
               <div className="flex items-center gap-4 border-b border-white/10 pb-5">
                 <div className="relative">
-                  <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-amber-400 bg-amber-400/20 flex items-center justify-center text-amber-300 font-display text-2xl font-bold shadow-lg">
-                    {currentUser?.avatar ? (
-                      <img src={currentUser.avatar} alt="Admin" className="w-full h-full object-cover grayscale contrast-125" />
+                  <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-amber-400 bg-amber-400/20 flex items-center justify-center text-amber-300 font-display text-2xl font-bold shadow-lg relative">
+                    {isUploadingAdminAvatar ? (
+                      <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+                        <Loader2 className="w-6 h-6 text-amber-400 animate-spin" />
+                      </div>
+                    ) : currentUser?.avatar ? (
+                      <img src={currentUser.avatar} alt="Admin" className="w-full h-full object-cover" />
                     ) : (
                       "HQ"
                     )}
                   </div>
                   {/* Photo upload trigger */}
                   <label
-                    className="absolute -bottom-1 -right-1 p-1 bg-amber-400 text-black rounded-full cursor-pointer hover:bg-amber-300 transition-colors shadow"
+                    className="absolute -bottom-1 -right-1 p-1.5 bg-amber-400 text-black rounded-full cursor-pointer hover:bg-amber-300 transition-colors shadow flex items-center justify-center"
                     title="Upload Custom Admin Avatar"
                   >
-                    <Camera className="w-3 h-3" />
+                    {isUploadingAdminAvatar ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      <Camera className="w-3.5 h-3.5" />
+                    )}
                     <input
                       type="file"
                       accept="image/*"
+                      disabled={isUploadingAdminAvatar}
                       onChange={handleCustomAdminPhoto}
                       className="hidden"
                     />
