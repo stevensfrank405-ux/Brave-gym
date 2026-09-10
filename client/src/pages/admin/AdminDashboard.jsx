@@ -38,7 +38,9 @@ import {
   Mail,
   MapPin,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  Tag,
+  FolderPlus
 } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useGym } from "../../context/GymContext";
@@ -95,6 +97,65 @@ export default function AdminDashboard() {
   const [programForm, setProgramForm] = useState({
     category: "", tag: "", title: "", subtitle: "", duration: "60 MIN", intensity: "HIGH", trainer: "", capacity: 16, poster: "", details: ""
   });
+
+  // Curriculum & Programs Category Management
+  const [categoriesList, setCategoriesList] = useState(() => {
+    const saved = localStorage.getItem("brave_program_categories");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch {
+        // fallback
+      }
+    }
+    return ["BOXING", "STRENGTH", "METABOLIC", "RECOVERY", "CONDITIONING", "MMA"];
+  });
+  const [manageCategoryModal, setManageCategoryModal] = useState(false);
+  const [newCategoryInput, setNewCategoryInput] = useState("");
+
+  // Sync categoriesList whenever programs change with dynamic categories
+  useEffect(() => {
+    if (programs && programs.length > 0) {
+      const dynamicFromPrograms = programs
+        .map((p) => p.category?.toUpperCase()?.trim())
+        .filter((c) => c && c !== "ALL");
+      setCategoriesList((prev) => {
+        const merged = Array.from(new Set([...prev, ...dynamicFromPrograms]));
+        localStorage.setItem("brave_program_categories", JSON.stringify(merged));
+        return merged;
+      });
+    }
+  }, [programs]);
+
+  const handleAddCategory = (e) => {
+    if (e) e.preventDefault();
+    const clean = newCategoryInput.trim().toUpperCase();
+    if (!clean) return;
+    if (categoriesList.includes(clean)) {
+      alert("This category already exists!");
+      return;
+    }
+    const updated = [...categoriesList, clean];
+    setCategoriesList(updated);
+    localStorage.setItem("brave_program_categories", JSON.stringify(updated));
+    setNewCategoryInput("");
+  };
+
+  const handleRemoveCategory = (catToRemove) => {
+    if (["BOXING", "STRENGTH"].includes(catToRemove) && categoriesList.length <= 2) {
+      alert("At least one category must remain.");
+      return;
+    }
+    if (!window.confirm(`Are you sure you want to remove category "${catToRemove}"?`)) return;
+    const updated = categoriesList.filter((c) => c !== catToRemove);
+    setCategoriesList(updated);
+    localStorage.setItem("brave_program_categories", JSON.stringify(updated));
+    if (programForm.category === catToRemove) {
+      setProgramForm((prev) => ({ ...prev, category: updated[0] || "" }));
+    }
+  };
+
   const [showAdminProfileModal, setShowAdminProfileModal] = useState(false);
   const [newTierModal, setNewTierModal] = useState(false);
   const [newTrainerModal, setNewTrainerModal] = useState(false);
@@ -1213,21 +1274,62 @@ export default function AdminDashboard() {
         {/* Tab Content: Curriculum / Programs */}
         {(activeTab === "overview" || activeTab === "programs") && (
           <div className="space-y-6 pt-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h2 className="font-display text-2xl font-bold text-white uppercase">Curriculum & Programs</h2>
-                <p className="text-sm text-[#8C8C8C] mt-1">Manage disciplines and program categories.</p>
+                <p className="text-sm text-[#8C8C8C] mt-1">Manage disciplines, curriculum slots, and program categories.</p>
               </div>
+              <div className="flex items-center gap-2.5">
+                <button
+                  onClick={() => setManageCategoryModal(true)}
+                  className="px-3.5 py-2 bg-[#1F1F1F] hover:bg-[#2A2A2A] text-amber-400 border border-amber-400/30 font-bold text-xs uppercase tracking-wider rounded-sm flex items-center gap-1.5 transition-colors"
+                  title="Create, view, and remove program categories"
+                >
+                  <Tag className="w-3.5 h-3.5" />
+                  <span>Categories ({categoriesList.length})</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setEditingProgram(null);
+                    const defaultTrainer = trainers && trainers.length > 0 ? trainers[0].name : "";
+                    const defaultCategory = categoriesList && categoriesList.length > 0 ? categoriesList[0] : "BOXING";
+                    setProgramForm({ category: defaultCategory, tag: "", title: "", subtitle: "", duration: "60 MIN", intensity: "HIGH", trainer: defaultTrainer, capacity: 16, poster: "", details: "" });
+                    setProgramModal(true);
+                  }}
+                  className="px-4 py-2 bg-white text-black font-bold text-xs uppercase tracking-wider rounded-sm hover:bg-[#F5F5F3] flex items-center gap-1.5"
+                >
+                  <Plus className="w-3.5 h-3.5" /> New Program
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Category Badges Bar */}
+            <div className="flex flex-wrap items-center gap-2 p-3 bg-[#141414] border border-white/10 rounded-sm">
+              <span className="text-[11px] font-mono uppercase text-[#8C8C8C] mr-1 flex items-center gap-1">
+                <Tag className="w-3 h-3 text-amber-400" /> Active Categories:
+              </span>
+              {categoriesList.map((cat) => (
+                <span
+                  key={cat}
+                  className="px-2.5 py-0.5 rounded bg-white/5 border border-white/10 text-white font-mono text-[11px] uppercase flex items-center gap-1.5"
+                >
+                  <span>{cat}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveCategory(cat)}
+                    className="text-white/40 hover:text-rose-400 transition-colors ml-0.5"
+                    title={`Delete category ${cat}`}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
               <button
-                onClick={() => {
-                  setEditingProgram(null);
-                  const defaultTrainer = trainers && trainers.length > 0 ? trainers[0].name : "";
-                  setProgramForm({ category: "", tag: "", title: "", subtitle: "", duration: "60 MIN", intensity: "HIGH", trainer: defaultTrainer, capacity: 16, poster: "", details: "" });
-                  setProgramModal(true);
-                }}
-                className="px-4 py-2 bg-white text-black font-bold text-xs uppercase tracking-wider rounded-sm hover:bg-[#F5F5F3] flex items-center gap-1.5"
+                type="button"
+                onClick={() => setManageCategoryModal(true)}
+                className="text-[11px] font-mono text-amber-400 hover:text-amber-300 underline underline-offset-2 ml-1"
               >
-                <Plus className="w-3.5 h-3.5" /> New Program
+                + Add / Manage
               </button>
             </div>
 
@@ -3520,15 +3622,36 @@ export default function AdminDashboard() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-mono text-[#8C8C8C] mb-1 uppercase tracking-wider">Category</label>
-                  <input
-                    type="text"
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-mono text-[#8C8C8C] uppercase tracking-wider">Category</label>
+                    <button
+                      type="button"
+                      onClick={() => setManageCategoryModal(true)}
+                      className="text-[10px] font-mono text-amber-400 hover:text-amber-300 underline"
+                    >
+                      + Manage
+                    </button>
+                  </div>
+                  <select
                     required
                     value={programForm.category}
-                    onChange={(e) => setProgramForm({ ...programForm, category: e.target.value.toUpperCase() })}
-                    className="w-full bg-black border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30"
-                    placeholder="e.g. BOXING"
-                  />
+                    onChange={(e) => {
+                      if (e.target.value === "__NEW__") {
+                        setManageCategoryModal(true);
+                      } else {
+                        setProgramForm({ ...programForm, category: e.target.value });
+                      }
+                    }}
+                    className="w-full bg-black border border-white/10 rounded px-3 py-2 text-sm text-white font-mono focus:outline-none focus:border-amber-400"
+                  >
+                    <option value="">-- Select Category --</option>
+                    {categoriesList.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                    <option value="__NEW__">➕ Create New Category...</option>
+                  </select>
                 </div>
               </div>
 
@@ -3667,6 +3790,110 @@ export default function AdminDashboard() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MANAGE PROGRAM CATEGORIES MODAL */}
+      {manageCategoryModal && (
+        <div 
+          onClick={() => setManageCategoryModal(false)}
+          className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-fade-in"
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-[#141414] border border-white/15 rounded w-full max-w-md shadow-2xl overflow-hidden space-y-5 p-6"
+          >
+            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+              <div className="flex items-center gap-2">
+                <Tag className="w-5 h-5 text-amber-400" />
+                <h3 className="font-display text-xl font-bold text-white uppercase tracking-tight">
+                  Program Categories
+                </h3>
+              </div>
+              <button
+                onClick={() => setManageCategoryModal(false)}
+                className="text-[#8C8C8C] hover:text-white transition-colors p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Create Category Form */}
+            <form onSubmit={handleAddCategory} className="space-y-2">
+              <label className="block text-xs font-mono text-[#8C8C8C] uppercase tracking-wider">
+                Create New Category
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. KICKBOXING, HYROX..."
+                  value={newCategoryInput}
+                  onChange={(e) => setNewCategoryInput(e.target.value.toUpperCase())}
+                  className="flex-1 bg-[#1A1A1A] border border-white/10 rounded px-3 py-2 text-sm text-white uppercase font-mono focus:outline-none focus:border-amber-400"
+                />
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-amber-400 hover:bg-amber-300 text-black font-bold text-xs uppercase tracking-wider rounded transition-colors flex items-center gap-1 shrink-0"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add</span>
+                </button>
+              </div>
+            </form>
+
+            {/* Existing Categories List */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-mono text-[#8C8C8C] uppercase tracking-wider">
+                  Configured Categories ({categoriesList.length})
+                </label>
+                <span className="text-[10px] text-[#8C8C8C] font-mono">Syncs with Curriculum & Programs</span>
+              </div>
+              <div className="max-h-60 overflow-y-auto space-y-1.5 pr-1 border border-white/10 rounded bg-[#0A0A0A] p-2">
+                {categoriesList.map((cat) => {
+                  const usageCount = (programs || []).filter(
+                    (p) => (p.category || "").toUpperCase() === cat
+                  ).length;
+
+                  return (
+                    <div
+                      key={cat}
+                      className="flex items-center justify-between p-2 rounded bg-[#161616] hover:bg-[#1F1F1F] transition-colors border border-white/5"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <Tag className="w-3.5 h-3.5 text-amber-400" />
+                        <span className="font-mono text-xs font-bold text-white uppercase">
+                          {cat}
+                        </span>
+                        <span className="text-[10px] font-mono text-[#8C8C8C] bg-white/5 px-1.5 py-0.5 rounded">
+                          {usageCount} {usageCount === 1 ? "program" : "programs"}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveCategory(cat)}
+                        className="text-white/40 hover:text-rose-400 p-1 rounded transition-colors"
+                        title={`Delete ${cat}`}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="pt-3 border-t border-white/10 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setManageCategoryModal(false)}
+                className="px-5 py-2 bg-white text-black font-bold uppercase text-xs rounded hover:bg-[#F5F5F3] transition-colors"
+              >
+                Done
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -17,12 +17,18 @@ export default function Programs() {
 
   const isPending = currentUser && currentUser.role !== "admin" && (currentUser.status === "Pending" || currentUser.status?.toLowerCase().includes("pending"));
 
-  // Ensure standard categories plus dynamic ones from DB programs are always available
+  // Ensure standard categories, stored categories, plus dynamic ones from DB programs are always available
   const baseCategories = ["BOXING", "STRENGTH", "METABOLIC", "RECOVERY"];
+  let storedCategories = [];
+  try {
+    const saved = localStorage.getItem("brave_program_categories");
+    if (saved) storedCategories = JSON.parse(saved);
+  } catch {}
+
   const dynamicCategories = (programs || [])
     .map((p) => p.category?.toUpperCase() || (p.id ? p.id.toUpperCase() : ""))
     .filter((c) => c && c !== "ALL");
-  const categories = ["ALL", ...Array.from(new Set([...baseCategories, ...dynamicCategories]))];
+  const categories = ["ALL", ...Array.from(new Set([...baseCategories, ...storedCategories, ...dynamicCategories]))];
 
   const filteredPrograms = (programs || []).filter((p) => {
     if (selectedCategory === "ALL") return true;
