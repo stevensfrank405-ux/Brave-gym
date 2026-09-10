@@ -309,6 +309,42 @@ export function GymProvider({ children }) {
           if (Array.isArray(myNotifs)) setUserNotifications(myNotifs);
         }
       });
+
+      // Synchronize created trainers in real-time
+      socket.on("trainerCreated", (newTrainer) => {
+        setTrainers((prev) => {
+          if (prev.some((t) => t.id === newTrainer.id)) return prev;
+          return [...prev, newTrainer];
+        });
+      });
+
+      socket.on("trainerUpdated", (updatedTrainer) => {
+        setTrainers((prev) =>
+          prev.map((t) => (t.id === updatedTrainer.id ? updatedTrainer : t))
+        );
+      });
+
+      socket.on("trainerDeleted", ({ id }) => {
+        setTrainers((prev) => prev.filter((t) => t.id !== id));
+      });
+
+      // Synchronize programs in real-time
+      socket.on("programCreated", (newProgram) => {
+        setPrograms((prev) => {
+          if (prev.some((p) => p.id === newProgram.id)) return prev;
+          return [...prev, newProgram];
+        });
+      });
+
+      socket.on("programUpdated", (updatedProgram) => {
+        setPrograms((prev) =>
+          prev.map((p) => (p.id === updatedProgram.id ? updatedProgram : p))
+        );
+      });
+
+      socket.on("programDeleted", ({ id }) => {
+        setPrograms((prev) => prev.filter((p) => p.id !== id));
+      });
     };
     initAuth();
 

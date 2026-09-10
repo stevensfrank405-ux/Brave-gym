@@ -49,6 +49,10 @@ router.delete("/users/:id", authenticate, requireAdmin, AdminController.deleteUs
 router.post("/trainers", authenticate, requireAdmin, async (req, res) => {
   try {
     const trainer = await TrainerModel.create(req.body);
+    const io = req.app.get("io");
+    if (io && trainer) {
+      io.emit("trainerCreated", trainer);
+    }
     res.status(201).json(trainer);
   } catch (error) {
     res.status(500).json({ message: "Error creating trainer", error: error.message });
@@ -59,6 +63,10 @@ router.put("/trainers/:id", authenticate, requireAdmin, async (req, res) => {
   try {
     const trainer = await TrainerModel.update(req.params.id, req.body);
     if (!trainer) return res.status(404).json({ message: "Trainer not found" });
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("trainerUpdated", trainer);
+    }
     res.json(trainer);
   } catch (error) {
     res.status(500).json({ message: "Error updating trainer", error: error.message });
@@ -69,6 +77,10 @@ router.delete("/trainers/:id", authenticate, requireAdmin, async (req, res) => {
   try {
     const success = await TrainerModel.delete(req.params.id);
     if (!success) return res.status(404).json({ message: "Trainer not found" });
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("trainerDeleted", { id: req.params.id });
+    }
     res.json({ message: "Trainer deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: "Error deleting trainer", error: error.message });

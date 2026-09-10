@@ -1196,7 +1196,8 @@ export default function AdminDashboard() {
               <button
                 onClick={() => {
                   setEditingProgram(null);
-                  setProgramForm({ category: "", tag: "", title: "", subtitle: "", duration: "60 MIN", intensity: "HIGH", trainer: "", capacity: 16, poster: "", details: "" });
+                  const defaultTrainer = trainers && trainers.length > 0 ? trainers[0].name : "";
+                  setProgramForm({ category: "", tag: "", title: "", subtitle: "", duration: "60 MIN", intensity: "HIGH", trainer: defaultTrainer, capacity: 16, poster: "", details: "" });
                   setProgramModal(true);
                 }}
                 className="px-4 py-2 bg-white text-black font-bold text-xs uppercase tracking-wider rounded-sm hover:bg-[#F5F5F3] flex items-center gap-1.5"
@@ -1215,8 +1216,15 @@ export default function AdminDashboard() {
                       </div>
                       <div>
                         <h4 className="font-display text-sm sm:text-base font-bold text-white uppercase">{prog?.title}</h4>
-                        <span className="text-[10px] sm:text-xs font-mono text-[#8C8C8C] bg-white/5 px-2 py-0.5 rounded mr-2">{prog?.category || "ALL"}</span>
-                        <span className="text-[10px] sm:text-xs font-mono text-[#8C8C8C]">{prog?.duration} • {prog?.intensity}</span>
+                        <div className="flex flex-wrap items-center gap-2 mt-1">
+                          <span className="text-[10px] sm:text-xs font-mono text-[#8C8C8C] bg-white/5 px-2 py-0.5 rounded">{prog?.category || "ALL"}</span>
+                          <span className="text-[10px] sm:text-xs font-mono text-[#8C8C8C]">{prog?.duration} • {prog?.intensity}</span>
+                          {prog?.trainer && (
+                            <span className="text-[10px] sm:text-xs font-mono text-amber-400 bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded flex items-center gap-1">
+                              Coach: <strong className="text-white font-medium">{prog.trainer}</strong>
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -2145,25 +2153,33 @@ export default function AdminDashboard() {
                     <div className="space-y-1.5">
                       <select
                         id="session-coach-select"
-                        value={newClassData.trainer}
-                        onChange={(e) => setNewClassData({ ...newClassData, trainer: e.target.value })}
+                        value={trainers.some(t => t.name === newClassData.trainer) ? newClassData.trainer : (newClassData.trainer ? "custom" : "")}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val !== "custom") {
+                            setNewClassData({ ...newClassData, trainer: val });
+                          }
+                        }}
                         className="w-full px-3 py-2 bg-[#1F1F1F] border border-white/15 rounded text-white text-sm focus:outline-none"
                       >
-                        <option value="">-- Select or type below --</option>
+                        <option value="">-- Select Created Trainer --</option>
                         {trainers.map((t) => (
                           <option key={t.id || t.name} value={t.name}>{t.name} ({t.role || "Coach"})</option>
                         ))}
+                        <option value="custom">✏️ Custom / Other Coach...</option>
                       </select>
-                      <input
-                        id="session-coach"
-                        name="sessionCoach"
-                        type="text"
-                        required
-                        placeholder="e.g. Marcus Vance"
-                        value={newClassData.trainer}
-                        onChange={(e) => setNewClassData({ ...newClassData, trainer: e.target.value })}
-                        className="w-full px-3 py-2 bg-[#1F1F1F] border border-white/15 rounded text-white text-sm focus:outline-none"
-                      />
+                      {(!trainers.some(t => t.name === newClassData.trainer) || !newClassData.trainer) && (
+                        <input
+                          id="session-coach"
+                          name="sessionCoach"
+                          type="text"
+                          required
+                          placeholder="Or enter coach name manually..."
+                          value={newClassData.trainer}
+                          onChange={(e) => setNewClassData({ ...newClassData, trainer: e.target.value })}
+                          className="w-full px-3 py-2 bg-[#1F1F1F] border border-white/15 rounded text-white text-sm focus:outline-none"
+                        />
+                      )}
                     </div>
                   ) : (
                     <input
@@ -3452,15 +3468,48 @@ export default function AdminDashboard() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-mono text-[#8C8C8C] mb-1 uppercase tracking-wider">Trainer</label>
-                  <input
-                    type="text"
-                    required
-                    value={programForm.trainer}
-                    onChange={(e) => setProgramForm({ ...programForm, trainer: e.target.value })}
-                    className="w-full bg-black border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30"
-                    placeholder="e.g. Coach Alex"
-                  />
+                  <label className="block text-xs font-mono text-[#8C8C8C] mb-1 uppercase tracking-wider">Trainer / Coach</label>
+                  {trainers && trainers.length > 0 ? (
+                    <div className="space-y-1.5">
+                      <select
+                        value={trainers.some(t => t.name === programForm.trainer) ? programForm.trainer : (programForm.trainer ? "custom" : "")}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val !== "custom") {
+                            setProgramForm({ ...programForm, trainer: val });
+                          }
+                        }}
+                        className="w-full bg-black border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30"
+                      >
+                        <option value="">-- Select Created Trainer --</option>
+                        {trainers.map((t) => (
+                          <option key={t.id || t.name} value={t.name}>
+                            {t.name} ({t.role || "Coach"})
+                          </option>
+                        ))}
+                        <option value="custom">✏️ Custom / Other Trainer...</option>
+                      </select>
+                      {(!trainers.some(t => t.name === programForm.trainer) || !programForm.trainer) && (
+                        <input
+                          type="text"
+                          required
+                          value={programForm.trainer}
+                          onChange={(e) => setProgramForm({ ...programForm, trainer: e.target.value })}
+                          className="w-full bg-black border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30"
+                          placeholder="Or type trainer name manually..."
+                        />
+                      )}
+                    </div>
+                  ) : (
+                    <input
+                      type="text"
+                      required
+                      value={programForm.trainer}
+                      onChange={(e) => setProgramForm({ ...programForm, trainer: e.target.value })}
+                      className="w-full bg-black border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30"
+                      placeholder="e.g. Coach Alex"
+                    />
+                  )}
                 </div>
               </div>
 

@@ -25,6 +25,10 @@ export class ProgramController {
   static async create(req, res) {
     try {
       const program = await ProgramModel.create(req.body);
+      const io = req.app.get("io");
+      if (io && program) {
+        io.emit("programCreated", program);
+      }
       res.status(201).json({ success: true, data: program });
     } catch (err) {
       console.error("Error creating program:", err);
@@ -36,6 +40,10 @@ export class ProgramController {
     try {
       const program = await ProgramModel.update(req.params.id, req.body);
       if (!program) return res.status(404).json({ success: false, message: "Program not found" });
+      const io = req.app.get("io");
+      if (io) {
+        io.emit("programUpdated", program);
+      }
       res.json({ success: true, data: program });
     } catch (err) {
       console.error("Error updating program:", err);
@@ -47,6 +55,10 @@ export class ProgramController {
     try {
       const success = await ProgramModel.delete(req.params.id);
       if (!success) return res.status(404).json({ error: "Program not found" });
+      const io = req.app.get("io");
+      if (io) {
+        io.emit("programDeleted", { id: req.params.id });
+      }
       res.json({ success: true });
     } catch (err) {
       console.error("Error deleting program:", err);
