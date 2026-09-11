@@ -272,23 +272,31 @@ export default function Programs() {
               const userBooking = (bookings || []).find((b) => {
                 if (b.classTitle?.toLowerCase() !== sc.classTitle?.toLowerCase()) return false;
                 
-                // Fallback for older formats ("Monday, 09:00 AM")
-                if (sc.day && b.date?.toLowerCase().includes(sc.day.toLowerCase())) return true;
-                
-                // Also check if time is explicitly in the date (since date picker formattedDate includes time)
+                let matchesDay = false;
+                let matchesTime = false;
+
+                // Check day
+                if (sc.day && b.date?.toLowerCase().includes(sc.day.toLowerCase())) {
+                  matchesDay = true;
+                } else {
+                  const parsedDate = new Date(b.date);
+                  if (!isNaN(parsedDate) && sc.day) {
+                    const weekday = parsedDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+                    if (weekday === sc.day.toLowerCase()) matchesDay = true;
+                  }
+                }
+
+                // Check time
                 if (sc.time) {
                   const timeWithoutAmPm = sc.time.split(" ")[0].toLowerCase();
-                  if (b.date?.toLowerCase().includes(timeWithoutAmPm)) return true;
+                  if (b.date?.toLowerCase().includes(timeWithoutAmPm)) {
+                    matchesTime = true;
+                  }
+                } else {
+                  matchesTime = true; // if sc doesn't specify time, assume match
                 }
-                
-                // For new formats ("2023-11-20 09:00")
-                const parsedDate = new Date(b.date);
-                if (!isNaN(parsedDate) && sc.day) {
-                  const weekday = parsedDate.toLocaleDateString('en-US', { weekday: 'long' });
-                  return weekday.toLowerCase() === sc.day.toLowerCase();
-                }
-                
-                return false;
+
+                return matchesDay && matchesTime;
               });
 
               const bookingStatus = (userBooking?.status || "").toLowerCase();
