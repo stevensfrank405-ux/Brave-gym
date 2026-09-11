@@ -2241,34 +2241,29 @@ export default function AdminDashboard() {
                 </div>
 
                 <div>
-                  <label htmlFor="session-discipline" className="uppercase font-mono text-[#8C8C8C] block mb-1">Discipline (Curriculum & Programs)</label>
+                  <label htmlFor="session-discipline" className="uppercase font-mono text-[#8C8C8C] block mb-1">Discipline (Category)</label>
                   <select
                     id="session-discipline"
                     name="sessionDiscipline"
                     value={newClassData.classTitle}
-                    onChange={(e) => {
-                      const selectedTitle = e.target.value;
-                      const matchedProg = programs?.find(p => p.title === selectedTitle);
-                      setNewClassData(prev => ({
-                        ...prev,
-                        classTitle: selectedTitle,
-                        trainer: matchedProg?.trainer || prev.trainer
-                      }));
-                    }}
+                    onChange={(e) => setNewClassData({ ...newClassData, classTitle: e.target.value })}
                     className="w-full px-3 py-2 bg-[#1F1F1F] border border-white/15 rounded text-white text-sm focus:outline-none"
                   >
-                    {programs && programs.length > 0 ? (
-                      programs.map((prog) => (
-                        <option key={prog.id} value={prog.title}>
-                          {prog.title} ({prog.category || "GENERAL"})
+                    <option value="">-- Select Discipline Category --</option>
+                    {categoriesList && categoriesList.length > 0 ? (
+                      categoriesList.map((cat) => (
+                        <option key={cat} value={cat}>
+                          {cat}
                         </option>
                       ))
                     ) : (
                       <>
-                        <option value="Championship Boxing">Championship Boxing</option>
-                        <option value="Iron Discipline Strength">Iron Discipline Strength</option>
-                        <option value="Metabolic Warfare">Metabolic Warfare</option>
-                        <option value="Kinetic Reset & Ice Protocol">Kinetic Reset & Ice Protocol</option>
+                        <option value="BOXING">BOXING</option>
+                        <option value="STRENGTH">STRENGTH</option>
+                        <option value="METABOLIC">METABOLIC</option>
+                        <option value="RECOVERY">RECOVERY</option>
+                        <option value="CONDITIONING">CONDITIONING</option>
+                        <option value="MMA">MMA</option>
                       </>
                     )}
                   </select>
