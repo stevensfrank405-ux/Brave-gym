@@ -97,6 +97,7 @@ export default function AdminDashboard() {
   const [programForm, setProgramForm] = useState({
     category: "", tag: "", title: "", subtitle: "", duration: "60 MIN", intensity: "HIGH", trainer: "", capacity: 16, poster: "", details: ""
   });
+  const [programImageFile, setProgramImageFile] = useState(null);
 
   // Curriculum & Programs Category Management
   const [categoriesList, setCategoriesList] = useState(() => {
@@ -339,13 +340,24 @@ export default function AdminDashboard() {
   const handleSaveProgram = async (e) => {
     e.preventDefault();
     try {
+      let finalProgramData = { ...programForm };
+      if (programImageFile) {
+        const reader = new FileReader();
+        const base64Promise = new Promise((resolve) => {
+          reader.onloadend = () => resolve(reader.result);
+          reader.readAsDataURL(programImageFile);
+        });
+        finalProgramData.poster = await base64Promise;
+      }
+
       if (editingProgram) {
-        await editProgram(editingProgram.id, programForm);
+        await editProgram(editingProgram.id, finalProgramData);
       } else {
-        await addProgram(programForm);
+        await addProgram(finalProgramData);
       }
       setProgramModal(false);
       setEditingProgram(null);
+      setProgramImageFile(null);
       setProgramForm({ category: "", tag: "", title: "", subtitle: "", duration: "60 MIN", intensity: "HIGH", trainer: "", capacity: 16, poster: "", details: "" });
     } catch (err) {
       alert("Failed to save program: " + err.message);
@@ -363,6 +375,7 @@ export default function AdminDashboard() {
 
   const openEditProgram = (prog) => {
     setEditingProgram(prog);
+    setProgramImageFile(null);
     setProgramForm({
       category: prog.category || "ALL",
       tag: prog.tag || "",
@@ -1291,6 +1304,7 @@ export default function AdminDashboard() {
                 <button
                   onClick={() => {
                     setEditingProgram(null);
+                    setProgramImageFile(null);
                     const defaultTrainer = trainers && trainers.length > 0 ? trainers[0].name : "";
                     const defaultCategory = categoriesList && categoriesList.length > 0 ? categoriesList[0] : "BOXING";
                     setProgramForm({ category: defaultCategory, tag: "", title: "", subtitle: "", duration: "60 MIN", intensity: "HIGH", trainer: defaultTrainer, capacity: 16, poster: "", details: "" });
@@ -3690,14 +3704,77 @@ export default function AdminDashboard() {
               </div>
 
               <div>
-                <label className="block text-xs font-mono text-[#8C8C8C] mb-1 uppercase tracking-wider">Poster Image URL (Optional)</label>
-                <input
-                  type="text"
-                  value={programForm.poster}
-                  onChange={(e) => setProgramForm({ ...programForm, poster: e.target.value })}
-                  className="w-full bg-black border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30"
-                  placeholder="e.g. /media/boxing.jpg"
-                />
+                <label htmlFor="program-image" className="block text-xs font-mono text-[#8C8C8C] mb-1 uppercase tracking-wider">Poster Image (Optional)</label>
+                <div className="flex gap-2">
+                  <input
+                    id="program-image"
+                    type="text"
+                    placeholder="Image URL or upload file..."
+                    value={programForm.poster}
+                    onChange={(e) => setProgramForm({ ...programForm, poster: e.target.value })}
+                    disabled={!!programImageFile}
+                    className="w-full bg-black border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30 disabled:opacity-50"
+                  />
+                  <label
+                    htmlFor="program-file-input"
+                    className={`relative flex items-center justify-center px-4 border rounded cursor-pointer transition-colors whitespace-nowrap text-sm ${
+                      programImageFile 
+                        ? "bg-amber-400 text-black border-amber-400 font-bold" 
+                        : "bg-[#2A2A2A] hover:bg-[#333333] border-white/15 text-white"
+                    }`}
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    {programImageFile ? "Change" : "Upload File"}
+                    <input
+                      id="program-file-input"
+                      type="file"
+                      accept="image/*"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          setProgramImageFile(e.target.files[0]);
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+                
+                {/* Visual Preview */}
+                {(programImageFile || programForm.poster) && (
+                  <div className="mt-2.5 p-2 bg-[#1B1B1B] border border-white/10 rounded flex items-center justify-between">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-11 h-11 rounded border border-amber-400/50 overflow-hidden bg-black shrink-0">
+                        <img
+                          src={programImageFile ? URL.createObjectURL(programImageFile) : programForm.poster}
+                          alt="Preview"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.style.display = "none";
+                          }}
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <span className="text-[11px] font-mono text-amber-300 block truncate">
+                          {programImageFile ? programImageFile.name : "URL Image Source"}
+                        </span>
+                        <span className="text-[10px] text-[#8C8C8C] block">
+                          {programImageFile ? `${(programImageFile.size / 1024).toFixed(1)} KB` : "External Link Ready"}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setProgramImageFile(null);
+                        setProgramForm({ ...programForm, poster: "" });
+                      }}
+                      className="text-white/40 hover:text-rose-400 p-1 rounded transition-colors"
+                      title="Remove image"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -3718,6 +3795,7 @@ export default function AdminDashboard() {
                   onClick={() => {
                     setProgramModal(false);
                     setEditingProgram(null);
+                    setProgramImageFile(null);
                   }}
                   className="px-4 py-2 text-xs font-bold text-white/70 hover:text-white uppercase tracking-wider transition-colors"
                 >
