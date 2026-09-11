@@ -2276,49 +2276,20 @@ export default function AdminDashboard() {
 
                 <div>
                   <label htmlFor="session-coach" className="uppercase font-mono text-[#8C8C8C] block mb-1">Lead Coach</label>
-                  {trainers && trainers.length > 0 ? (
-                    <div className="space-y-1.5">
-                      <select
-                        id="session-coach-select"
-                        value={trainers.some(t => t.name === newClassData.trainer) ? newClassData.trainer : (newClassData.trainer ? "custom" : "")}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          if (val !== "custom") {
-                            setNewClassData({ ...newClassData, trainer: val });
-                          }
-                        }}
-                        className="w-full px-3 py-2 bg-[#1F1F1F] border border-white/15 rounded text-white text-sm focus:outline-none"
-                      >
-                        <option value="">-- Select Created Trainer --</option>
-                        {trainers.map((t) => (
-                          <option key={t.id || t.name} value={t.name}>{t.name} ({t.role || "Coach"})</option>
-                        ))}
-                        <option value="custom">✏️ Custom / Other Coach...</option>
-                      </select>
-                      {(!trainers.some(t => t.name === newClassData.trainer) || !newClassData.trainer) && (
-                        <input
-                          id="session-coach"
-                          name="sessionCoach"
-                          type="text"
-                          required
-                          placeholder="Or enter coach name manually..."
-                          value={newClassData.trainer}
-                          onChange={(e) => setNewClassData({ ...newClassData, trainer: e.target.value })}
-                          className="w-full px-3 py-2 bg-[#1F1F1F] border border-white/15 rounded text-white text-sm focus:outline-none"
-                        />
-                      )}
-                    </div>
-                  ) : (
-                    <input
-                      id="session-coach"
-                      name="sessionCoach"
-                      type="text"
-                      required
-                      placeholder="e.g. Marcus Vance"
-                      value={newClassData.trainer}
-                      onChange={(e) => setNewClassData({ ...newClassData, trainer: e.target.value })}
-                      className="w-full px-3 py-2 bg-[#1F1F1F] border border-white/15 rounded text-white text-sm focus:outline-none"
-                    />
+                  <select
+                    id="session-coach"
+                    value={newClassData.trainer}
+                    onChange={(e) => setNewClassData({ ...newClassData, trainer: e.target.value })}
+                    required
+                    className="w-full px-3 py-2 bg-[#1F1F1F] border border-white/15 rounded text-white text-sm focus:outline-none"
+                  >
+                    <option value="">-- Select Created Trainer --</option>
+                    {trainers && trainers.map((t) => (
+                      <option key={t.id || t.name} value={t.name}>{t.name} ({t.role || "Coach"})</option>
+                    ))}
+                  </select>
+                  {(!trainers || trainers.length === 0) && (
+                    <p className="text-xs text-amber-400 mt-1">No trainers available. Please create one in the Trainers tab.</p>
                   )}
                 </div>
 
@@ -2611,9 +2582,9 @@ export default function AdminDashboard() {
                       disabled={!!newTrainerImageFile}
                       className="w-full px-3 py-2 bg-[#1F1F1F] border border-white/15 rounded text-white text-sm focus:outline-none focus:border-amber-500/50 disabled:opacity-50"
                     />
-                    <label 
+                    <label
                       htmlFor="trainer-file-input"
-                      className={`flex items-center justify-center px-4 border rounded cursor-pointer transition-colors whitespace-nowrap text-sm ${
+                      className={`relative flex items-center justify-center px-4 border rounded cursor-pointer transition-colors whitespace-nowrap text-sm ${
                         newTrainerImageFile 
                           ? "bg-amber-400 text-black border-amber-400 font-bold" 
                           : "bg-[#2A2A2A] hover:bg-[#333333] border-white/15 text-white"
@@ -2621,18 +2592,18 @@ export default function AdminDashboard() {
                     >
                       <Upload className="w-4 h-4 mr-2" />
                       {newTrainerImageFile ? "Change" : "Upload File"}
+                      <input
+                        id="trainer-file-input"
+                        type="file"
+                        accept="image/*"
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            setNewTrainerImageFile(e.target.files[0]);
+                          }
+                        }}
+                      />
                     </label>
-                    <input
-                      id="trainer-file-input"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        if (e.target.files && e.target.files[0]) {
-                          setNewTrainerImageFile(e.target.files[0]);
-                        }
-                      }}
-                    />
                   </div>
 
                   {/* Visual Preview of selected file or URL */}
@@ -2780,7 +2751,7 @@ export default function AdminDashboard() {
                       accept="image/*"
                       disabled={isUploadingAdminAvatar}
                       onChange={handleCustomAdminPhoto}
-                      className="hidden"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                     />
                   </label>
                 </div>
@@ -3509,7 +3480,7 @@ export default function AdminDashboard() {
                       type="button"
                       onClick={async () => {
                         try {
-                          await approveMembershipOrder(selectedOrder.id, selectedOrder.userId, selectedOrder.plan);
+                          await approveMembershipOrder(selectedOrder.id, selectedOrder.user_id || selectedOrder.userId, selectedOrder.plan);
                           setSelectedOrder((prev) => ({ ...prev, status: "Confirmed" }));
                           alert("Membership successfully confirmed & athlete activated!");
                         } catch (e) {
@@ -3669,46 +3640,21 @@ export default function AdminDashboard() {
                 </div>
                 <div>
                   <label className="block text-xs font-mono text-[#8C8C8C] mb-1 uppercase tracking-wider">Trainer / Coach</label>
-                  {trainers && trainers.length > 0 ? (
-                    <div className="space-y-1.5">
-                      <select
-                        value={trainers.some(t => t.name === programForm.trainer) ? programForm.trainer : (programForm.trainer ? "custom" : "")}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          if (val !== "custom") {
-                            setProgramForm({ ...programForm, trainer: val });
-                          }
-                        }}
-                        className="w-full bg-black border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30"
-                      >
-                        <option value="">-- Select Created Trainer --</option>
-                        {trainers.map((t) => (
-                          <option key={t.id || t.name} value={t.name}>
-                            {t.name} ({t.role || "Coach"})
-                          </option>
-                        ))}
-                        <option value="custom">✏️ Custom / Other Trainer...</option>
-                      </select>
-                      {(!trainers.some(t => t.name === programForm.trainer) || !programForm.trainer) && (
-                        <input
-                          type="text"
-                          required
-                          value={programForm.trainer}
-                          onChange={(e) => setProgramForm({ ...programForm, trainer: e.target.value })}
-                          className="w-full bg-black border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30"
-                          placeholder="Or type trainer name manually..."
-                        />
-                      )}
-                    </div>
-                  ) : (
-                    <input
-                      type="text"
-                      required
-                      value={programForm.trainer}
-                      onChange={(e) => setProgramForm({ ...programForm, trainer: e.target.value })}
-                      className="w-full bg-black border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30"
-                      placeholder="e.g. Coach Alex"
-                    />
+                  <select
+                    value={programForm.trainer}
+                    onChange={(e) => setProgramForm({ ...programForm, trainer: e.target.value })}
+                    required
+                    className="w-full bg-black border border-white/10 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-white/30"
+                  >
+                    <option value="">-- Select Created Trainer --</option>
+                    {trainers && trainers.map((t) => (
+                      <option key={t.id || t.name} value={t.name}>
+                        {t.name} ({t.role || "Coach"})
+                      </option>
+                    ))}
+                  </select>
+                  {(!trainers || trainers.length === 0) && (
+                    <p className="text-xs text-amber-400 mt-1">No trainers available. Please create one in the Trainers tab.</p>
                   )}
                 </div>
               </div>

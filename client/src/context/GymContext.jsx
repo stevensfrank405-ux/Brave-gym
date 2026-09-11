@@ -83,6 +83,27 @@ export function GymProvider({ children }) {
     }
   }, [currentUser]);
 
+  // Sync auth state across tabs
+  useEffect(() => {
+    const handleStorage = (e) => {
+      if (e.key === "brave_user") {
+        if (!e.newValue) {
+          setCurrentUser(null);
+          api.setToken(null);
+        } else {
+          try {
+            setCurrentUser(JSON.parse(e.newValue));
+          } catch {}
+        }
+      }
+      if (e.key === "brave_token") {
+        api.setToken(e.newValue);
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, []);
+
   // ==========================================================
   // BACKEND DATA SYNC (NODE.JS REST API)
   // ==========================================================
