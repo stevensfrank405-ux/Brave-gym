@@ -963,7 +963,15 @@ export function GymProvider({ children }) {
     try {
       const res = await api.createClass(newEntry);
       if (res) {
-        setSchedule((prev) => prev.map((sc) => (sc.id === tempId ? res : sc)));
+        setSchedule((prev) => {
+          const alreadyHasReal = prev.some((sc) => sc.id === res.id);
+          if (alreadyHasReal) {
+            // Remove the temporary one, keep the real one added by WebSocket
+            return prev.filter((sc) => sc.id !== tempId);
+          }
+          // Otherwise, replace the temporary one with the real one
+          return prev.map((sc) => (sc.id === tempId ? res : sc));
+        });
       }
       return res || newEntry;
     } catch (err) {
@@ -1008,7 +1016,10 @@ export function GymProvider({ children }) {
   const addProgram = async (programData) => {
     try {
       const newProgram = await api.createProgram(programData);
-      setPrograms((prev) => [...prev, newProgram]);
+      setPrograms((prev) => {
+        if (prev.some((p) => p.id === newProgram.id)) return prev;
+        return [...prev, newProgram];
+      });
       return newProgram;
     } catch (err) {
       console.error("Failed to add program:", err.message);
@@ -1044,7 +1055,10 @@ export function GymProvider({ children }) {
   const addTrainer = async (trainerData) => {
     try {
       const newTrainer = await api.createTrainer(trainerData);
-      setTrainers((prev) => [...prev, newTrainer]);
+      setTrainers((prev) => {
+        if (prev.some((t) => t.id === newTrainer.id)) return prev;
+        return [...prev, newTrainer];
+      });
       return newTrainer;
     } catch (err) {
       console.error("Failed to add trainer:", err.message);
