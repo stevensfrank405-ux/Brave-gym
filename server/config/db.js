@@ -206,12 +206,14 @@ export async function initPostgresTables() {
       `ALTER TABLE workout_logs ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'Pending'`,
       `ALTER TABLE workout_logs ADD COLUMN IF NOT EXISTS user_name VARCHAR(255)`,
       `ALTER TABLE workout_logs ADD COLUMN IF NOT EXISTS user_email VARCHAR(255)`,
-      `CREATE INDEX IF NOT EXISTS idx_workout_logs_status ON workout_logs (status)`
+      `CREATE INDEX IF NOT EXISTS idx_workout_logs_status ON workout_logs (status)`,
+      `ALTER TABLE bookings ADD COLUMN IF NOT EXISTS schedule_id VARCHAR(50)`,
+      `CREATE INDEX IF NOT EXISTS idx_bookings_schedule_id ON bookings (schedule_id)`
     ]) {
       try {
         await pool.query(migSql);
       } catch (migErr) {
-        console.warn("workout_logs migration step note:", migErr.message);
+        console.warn("migration step note:", migErr.message);
       }
     }
 

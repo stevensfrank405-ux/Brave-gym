@@ -52,10 +52,20 @@ export default function Programs() {
 
     setSelectedClassToBook(sc);
     
-    // Default to next week based on schedule day, or just current date
-    const today = new Date();
-    setSelectedDate(today.toISOString().split("T")[0]);
-    setSelectedTime(sc.time.split(" ")[0]); // naive default from sc.time
+    // Accurately compute next occurrence of schedule item's weekday
+    const daysMap = { sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6 };
+    const targetDayIdx = sc.day ? daysMap[sc.day.toLowerCase()] : undefined;
+    
+    const targetDate = new Date();
+    if (targetDayIdx !== undefined) {
+      const currentDayIdx = targetDate.getDay();
+      let diff = targetDayIdx - currentDayIdx;
+      if (diff < 0) diff += 7;
+      targetDate.setDate(targetDate.getDate() + diff);
+    }
+    
+    setSelectedDate(targetDate.toISOString().split("T")[0]);
+    setSelectedTime(sc.time ? sc.time.split(" ")[0] : "09:00");
     
     setBookingModalOpen(true);
   };
@@ -272,30 +282,40 @@ export default function Programs() {
               const userBooking = (bookings || []).find((b) => {
                 if (b.scheduleId && b.scheduleId === sc.id) return true;
                 
-                if (b.classTitle?.toLowerCase() !== sc.classTitle?.toLowerCase()) return false;
+                const classMatches = (b.classTitle || "").trim().toLowerCase() === (sc.classTitle || "").trim().toLowerCase();
+                if (!classMatches) return false;
+
+                const trainerMatches = !sc.trainer || !b.trainer || (b.trainer || "").trim().toLowerCase() === (sc.trainer || "").trim().toLowerCase();
+                if (!trainerMatches) return false;
                 
                 let matchesDay = false;
                 let matchesTime = false;
 
-                // Check day
-                if (sc.day && b.date?.toLowerCase().includes(sc.day.toLowerCase())) {
+                // Check day matching
+                if (sc.day && b.date && b.date.toLowerCase().includes(sc.day.toLowerCase())) {
                   matchesDay = true;
-                } else {
+                } else if (b.date) {
                   const parsedDate = new Date(b.date);
-                  if (!isNaN(parsedDate) && sc.day) {
+                  if (!isNaN(parsedDate.getTime()) && sc.day) {
                     const weekday = parsedDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
                     if (weekday === sc.day.toLowerCase()) matchesDay = true;
                   }
                 }
 
-                // Check time
-                if (sc.time) {
+                // Check time matching
+                if (sc.time && b.date) {
                   const timeWithoutAmPm = sc.time.split(" ")[0].toLowerCase();
-                  if (b.date?.toLowerCase().includes(timeWithoutAmPm)) {
+                  if (b.date.toLowerCase().includes(timeWithoutAmPm)) {
                     matchesTime = true;
                   }
                 } else {
-                  matchesTime = true; // if sc doesn't specify time, assume match
+                  matchesTime = true;
+                }
+
+                // Fallback for older legacy bookings without explicit day/time
+                if (!matchesDay && !b.date?.includes("-") && !b.date?.includes("/")) {
+                  // If it's a simple string like "Today" or without weekday, consider day matched if single slot
+                  matchesDay = true;
                 }
 
                 return matchesDay && matchesTime;

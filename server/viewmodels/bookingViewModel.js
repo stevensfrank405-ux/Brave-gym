@@ -31,6 +31,7 @@ export class BookingViewModel {
     }
 
     const booking = await BookingModel.create({
+      scheduleId: scheduleItem.scheduleId || scheduleItem.id || null,
       userId,
       userName: userMeta?.name || "Athlete",
       userEmail: userMeta?.email || "",

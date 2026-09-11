@@ -5,6 +5,7 @@ function mapPgRowToBooking(r) {
   if (!r) return null;
   return {
     id: r.id,
+    scheduleId: r.schedule_id || null,
     userId: r.user_id,
     userName: r.user_name,
     userEmail: r.user_email,
@@ -66,6 +67,7 @@ export class BookingModel {
     if (!db.isConfigured()) throw new Error("Database is not configured.");
     const newBooking = {
       id: data.id || `bk-${uuidv4().slice(0, 8)}`,
+      scheduleId: data.scheduleId || null,
       userId: data.userId,
       userName: data.userName || "Athlete",
       userEmail: data.userEmail || "",
@@ -78,8 +80,8 @@ export class BookingModel {
 
     try {
       await db.query(
-        `INSERT INTO bookings (id, user_id, user_name, user_email, class_title, trainer, date, room, status, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())`,
+        `INSERT INTO bookings (id, user_id, user_name, user_email, class_title, trainer, date, room, status, schedule_id, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())`,
         [
           newBooking.id,
           newBooking.userId,
@@ -89,7 +91,8 @@ export class BookingModel {
           newBooking.trainer,
           newBooking.date,
           newBooking.room,
-          newBooking.status
+          newBooking.status,
+          newBooking.scheduleId
         ]
       );
       return this.findById(newBooking.id);
