@@ -1,7 +1,8 @@
 import http from "http";
 import jwt from "jsonwebtoken";
 
-const BASE_URL = "http://localhost:5000";
+const PORT = process.env.TEST_PORT || 5005;
+const BASE_URL = `http://localhost:${PORT}`;
 
 function request(method, path, body = null, token = null) {
   return new Promise((resolve, reject) => {
@@ -142,12 +143,4 @@ async function runTestSuite() {
   }
 }
 
-// Ensure server is accessible before running suite
-const checkReq = http.request(new URL("/api/health", BASE_URL), { method: "GET", timeout: 2000 }, (res) => {
-  runTestSuite();
-});
-checkReq.on("error", () => {
-  console.log("⚠️ Server is not running on port 5000.");
-  process.exit(2);
-});
-checkReq.end();
+runTestSuite();
