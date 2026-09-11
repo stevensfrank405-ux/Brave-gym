@@ -1,5 +1,6 @@
 import { db } from "../config/db.js";
 import { v4 as uuidv4 } from "uuid";
+import { localStore } from "../config/localStore.js";
 
 function mapPgRowToNotif(r) {
   if (!r) return null;
@@ -19,17 +20,13 @@ export class NotificationModel {
     if (db.isConfigured()) {
       try {
         const res = await db.query("SELECT * FROM notifications ORDER BY created_at DESC");
-        if (res.rows.length > 0) {
-          return res.rows.map(mapPgRowToNotif);
-        }
-        return [];
+        return res.rows.map(mapPgRowToNotif);
       } catch (err) {
         console.error("PostgreSQL notifications findAll error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+    return localStore.getCollection("notifications");
   }
 
   static async findByUserId(userId) {
@@ -37,17 +34,14 @@ export class NotificationModel {
     if (db.isConfigured()) {
       try {
         const res = await db.query("SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC", [userId]);
-        if (res.rows.length > 0) {
-          return res.rows.map(mapPgRowToNotif);
-        }
-        return [];
+        return res.rows.map(mapPgRowToNotif);
       } catch (err) {
         console.error("PostgreSQL notifications findByUserId error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+    const notifs = localStore.getCollection("notifications");
+    return notifs.filter((n) => n.userId === userId);
   }
 
   static async create(data) {
@@ -73,9 +67,12 @@ export class NotificationModel {
         console.error("PostgreSQL notification insert error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+
+    const notifs = localStore.getCollection("notifications");
+    notifs.unshift(newNotif);
+    localStore.saveCollection("notifications", notifs);
+    return newNotif;
   }
 
   static async markAllRead(userId) {
@@ -88,8 +85,18 @@ export class NotificationModel {
         console.error("PostgreSQL notification markAllRead error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+    const notifs = localStore.getCollection("notifications");
+    let changed = false;
+    notifs.forEach((n) => {
+      if (n.userId === userId && !n.read) {
+        n.read = true;
+        changed = true;
+      }
+    });
+    if (changed) {
+      localStore.saveCollection("notifications", notifs);
+    }
+    return true;
   }
 }

@@ -1,5 +1,6 @@
 import { db } from "../config/db.js";
 import { v4 as uuidv4 } from "uuid";
+import { localStore } from "../config/localStore.js";
 
 function mapPgRowToTx(r) {
   if (!r) return null;
@@ -20,17 +21,13 @@ export class MembershipOrderModel {
     if (db.isConfigured()) {
       try {
         const res = await db.query("SELECT * FROM membership_orders ORDER BY created_at DESC");
-        if (res.rows.length > 0) {
-          return res.rows.map(mapPgRowToTx);
-        }
-        return [];
+        return res.rows.map(mapPgRowToTx);
       } catch (err) {
         console.error("PostgreSQL membership_orders findAll error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+    return localStore.getCollection("membership_orders");
   }
 
   static async findById(id) {
@@ -45,9 +42,9 @@ export class MembershipOrderModel {
         console.error("PostgreSQL membership_orders findById error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+    const orders = localStore.getCollection("membership_orders");
+    return orders.find((o) => o.id === id) || null;
   }
 
   static async create(data) {
@@ -74,9 +71,12 @@ export class MembershipOrderModel {
         console.error("PostgreSQL membership_orders insert error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+
+    const orders = localStore.getCollection("membership_orders");
+    orders.unshift(newTx);
+    localStore.saveCollection("membership_orders", orders);
+    return newTx;
   }
 
   static async updateStatus(id, status) {
@@ -88,8 +88,12 @@ export class MembershipOrderModel {
         console.error("PostgreSQL membership_orders update error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+    const orders = localStore.getCollection("membership_orders");
+    const idx = orders.findIndex((o) => o.id === id);
+    if (idx === -1) return null;
+    orders[idx].status = status;
+    localStore.saveCollection("membership_orders", orders);
+    return orders[idx];
   }
 }

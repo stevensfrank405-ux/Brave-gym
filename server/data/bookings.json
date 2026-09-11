@@ -1,0 +1,15 @@
+[
+  {
+    "id": "bk-433a8208",
+    "scheduleId": "sc-test-101",
+    "userId": "usr-990e54f5",
+    "userName": "Automated Tester",
+    "userEmail": "athlete_test_1789169189435@bravegym.com",
+    "classTitle": "Championship Boxing",
+    "trainer": "Marcus Vance",
+    "date": "2026-09-15 07:00 AM",
+    "room": "Arena Boxing Ring",
+    "status": "Pending",
+    "createdAt": "2026-09-11T23:26:29.550Z"
+  }
+]

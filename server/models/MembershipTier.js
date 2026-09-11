@@ -3,6 +3,8 @@ import { v4 as uuidv4 } from "uuid";
 
 
 
+import { localStore } from "../config/localStore.js";
+
 function mapPgRowToTier(r) {
   if (!r) return null;
   let parsedFeatures = [];
@@ -37,15 +39,13 @@ export class MembershipTierModel {
         if (res && res.rows && res.rows.length > 0) {
           return res.rows.map(mapPgRowToTier);
         }
-        
         return [];
       } catch (err) {
         console.error("PostgreSQL membership_tiers findAll error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+    return localStore.getCollection("membership_tiers");
   }
 
   static async findById(id) {
@@ -60,9 +60,9 @@ export class MembershipTierModel {
         console.error("PostgreSQL membership_tiers findById error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+    const tiers = localStore.getCollection("membership_tiers");
+    return tiers.find((t) => t.id === id) || null;
   }
 
   static async create(data) {
@@ -94,9 +94,12 @@ export class MembershipTierModel {
         console.error("PostgreSQL membership_tiers insert error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+
+    const tiers = localStore.getCollection("membership_tiers");
+    tiers.push(newTier);
+    localStore.saveCollection("membership_tiers", tiers);
+    return newTier;
   }
 
   static async delete(id) {
@@ -108,8 +111,11 @@ export class MembershipTierModel {
         console.error("PostgreSQL membership_tiers delete error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+
+    const tiers = localStore.getCollection("membership_tiers");
+    const filtered = tiers.filter((t) => t.id !== id);
+    localStore.saveCollection("membership_tiers", filtered);
+    return filtered.length < tiers.length;
   }
 }

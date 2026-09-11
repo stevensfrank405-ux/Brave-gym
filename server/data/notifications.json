@@ -1,0 +1,20 @@
+[
+  {
+    "id": "notif-5cf381c1",
+    "userId": null,
+    "title": "New Athlete Class Enrollment",
+    "message": "Automated Tester requested to enroll in Championship Boxing (2026-09-15 07:00 AM). Needs approval.",
+    "type": "admin_response",
+    "read": false,
+    "createdAt": "2026-09-11T23:26:29.550Z"
+  },
+  {
+    "id": "notif-b8b2269f",
+    "userId": "usr-990e54f5",
+    "title": "Class Reservation Requested",
+    "message": "Your booking request for Championship Boxing with coach Marcus Vance is pending admin approval (2026-09-15 07:00 AM). Room: Arena Boxing Ring.",
+    "type": "admin_response",
+    "read": false,
+    "createdAt": "2026-09-11T23:26:29.550Z"
+  }
+]

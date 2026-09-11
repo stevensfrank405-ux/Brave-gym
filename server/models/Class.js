@@ -14,6 +14,8 @@ const defaultClasses = [
   { id: "sc-10", day: "Saturday", time: "09:00 AM", classTitle: "Brave Community Combine", trainer: "All Coaches", spotsLeft: 8, total: 30 }
 ];
 
+import { localStore } from "../config/localStore.js";
+
 function mapPgRowToClass(r) {
   if (!r) return null;
   return {
@@ -41,9 +43,8 @@ export class ClassModel {
         console.error("PostgreSQL classes findAll error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+    return localStore.getCollection("classes");
   }
 
   static async findById(id) {
@@ -58,9 +59,9 @@ export class ClassModel {
         console.error("PostgreSQL classes findById error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+    const items = localStore.getCollection("classes");
+    return items.find((c) => c.id === id) || null;
   }
 
   static async create(data) {
@@ -87,9 +88,12 @@ export class ClassModel {
         console.error("PostgreSQL class insert error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+
+    const items = localStore.getCollection("classes");
+    items.push(newClass);
+    localStore.saveCollection("classes", items);
+    return newClass;
   }
 
   static async update(id, updates) {
@@ -103,9 +107,14 @@ export class ClassModel {
         console.error("PostgreSQL class update error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+
+    const items = localStore.getCollection("classes");
+    const idx = items.findIndex((c) => c.id === id);
+    if (idx === -1) return null;
+    items[idx] = { ...items[idx], ...updates };
+    localStore.saveCollection("classes", items);
+    return items[idx];
   }
 
   static async delete(id) {
@@ -117,9 +126,12 @@ export class ClassModel {
         console.error("PostgreSQL class delete error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+
+    const items = localStore.getCollection("classes");
+    const filtered = items.filter((c) => c.id !== id);
+    localStore.saveCollection("classes", filtered);
+    return filtered.length < items.length;
   }
 
   static async decrementSpots(id) {

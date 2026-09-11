@@ -1,0 +1,16 @@
+[
+  {
+    "id": "req-cab6c2d3",
+    "userId": "usr-990e54f5",
+    "trainerId": null,
+    "trainerName": "Marcus Vance",
+    "userName": "Automated Tester",
+    "phone": "+1 555 019 9999",
+    "address": "Downtown Combat Arena",
+    "serviceType": "Boxing & Kinetic Protocol",
+    "customRequirements": "Preparing for state championship qualifiers",
+    "chatMessages": [],
+    "status": "Pending",
+    "createdAt": "2026-09-11T23:26:29.554Z"
+  }
+]

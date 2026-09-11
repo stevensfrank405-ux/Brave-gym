@@ -1,5 +1,6 @@
 import { db } from "../config/db.js";
 import { v4 as uuidv4 } from "uuid";
+import { localStore } from "../config/localStore.js";
 
 function mapPgRowToConsultation(r) {
   if (!r) return null;
@@ -35,20 +36,17 @@ export class ConsultationModel {
     if (db.isConfigured()) {
       try {
         const res = await db.query("SELECT * FROM consultations ORDER BY created_at DESC");
-        if (res.rows.length > 0) {
-          return res.rows.map(mapPgRowToConsultation);
-        }
-        return [];
+        return res.rows.map(mapPgRowToConsultation);
       } catch (err) {
         console.error("PostgreSQL consultations findAll error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+    return localStore.getCollection("consultations");
   }
 
   static async findById(id) {
+    if (!id) return null;
     if (db.isConfigured()) {
       try {
         const res = await db.query("SELECT * FROM consultations WHERE id = $1 LIMIT 1", [id]);
@@ -60,9 +58,9 @@ export class ConsultationModel {
         console.error("PostgreSQL consultations findById error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+    const consultations = localStore.getCollection("consultations");
+    return consultations.find((c) => c.id === id) || null;
   }
 
   static async findByUserId(userId) {
@@ -70,17 +68,14 @@ export class ConsultationModel {
     if (db.isConfigured()) {
       try {
         const res = await db.query("SELECT * FROM consultations WHERE user_id = $1 ORDER BY created_at DESC", [userId]);
-        if (res.rows.length > 0) {
-          return res.rows.map(mapPgRowToConsultation);
-        }
-        return [];
+        return res.rows.map(mapPgRowToConsultation);
       } catch (err) {
         console.error("PostgreSQL consultations findByUserId error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+    const consultations = localStore.getCollection("consultations");
+    return consultations.filter((c) => c.userId === userId);
   }
 
   static async create(data) {
@@ -117,9 +112,12 @@ export class ConsultationModel {
         console.error("PostgreSQL consultation insert error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+
+    const consultations = localStore.getCollection("consultations");
+    consultations.unshift(newReq);
+    localStore.saveCollection("consultations", consultations);
+    return newReq;
   }
 
   static async updateStatus(id, status) {
@@ -131,9 +129,13 @@ export class ConsultationModel {
         console.error("PostgreSQL consultation updateStatus error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+    const consultations = localStore.getCollection("consultations");
+    const idx = consultations.findIndex((c) => c.id === id);
+    if (idx === -1) return null;
+    consultations[idx].status = status;
+    localStore.saveCollection("consultations", consultations);
+    return consultations[idx];
   }
 
   static async addMessage(id, message) {
@@ -184,9 +186,15 @@ export class ConsultationModel {
         console.error("PostgreSQL consultation addMessage error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+
+    const consultations = localStore.getCollection("consultations");
+    const idx = consultations.findIndex((c) => c.id === id);
+    if (idx !== -1) {
+      consultations[idx].chatMessages = messages;
+      localStore.saveCollection("consultations", consultations);
+    }
+    return { ...current, chatMessages: messages, chatHistory: messages };
   }
 
   static async delete(id) {
@@ -198,8 +206,10 @@ export class ConsultationModel {
         console.error("PostgreSQL consultation delete error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+    const consultations = localStore.getCollection("consultations");
+    const filtered = consultations.filter((c) => c.id !== id);
+    localStore.saveCollection("consultations", filtered);
+    return true;
   }
 }

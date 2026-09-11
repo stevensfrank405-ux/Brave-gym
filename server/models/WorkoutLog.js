@@ -1,5 +1,6 @@
 import { db } from "../config/db.js";
 import { v4 as uuidv4 } from "uuid";
+import { localStore } from "../config/localStore.js";
 
 function mapPgRowToLog(r) {
   if (!r) return null;
@@ -41,9 +42,8 @@ export class WorkoutLogModel {
         console.error("PostgreSQL workout_logs findAll error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+    return localStore.getCollection("workout_logs");
   }
 
   static async findById(id) {
@@ -68,9 +68,9 @@ export class WorkoutLogModel {
         console.error("PostgreSQL workout_logs findById error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+    const logs = localStore.getCollection("workout_logs");
+    return logs.find((l) => l.id === id) || null;
   }
 
   static async findByUserId(userId) {
@@ -89,9 +89,9 @@ export class WorkoutLogModel {
         console.error("PostgreSQL workout_logs findByUserId error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+    const logs = localStore.getCollection("workout_logs");
+    return logs.filter((l) => l.userId === userId);
   }
 
   static async create(data) {
@@ -130,9 +130,12 @@ export class WorkoutLogModel {
         console.error("PostgreSQL workout_logs insert error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+
+    const logs = localStore.getCollection("workout_logs");
+    logs.unshift(newLog);
+    localStore.saveCollection("workout_logs", logs);
+    return newLog;
   }
 
   static async updateStatus(id, status) {
@@ -151,9 +154,13 @@ export class WorkoutLogModel {
         console.error("PostgreSQL workout_logs updateStatus error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+    const logs = localStore.getCollection("workout_logs");
+    const idx = logs.findIndex((l) => l.id === id);
+    if (idx === -1) return null;
+    logs[idx].status = status;
+    localStore.saveCollection("workout_logs", logs);
+    return logs[idx];
   }
 
   static async delete(id) {
@@ -166,8 +173,10 @@ export class WorkoutLogModel {
         console.error("PostgreSQL workout_logs delete error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+    const logs = localStore.getCollection("workout_logs");
+    const filtered = logs.filter((l) => l.id !== id);
+    localStore.saveCollection("workout_logs", filtered);
+    return true;
   }
 }

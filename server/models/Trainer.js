@@ -1,6 +1,8 @@
 import { db } from "../config/db.js";
 import { v4 as uuidv4 } from "uuid";
 
+import { localStore } from "../config/localStore.js";
+
 function mapPgRowToTrainer(r) {
   if (!r) return null;
   return {
@@ -26,9 +28,8 @@ export class TrainerModel {
         console.error("PostgreSQL findAll trainers error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+    return localStore.getCollection("trainers");
   }
 
   static async findById(id) {
@@ -43,31 +44,45 @@ export class TrainerModel {
         console.error("PostgreSQL findById trainer error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
+      return null;
     }
-    return null;
+    const trainers = localStore.getCollection("trainers");
+    return trainers.find((t) => t.id === id) || null;
   }
 
   static async create({ name, role, image, bio, quote, specialties }) {
     const id = "tr-" + uuidv4().slice(0, 8);
-    const specs = Array.isArray(specialties) ? JSON.stringify(specialties) : JSON.stringify([]);
+    const specs = Array.isArray(specialties) ? specialties : (typeof specialties === "string" ? JSON.parse(specialties || "[]") : []);
+    const newTrainer = {
+      id,
+      name,
+      role: role || "Coach",
+      image: image || "/media/edgar-chaparro-sHfo3WOgGTU-unsplash.jpg",
+      bio: bio || "",
+      quote: quote || "",
+      specialties: specs,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
     
     if (db.isConfigured()) {
       try {
         const res = await db.query(
           `INSERT INTO trainers (id, name, role, image, bio, quote, specialties, created_at, updated_at) 
            VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW()) RETURNING *`,
-          [id, name, role, image, bio, quote, specs]
+          [id, name, role, image, bio, quote, JSON.stringify(specs)]
         );
         return mapPgRowToTrainer(res.rows[0]);
       } catch (err) {
         console.error("PostgreSQL create trainer error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+
+    const trainers = localStore.getCollection("trainers");
+    trainers.push(newTrainer);
+    localStore.saveCollection("trainers", trainers);
+    return newTrainer;
   }
 
   static async update(id, updates) {
@@ -101,9 +116,18 @@ export class TrainerModel {
         console.error("PostgreSQL update trainer error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+
+    const trainers = localStore.getCollection("trainers");
+    const idx = trainers.findIndex((t) => t.id === id);
+    if (idx === -1) return null;
+    trainers[idx] = {
+      ...trainers[idx],
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+    localStore.saveCollection("trainers", trainers);
+    return trainers[idx];
   }
 
   static async delete(id) {
@@ -116,8 +140,14 @@ export class TrainerModel {
         console.error("PostgreSQL delete trainer error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+    const trainers = localStore.getCollection("trainers");
+    const initialLen = trainers.length;
+    const filtered = trainers.filter((t) => t.id !== id);
+    if (filtered.length !== initialLen) {
+      localStore.saveCollection("trainers", filtered);
+      return true;
+    }
+    return false;
   }
 }

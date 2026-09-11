@@ -1,0 +1,62 @@
+[
+  {
+    "id": "boxing",
+    "tag": "STRIKING & FOOTWORK",
+    "category": "BOXING",
+    "title": "Championship Boxing",
+    "subtitle": "Heavy bag drill, kinetic chain rotation, head movement, and sparring discipline.",
+    "duration": "60 MIN",
+    "intensity": "HIGH",
+    "trainer": "Marcus Vance",
+    "capacity": 16,
+    "enrolled": 14,
+    "image": "/media/boxing-hero.mp4",
+    "poster": "/media/edgar-chaparro-sHfo3WOgGTU-unsplash.jpg",
+    "details": "Focuses on explosive power generation, tactical ring presence, and cardiovascular threshold conditioning."
+  },
+  {
+    "id": "strength",
+    "tag": "RESISTANCE & POWER",
+    "category": "STRENGTH",
+    "title": "Iron Discipline Strength",
+    "subtitle": "Barbell mastery, compound movements, deadlift mechanics, and neuromuscular recruitment.",
+    "duration": "75 MIN",
+    "intensity": "ELITE",
+    "trainer": "Elena Rostova",
+    "capacity": 12,
+    "enrolled": 10,
+    "image": "/media/mohamed-fareed-rbSNsoXk-3A-unsplash.jpg",
+    "poster": "/media/mohamed-fareed-rbSNsoXk-3A-unsplash.jpg",
+    "details": "Progressive overload methodology programmed to build absolute power, tendon resilience, and muscle density."
+  },
+  {
+    "id": "conditioning",
+    "tag": "AEROBIC THRESHOLD",
+    "category": "METABOLIC",
+    "title": "Metabolic Warfare",
+    "subtitle": "Ski-erg, assault runner intervals, kettlebell ballistic circuits, and breath control.",
+    "duration": "50 MIN",
+    "intensity": "MAXIMAL",
+    "trainer": "Jaxson Cole",
+    "capacity": 20,
+    "enrolled": 18,
+    "image": "/media/hermes-rivera-qbf59TU077Q-unsplash.jpg",
+    "poster": "/media/hermes-rivera-qbf59TU077Q-unsplash.jpg",
+    "details": "Pushes VO2 max into new frontiers through tactical interval pacing and active lactic acid flush drills."
+  },
+  {
+    "id": "recovery",
+    "tag": "MOBILITY & RESTORATION",
+    "category": "RECOVERY",
+    "title": "Kinetic Reset & Ice Protocol",
+    "subtitle": "Contrast hydrotherapy, myofascial decompression, hyperbaric oxygen, and mobility flow.",
+    "duration": "45 MIN",
+    "intensity": "LOW",
+    "trainer": "Dr. Maya Lin",
+    "capacity": 8,
+    "enrolled": 8,
+    "image": "/media/david-guliciuc-o2zrjlM5s5o-unsplash.jpg",
+    "poster": "/media/david-guliciuc-o2zrjlM5s5o-unsplash.jpg",
+    "details": "Systematic nervous system down-regulation utilizing extreme temperature exposure and joint articulation."
+  }
+]

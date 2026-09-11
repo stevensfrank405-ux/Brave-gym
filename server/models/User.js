@@ -27,6 +27,8 @@ function mapPgRowToUser(r) {
   };
 }
 
+import { localStore } from "../config/localStore.js";
+
 export class UserModel {
   static async findByEmail(email) {
     if (!email) return null;
@@ -42,10 +44,11 @@ export class UserModel {
         console.error("PostgreSQL findByEmail error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
+      return null;
     }
-    return null;
+
+    const users = localStore.getCollection("users");
+    return users.find((u) => u.email?.toLowerCase() === cleanEmail) || null;
   }
 
   static async findById(id) {
@@ -60,10 +63,11 @@ export class UserModel {
         console.error("PostgreSQL findById error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
+      return null;
     }
-    return null;
+
+    const users = localStore.getCollection("users");
+    return users.find((u) => u.id === id) || null;
   }
 
   static async findAll() {
@@ -77,10 +81,10 @@ export class UserModel {
         console.error("PostgreSQL findAll error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
+      return [];
     }
-    return [];
+
+    return localStore.getCollection("users");
   }
 
   static async create({ email, password, name, role = "user", membership = "" }) {
@@ -128,9 +132,12 @@ export class UserModel {
         console.error("PostgreSQL user insert error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+
+    const users = localStore.getCollection("users");
+    users.push(newUser);
+    localStore.saveCollection("users", users);
+    return newUser;
   }
 
   static async verifyPassword(user, password) {
@@ -170,9 +177,14 @@ export class UserModel {
         console.error("PostgreSQL user update error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+
+    const users = localStore.getCollection("users");
+    const idx = users.findIndex((u) => u.id === id);
+    if (idx === -1) return null;
+    users[idx] = { ...users[idx], ...updates, updatedAt: new Date().toISOString() };
+    localStore.saveCollection("users", users);
+    return users[idx];
   }
 
   static async delete(id) {
@@ -220,8 +232,11 @@ export class UserModel {
         console.error("PostgreSQL user delete error:", err.message);
         throw err;
       }
-    } else {
-      throw new Error("Database is not configured.");
     }
+
+    const users = localStore.getCollection("users");
+    const filtered = users.filter((u) => u.id !== id);
+    localStore.saveCollection("users", filtered);
+    return filtered.length < users.length;
   }
 }

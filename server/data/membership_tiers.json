@@ -1,0 +1,53 @@
+[
+  {
+    "id": "tier-trial",
+    "name": "Trial Pass",
+    "price": 45,
+    "interval": "day",
+    "billing": "day",
+    "description": "Full facility day access with single coached sparring session.",
+    "features": [
+      "Single Day All-Access",
+      "Coached Sparring Session",
+      "Sauna & Cold Plunge Entry",
+      "Locker & Shower Amenities"
+    ],
+    "popular": false,
+    "cta": "Claim Day Pass"
+  },
+  {
+    "id": "tier-black",
+    "name": "Black Tier",
+    "price": 195,
+    "interval": "month",
+    "billing": "monthly",
+    "description": "Standard athletic roster access with unlimited floor and class sessions.",
+    "features": [
+      "Unlimited Floor Access",
+      "All Combat & Strength Classes",
+      "Dedicated Gear Locker",
+      "Biometric Progress Scans",
+      "Guest Passes (2/mo)"
+    ],
+    "popular": true,
+    "cta": "Enroll Black Tier"
+  },
+  {
+    "id": "tier-obsidian",
+    "name": "Obsidian Sovereign",
+    "price": 380,
+    "interval": "month",
+    "billing": "monthly",
+    "description": "Elite executive tier with dedicated trainer access and priority combine slots.",
+    "features": [
+      "24/7 Biometric Keycard Access",
+      "Dedicated 1-on-1 Master Coach",
+      "Hyperbaric & Ice Protocol Access",
+      "Custom Nutritional Macro Delivery",
+      "Private Executive Locker Suite",
+      "VIP Combine Ringside Seating"
+    ],
+    "popular": false,
+    "cta": "Ascend to Obsidian"
+  }
+]
