@@ -270,6 +270,8 @@ export default function Programs() {
           <div className="bg-[#141414] border border-white/10 rounded-sm divide-y divide-white/10 overflow-x-auto">
             {schedule.map((sc) => {
               const userBooking = (bookings || []).find((b) => {
+                if (b.scheduleId && b.scheduleId === sc.id) return true;
+                
                 if (b.classTitle?.toLowerCase() !== sc.classTitle?.toLowerCase()) return false;
                 
                 let matchesDay = false;

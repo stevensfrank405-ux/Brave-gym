@@ -543,6 +543,7 @@ export function GymProvider({ children }) {
     const tempId = "bk-" + Date.now();
     const newBookingData = {
       id: tempId,
+      scheduleId: scheduleItem.id,
       userId: currentUser?.id,
       classTitle: scheduleItem.classTitle,
       trainer: scheduleItem.trainer,
