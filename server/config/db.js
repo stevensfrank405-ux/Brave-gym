@@ -249,7 +249,62 @@ export async function initPostgresTables() {
       `);
     }
 
+    // Seed default programs if empty
+    const progCheck = await pool.query("SELECT COUNT(*) FROM programs");
+    if (Number(progCheck.rows[0].count) === 0) {
+      console.log("🌱 Seeding default curriculum & programs...");
+      await pool.query(`
+        INSERT INTO programs (id, category, tag, title, subtitle, duration, intensity, trainer, capacity, enrolled, image, poster, details) VALUES
+          ('boxing', 'BOXING', 'STRIKING & FOOTWORK', 'Championship Boxing', 'Heavy bag drill, kinetic chain rotation, head movement, and sparring discipline.', '60 MIN', 'HIGH', 'Marcus Vance', 16, 14, '/media/boxing-hero.mp4', '/media/edgar-chaparro-sHfo3WOgGTU-unsplash.jpg', 'Focuses on explosive power generation, tactical ring presence, and cardiovascular threshold conditioning.'),
+          ('strength', 'STRENGTH', 'RESISTANCE & POWER', 'Iron Discipline Strength', 'Barbell mastery, compound movements, deadlift mechanics, and neuromuscular recruitment.', '75 MIN', 'ELITE', 'Elena Rostova', 12, 10, '/media/mohamed-fareed-rbSNsoXk-3A-unsplash.jpg', '/media/mohamed-fareed-rbSNsoXk-3A-unsplash.jpg', 'Progressive overload methodology programmed to build absolute power, tendon resilience, and muscle density.'),
+          ('conditioning', 'METABOLIC', 'AEROBIC THRESHOLD', 'Metabolic Warfare', 'Ski-erg, assault runner intervals, kettlebell ballistic circuits, and breath control.', '50 MIN', 'MAXIMAL', 'Jaxson Cole', 20, 18, '/media/hermes-rivera-qbf59TU077Q-unsplash.jpg', '/media/hermes-rivera-qbf59TU077Q-unsplash.jpg', 'Pushes VO2 max into new frontiers through tactical interval pacing and active lactic acid flush drills.'),
+          ('recovery', 'RECOVERY', 'MOBILITY & RESTORATION', 'Kinetic Reset & Ice Protocol', 'Contrast hydrotherapy, myofascial decompression, hyperbaric oxygen, and mobility flow.', '45 MIN', 'LOW', 'Dr. Maya Lin', 8, 8, '/media/david-guliciuc-o2zrjlM5s5o-unsplash.jpg', '/media/david-guliciuc-o2zrjlM5s5o-unsplash.jpg', 'Systematic nervous system down-regulation utilizing extreme temperature exposure and joint articulation.');
+      `);
+    }
 
+    // Seed default classes if empty
+    const classCheck = await pool.query("SELECT COUNT(*) FROM classes");
+    if (Number(classCheck.rows[0].count) === 0) {
+      console.log("🌱 Seeding default class schedule slots...");
+      await pool.query(`
+        INSERT INTO classes (id, day, time, class_title, trainer, spots_left, total) VALUES
+          ('sc-1', 'Monday', '06:30 AM', 'Metabolic Warfare', 'Jaxson Cole', 3, 20),
+          ('sc-2', 'Monday', '08:00 AM', 'Championship Boxing', 'Marcus Vance', 2, 16),
+          ('sc-3', 'Monday', '05:30 PM', 'Iron Discipline Strength', 'Elena Rostova', 1, 12),
+          ('sc-4', 'Tuesday', '07:00 AM', 'Championship Boxing', 'Marcus Vance', 5, 16),
+          ('sc-5', 'Tuesday', '06:00 PM', 'Kinetic Reset & Ice Protocol', 'Dr. Maya Lin', 2, 8),
+          ('sc-6', 'Wednesday', '06:30 AM', 'Iron Discipline Strength', 'Elena Rostova', 4, 12),
+          ('sc-7', 'Wednesday', '05:30 PM', 'Metabolic Warfare', 'Jaxson Cole', 0, 20),
+          ('sc-8', 'Thursday', '07:00 AM', 'Championship Boxing', 'Marcus Vance', 3, 16),
+          ('sc-9', 'Friday', '05:30 PM', 'Friday Night Sparring & Conditioning', 'Marcus Vance', 6, 16),
+          ('sc-10', 'Saturday', '09:00 AM', 'Brave Community Combine', 'All Coaches', 8, 30);
+      `);
+    }
+
+    // Seed default membership tiers if empty
+    const tierCheck = await pool.query("SELECT COUNT(*) FROM membership_tiers");
+    if (Number(tierCheck.rows[0].count) === 0) {
+      console.log("🌱 Seeding default membership tiers...");
+      await pool.query(`
+        INSERT INTO membership_tiers (id, name, price, interval, billing, description, features, popular, cta) VALUES
+          ('tier-trial', 'Trial Pass', 45, 'day', 'day', 'Full facility day access with single coached sparring session.', '["Single Day All-Access", "Coached Sparring Session", "Sauna & Cold Plunge Entry", "Locker & Shower Amenities"]'::jsonb, false, 'Claim Day Pass'),
+          ('tier-black', 'Black Tier', 195, 'month', 'monthly', 'Standard athletic roster access with unlimited floor and class sessions.', '["Unlimited Floor Access", "All Combat & Strength Classes", "Dedicated Gear Locker", "Biometric Progress Scans", "Guest Passes (2/mo)"]'::jsonb, true, 'Enroll Black Tier'),
+          ('tier-obsidian', 'Obsidian Sovereign', 380, 'month', 'monthly', 'Elite executive tier with dedicated trainer access and priority combine slots.', '["24/7 Biometric Keycard Access", "Dedicated 1-on-1 Master Coach", "Hyperbaric & Ice Protocol Access", "Custom Nutritional Macro Delivery", "Private Executive Locker Suite", "VIP Combine Ringside Seating"]'::jsonb, false, 'Ascend to Obsidian');
+      `);
+    }
+
+    // Seed default trainers if empty
+    const trainerCheck = await pool.query("SELECT COUNT(*) FROM trainers");
+    if (Number(trainerCheck.rows[0].count) === 0) {
+      console.log("🌱 Seeding default trainers...");
+      await pool.query(`
+        INSERT INTO trainers (id, name, role, image, bio, quote, specialties) VALUES
+          ('tr-1', 'Marcus Vance', 'Head Boxing Director', '/media/edgar-chaparro-sHfo3WOgGTU-unsplash.jpg', 'Former Golden Gloves heavyweight champion with 18 years in championship cornering and tactical striking development.', 'Form is nothing without relentless intent.', '["Olympic Boxing", "Heavy Bag Mechanics", "Tactical Footwork"]'::jsonb),
+          ('tr-2', 'Elena Rostova', 'Elite Strength & Conditioning', '/media/mohamed-fareed-rbSNsoXk-3A-unsplash.jpg', 'Former national powerlifting record holder specializing in progressive neuromuscular adaptation and power output.', 'The barbell does not negotiate with weakness.', '["Powerlifting", "Neuromuscular Recruiter", "Deadlift Dynamics"]'::jsonb),
+          ('tr-3', 'Jaxson Cole', 'Metabolic Conditioning Coach', '/media/hermes-rivera-qbf59TU077Q-unsplash.jpg', 'Ex-Special Forces combat fitness instructor leading high-threshold conditioning and lactic clearance circuits.', 'Find comfort at the redline.', '["Assault Runner Intervals", "Kettlebell Ballistics", "VO2 Max Extension"]'::jsonb),
+          ('tr-4', 'Dr. Maya Lin', 'Recovery & Performance Specialist', '/media/david-guliciuc-o2zrjlM5s5o-unsplash.jpg', 'Doctor of Physical Therapy focused on contrast therapy protocols, fascia release, and nervous system restoration.', 'Growth occurs in deep parasympathetic recovery.', '["Cryotherapy Protocols", "Myofascial Decompression", "Joint Articulation"]'::jsonb);
+      `);
+    }
 
     console.log("✨ PostgreSQL auto-setup and initial seeding complete!");
     return true;

@@ -17,7 +17,7 @@ router.post("/upload", authenticate, requireAdmin, upload.single("image"), (req,
 
 import { db } from "../config/db.js";
 
-router.get("/force-migrate", async (req, res) => {
+router.get("/force-migrate", authenticate, requireAdmin, async (req, res) => {
   try {
     const migSqls = [
       `ALTER TABLE workout_logs ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'Pending'`,
