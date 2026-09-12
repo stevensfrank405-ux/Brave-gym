@@ -467,7 +467,7 @@ export default function Navbar() {
                     className="py-2.5 text-xs uppercase tracking-wider font-bold bg-white text-black text-center rounded flex items-center justify-center gap-2 shadow"
                   >
                     <User className="w-3.5 h-3.5" />
-                    Go to Member Hub
+                    Go to Dashboard
                   </Link>
                 )}
 
