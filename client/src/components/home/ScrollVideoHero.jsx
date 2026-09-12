@@ -11,12 +11,17 @@ export default function ScrollVideoHero() {
     >
       {/* Background Video (Streamable) */}
       <div className="absolute inset-0 w-full h-full pointer-events-none">
-        <iframe
-          src="https://streamable.com/e/4n3wku?autoplay=1&nocontrols=1&muted=1&loop=1"
-          allow="autoplay"
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          poster="/media/chris-kendall-sJ6az6-T1u8-unsplash.jpg"
           className="w-full h-full object-cover object-center grayscale contrast-125 filter brightness-80 scale-[1.05] transition-all duration-300"
-          style={{ width: '100%', height: '100%', border: 'none', pointerEvents: 'none' }}
-        />
+          style={{ pointerEvents: 'none' }}
+        >
+          <source src="/media/boxing-hero.mp4" type="video/mp4" />
+        </video>
 
         {/* Dynamic dark vignette overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0D0D0D] via-[#0D0D0D]/30 to-[#0D0D0D]/60 opacity-60 pointer-events-none" />
