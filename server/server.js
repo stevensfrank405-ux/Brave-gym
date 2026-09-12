@@ -40,6 +40,8 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Serve uploaded avatars and media statically
 app.use("/uploads", express.static(path.join(__dirname, "data/uploads")));
+app.use("/media", express.static(path.join(__dirname, "../client/public/media")));
+app.use("/media", express.static(path.join(__dirname, "../assets")));
 
 // API routes
 app.use("/api", routes);

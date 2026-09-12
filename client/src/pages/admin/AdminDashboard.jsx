@@ -45,6 +45,7 @@ import {
 import { Link, useSearchParams } from "react-router-dom";
 import { useGym } from "../../context/GymContext";
 import { api } from "../../services/api";
+import { getTrainerImageUrl, handleTrainerImageError } from "../../utils/mediaUtils";
 
 export default function AdminDashboard() {
   const {
@@ -2165,14 +2166,13 @@ export default function AdminDashboard() {
                   <div key={trainer.id} className="bg-[#141414] border border-white/10 p-5 rounded-sm flex flex-col justify-between">
                     <div className="space-y-4 mb-4">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full overflow-hidden shrink-0 border border-white/20">
-                          {trainer.image ? (
-                            <img src={trainer.image} alt={trainer.name} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full bg-[#1F1F1F] flex items-center justify-center">
-                              <UserCheck className="w-5 h-5 text-white/40" />
-                            </div>
-                          )}
+                        <div className="w-12 h-12 rounded-full overflow-hidden shrink-0 border border-white/20 bg-[#1F1F1F]">
+                          <img
+                            src={getTrainerImageUrl(trainer.image, 0)}
+                            alt={trainer.name || "Staff"}
+                            onError={(e) => handleTrainerImageError(e, 0)}
+                            className="w-full h-full object-cover"
+                          />
                         </div>
                         <div>
                           <h3 className="font-display text-xl font-bold text-white uppercase">{trainer.name}</h3>

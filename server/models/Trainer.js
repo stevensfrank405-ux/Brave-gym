@@ -3,13 +3,32 @@ import { v4 as uuidv4 } from "uuid";
 
 import { localStore } from "../config/localStore.js";
 
+const VERIFIED_TRAINER_MEDIA = [
+  "/media/edgar-chaparro-sHfo3WOgGTU-unsplash.jpg",
+  "/media/mohamed-fareed-rbSNsoXk-3A-unsplash.jpg",
+  "/media/hermes-rivera-qbf59TU077Q-unsplash.jpg",
+  "/media/david-guliciuc-o2zrjlM5s5o-unsplash.jpg",
+  "/media/chris-kendall-sJ6az6-T1u8-unsplash.jpg"
+];
+
+function sanitizeTrainerImage(img) {
+  if (!img || typeof img !== "string" || !img.trim()) {
+    return VERIFIED_TRAINER_MEDIA[0];
+  }
+  const s = img.trim();
+  if (s.includes("victor-freitas")) return VERIFIED_TRAINER_MEDIA[1];
+  if (s.includes("anastase-maragos")) return VERIFIED_TRAINER_MEDIA[2];
+  if (s.includes("logan-weaver")) return VERIFIED_TRAINER_MEDIA[3];
+  return s;
+}
+
 function mapPgRowToTrainer(r) {
   if (!r) return null;
   return {
     id: r.id,
     name: r.name,
     role: r.role,
-    image: r.image,
+    image: sanitizeTrainerImage(r.image),
     bio: r.bio,
     quote: r.quote,
     specialties: typeof r.specialties === 'string' ? JSON.parse(r.specialties) : (r.specialties || []),
@@ -29,7 +48,11 @@ export class TrainerModel {
         throw err;
       }
     }
-    return localStore.getCollection("trainers");
+    const trainers = localStore.getCollection("trainers");
+    return (trainers || []).map((t, i) => ({
+      ...t,
+      image: sanitizeTrainerImage(t.image || VERIFIED_TRAINER_MEDIA[i % VERIFIED_TRAINER_MEDIA.length])
+    }));
   }
 
   static async findById(id) {
@@ -47,7 +70,12 @@ export class TrainerModel {
       return null;
     }
     const trainers = localStore.getCollection("trainers");
-    return trainers.find((t) => t.id === id) || null;
+    const found = (trainers || []).find((t) => t.id === id);
+    if (!found) return null;
+    return {
+      ...found,
+      image: sanitizeTrainerImage(found.image)
+    };
   }
 
   static async create({ name, role, image, bio, quote, specialties }) {

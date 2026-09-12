@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { Award, Quote, CheckCircle2, X, Send, Bot, MessageSquare, ArrowRight, Phone, MapPin, User, FileText, UserPlus } from "lucide-react";
 import { useGym } from "../../context/GymContext";
 import confetti from "canvas-confetti";
+import { getTrainerImageUrl, handleTrainerImageError } from "../../utils/mediaUtils";
 
 export default function Trainers() {
   const { trainers, addConsultationRequest, currentUser } = useGym();
@@ -164,17 +165,18 @@ export default function Trainers() {
 
         {/* Trainers Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {trainers.map((coach) => (
+          {trainers.map((coach, idx) => (
             <div
-              key={coach.id}
+              key={coach.id || idx}
               className="bg-[#141414] border border-white/10 rounded-sm overflow-hidden flex flex-col justify-between group hover:border-white/40 transition-all cursor-pointer shadow-lg"
               onClick={() => setActiveModal(coach)}
             >
               <div className="relative aspect-[3/4] overflow-hidden bg-black">
                 <img
-                  src={coach.image}
-                  alt={coach.name}
+                  src={getTrainerImageUrl(coach.image, idx)}
+                  alt={coach.name || "Coach"}
                   loading="lazy"
+                  onError={(e) => handleTrainerImageError(e, idx)}
                   className="w-full h-full object-cover grayscale contrast-125 group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#141414] via-transparent to-black/30" />
@@ -231,8 +233,9 @@ export default function Trainers() {
 
               <div className="flex flex-col sm:flex-row gap-6 items-start">
                 <img
-                  src={activeModal.image}
-                  alt={activeModal.name}
+                  src={getTrainerImageUrl(activeModal.image, 0)}
+                  alt={activeModal.name || "Coach Profile"}
+                  onError={(e) => handleTrainerImageError(e, 0)}
                   className="w-32 h-40 object-cover grayscale rounded border border-white/20 shrink-0"
                 />
                 <div className="space-y-2">

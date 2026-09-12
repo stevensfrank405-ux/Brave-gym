@@ -1,0 +1,54 @@
+[
+  {
+    "id": "tr-1",
+    "name": "Marcus Vance",
+    "role": "Head Boxing Director",
+    "image": "/media/edgar-chaparro-sHfo3WOgGTU-unsplash.jpg",
+    "bio": "Former Golden Gloves heavyweight champion with 18 years in championship cornering and tactical striking development.",
+    "quote": "Form is nothing without relentless intent.",
+    "specialties": [
+      "Olympic Boxing",
+      "Heavy Bag Mechanics",
+      "Tactical Footwork"
+    ]
+  },
+  {
+    "id": "tr-2",
+    "name": "Elena Rostova",
+    "role": "Elite Strength & Conditioning",
+    "image": "/media/mohamed-fareed-rbSNsoXk-3A-unsplash.jpg",
+    "bio": "Former national powerlifting record holder specializing in progressive neuromuscular adaptation and power output.",
+    "quote": "The barbell does not negotiate with weakness.",
+    "specialties": [
+      "Powerlifting",
+      "Neuromuscular Recruiter",
+      "Deadlift Dynamics"
+    ]
+  },
+  {
+    "id": "tr-3",
+    "name": "Jaxson Cole",
+    "role": "Metabolic Conditioning Coach",
+    "image": "/media/hermes-rivera-qbf59TU077Q-unsplash.jpg",
+    "bio": "Ex-Special Forces combat fitness instructor leading high-threshold conditioning and lactic clearance circuits.",
+    "quote": "Find comfort at the redline.",
+    "specialties": [
+      "Assault Runner Intervals",
+      "Kettlebell Ballistics",
+      "VO2 Max Extension"
+    ]
+  },
+  {
+    "id": "tr-4",
+    "name": "Dr. Maya Lin",
+    "role": "Recovery & Performance Specialist",
+    "image": "/media/david-guliciuc-o2zrjlM5s5o-unsplash.jpg",
+    "bio": "Doctor of Physical Therapy focused on contrast therapy protocols, fascia release, and nervous system restoration.",
+    "quote": "Growth occurs in deep parasympathetic recovery.",
+    "specialties": [
+      "Cryotherapy Protocols",
+      "Myofascial Decompression",
+      "Joint Articulation"
+    ]
+  }
+]

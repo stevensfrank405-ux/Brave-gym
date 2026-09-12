@@ -308,21 +308,21 @@ SELECT 'tr-1', 'Marcus Vance', 'Head Boxing Director & Founder', '/media/edgar-c
 WHERE NOT EXISTS (SELECT 1 FROM trainers WHERE id = 'tr-1');
 
 INSERT INTO trainers (id, name, role, image, bio, quote, specialties)
-SELECT 'tr-2', 'Elena Rostova', 'Lead Strength & Conditioning', '/media/victor-freitas-WvDYdXDzkhs-unsplash.jpg',
+SELECT 'tr-2', 'Elena Rostova', 'Lead Strength & Conditioning', '/media/mohamed-fareed-rbSNsoXk-3A-unsplash.jpg',
        'Olympic weightlifting bronze medalist. Elena rebuilds athletes from the ground up, prioritizing structural integrity, raw power, and injury resilience.',
        'Weakness is a choice. Strength is a commitment.',
        '["Olympic Lifting", "Power Output", "Structural Resilience"]'::jsonb
 WHERE NOT EXISTS (SELECT 1 FROM trainers WHERE id = 'tr-2');
 
 INSERT INTO trainers (id, name, role, image, bio, quote, specialties)
-SELECT 'tr-3', 'Jaxson Cole', 'Metabolic & HIIT Specialist', '/media/anastase-maragos-7kEpUPB8vNk-unsplash.jpg',
-       'Ex-military fitness instructor known for grueling, high-volume conditioning sessions that push the human cardiovascular system to its absolute limits.',
+SELECT 'tr-3', 'Jaxson Cole', 'Metabolic & HIIT Specialist', '/media/hermes-rivera-qbf59TU077Q-unsplash.jpg',
+       'Ex-Special Forces combat fitness instructor known for grueling, high-volume conditioning sessions that push the human cardiovascular system to its absolute limits.',
        'When your lungs burn, your character is forged.',
        '["VO2 Max Protocol", "Combat Endurance", "High-Volume Calisthenics"]'::jsonb
 WHERE NOT EXISTS (SELECT 1 FROM trainers WHERE id = 'tr-3');
 
 INSERT INTO trainers (id, name, role, image, bio, quote, specialties)
-SELECT 'tr-4', 'Dr. Maya Lin', 'Recovery & Bio-Mechanics', '/media/logan-weaver-lgnwvr-9D_rUDe7xvA-unsplash.jpg',
+SELECT 'tr-4', 'Dr. Maya Lin', 'Recovery & Bio-Mechanics', '/media/david-guliciuc-o2zrjlM5s5o-unsplash.jpg',
        'Doctor of Physical Therapy and biomechanics expert. Dr. Lin ensures athletes recover faster, correct muscular imbalances, and maintain peak longevity.',
        'You can only train as hard as you can recover.',
        '["Kinetic Chain Repair", "Ice/Heat Protocol", "Mobility Mapping"]'::jsonb

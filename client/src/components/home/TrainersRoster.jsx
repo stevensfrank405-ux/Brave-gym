@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Award, Quote } from "lucide-react";
 import { useGym } from "../../context/GymContext";
 import Reveal from "../common/Reveal";
+import { getTrainerImageUrl, handleTrainerImageError } from "../../utils/mediaUtils";
 
 export default function TrainersRoster() {
   const { trainers } = useGym();
@@ -61,17 +62,18 @@ export default function TrainersRoster() {
               className="flex gap-6 overflow-x-auto pb-8 no-scrollbar scroll-smooth snap-x snap-mandatory"
               style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
-              {trainers.map((trainer) => (
+              {trainers.map((trainer, idx) => (
                 <div
-                  key={trainer.id}
+                  key={trainer.id || idx}
                   className="w-[280px] sm:w-[320px] shrink-0 bg-[#161616] border border-white/10 rounded-sm overflow-hidden flex flex-col snap-start group hover:border-white/30 transition-all duration-300"
                 >
                   {/* Photo */}
                   <div className="relative aspect-[3/4] w-full overflow-hidden bg-black shrink-0">
                     <img
-                      src={trainer.image}
-                      alt={trainer.name}
+                      src={getTrainerImageUrl(trainer.image, idx)}
+                      alt={trainer.name || "Trainer"}
                       loading="lazy"
+                      onError={(e) => handleTrainerImageError(e, idx)}
                       className="w-full h-full object-cover grayscale contrast-125 filter group-hover:scale-105 transition-transform duration-700"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[#161616] via-transparent to-black/20" />
