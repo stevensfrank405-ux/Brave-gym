@@ -8,6 +8,9 @@ export const FALLBACK_TRAINER_IMAGES = [
   "/media/chris-kendall-sJ6az6-T1u8-unsplash.jpg"
 ];
 
+export const DEFAULT_ADMIN_AVATAR = "/media/edgar-chaparro-sHfo3WOgGTU-unsplash.jpg";
+export const DEFAULT_USER_AVATAR = "/media/chris-kendall-sJ6az6-T1u8-unsplash.jpg";
+
 /**
  * Resolves a trainer image URL safely.
  * Handles relative paths, backend uploaded paths, and fallback to verified gym media.
@@ -31,16 +34,19 @@ export function getTrainerImageUrl(image, index = 0) {
 
   // Handle uploaded images from Express (/uploads/...)
   if (trimmed.startsWith("/uploads/")) {
-    // If running in development with Vite proxy, /uploads works directly,
-    // but if SERVER_BASE_URL is remote or distinct, prepend when needed
-    if (typeof window !== "undefined" && window.location.port === "5173" && SERVER_BASE_URL) {
-      return `${SERVER_BASE_URL}${trimmed}`;
+    if (SERVER_BASE_URL && typeof window !== "undefined" && !SERVER_BASE_URL.includes(window.location.host)) {
+      return `${SERVER_BASE_URL.replace(/\/+$/, "")}${trimmed}`;
     }
     return trimmed;
   }
 
-  // If already full http(s) or valid root-relative path
-  if (trimmed.startsWith("http://") || trimmed.startsWith("https://") || trimmed.startsWith("data:") || trimmed.startsWith("/")) {
+  // If already full http(s) or data URL
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://") || trimmed.startsWith("data:")) {
+    return trimmed;
+  }
+
+  // If root-relative /media/...
+  if (trimmed.startsWith("/")) {
     return trimmed;
   }
 
@@ -49,11 +55,61 @@ export function getTrainerImageUrl(image, index = 0) {
 }
 
 /**
- * Safe onError event handler for <img> elements.
- * Prevents infinite loop and replaces failed image with a guaranteed fallback.
+ * Safe onError event handler for trainer <img> elements.
  */
 export function handleTrainerImageError(e, index = 0) {
   const fallback = FALLBACK_TRAINER_IMAGES[Math.abs(index) % FALLBACK_TRAINER_IMAGES.length];
+  if (e?.currentTarget) {
+    e.currentTarget.onerror = null;
+    e.currentTarget.src = fallback;
+  }
+}
+
+/**
+ * Resolves an athlete or admin avatar URL safely.
+ * Handles /uploads/..., base64 data URLs, root-relative paths, and role-based defaults.
+ */
+export function getUserAvatarUrl(avatar, role = "user") {
+  const defaultAvatar = role === "admin" ? DEFAULT_ADMIN_AVATAR : DEFAULT_USER_AVATAR;
+  if (!avatar || typeof avatar !== "string" || !avatar.trim() || avatar === "null" || avatar === "undefined") {
+    return defaultAvatar;
+  }
+
+  const trimmed = avatar.trim();
+
+  // If already data: URL (base64)
+  if (trimmed.startsWith("data:")) {
+    return trimmed;
+  }
+
+  // If full http:// or https://
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+    return trimmed;
+  }
+
+  // If uploaded file on Express server
+  if (trimmed.startsWith("/uploads/")) {
+    if (SERVER_BASE_URL && typeof window !== "undefined" && !SERVER_BASE_URL.includes(window.location.host)) {
+      return `${SERVER_BASE_URL.replace(/\/+$/, "")}${trimmed}`;
+    }
+    return trimmed;
+  }
+
+  // If root-relative path (e.g. /media/...)
+  if (trimmed.startsWith("/")) {
+    return trimmed;
+  }
+
+  // Missing leading slash
+  return `/${trimmed}`;
+}
+
+/**
+ * Safe onError event handler for profile avatar <img> elements.
+ * Never allows broken image icons to render on user or admin profiles.
+ */
+export function handleAvatarError(e, role = "user") {
+  const fallback = role === "admin" ? DEFAULT_ADMIN_AVATAR : DEFAULT_USER_AVATAR;
   if (e?.currentTarget) {
     e.currentTarget.onerror = null;
     e.currentTarget.src = fallback;

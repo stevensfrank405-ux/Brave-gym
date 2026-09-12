@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { useGym } from "../../context/GymContext";
 import confetti from "canvas-confetti";
+import { getUserAvatarUrl, handleAvatarError } from "../../utils/mediaUtils";
 
 export default function UserDashboard() {
   const { 
@@ -88,7 +89,7 @@ export default function UserDashboard() {
     "/media/david-guliciuc-o2zrjlM5s5o-unsplash.jpg",
     "/media/edgar-chaparro-sHfo3WOgGTU-unsplash.jpg",
     "/media/mohamed-fareed-rbSNsoXk-3A-unsplash.jpg",
-    "/media/hermes-rivera-Wbkp89Nn9-unsplash.jpg"
+    "/media/hermes-rivera-qbf59TU077Q-unsplash.jpg"
   ];
 
   const handleCustomImageUpload = async (e) => {
@@ -202,8 +203,9 @@ export default function UserDashboard() {
             <div className="relative shrink-0">
               <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-white/30 group-hover:border-white bg-black transition-all duration-300 group-hover:scale-105 shadow-md relative">
                 <img
-                  src={currentUser?.avatar || "/media/chris-kendall-sJ6az6-T1u8-unsplash.jpg"}
-                  alt={currentUser?.name}
+                  src={getUserAvatarUrl(currentUser?.avatar, currentUser?.role)}
+                  alt={currentUser?.name || "Athlete"}
+                  onError={(e) => handleAvatarError(e, currentUser?.role)}
                   className="w-full h-full object-cover grayscale contrast-125 group-hover:contrast-100 transition-all"
                 />
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
@@ -1039,8 +1041,9 @@ export default function UserDashboard() {
                 <div className="relative shrink-0">
                   <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-white/40 bg-black shadow-xl">
                     <img
-                      src={profileForm.avatar || currentUser?.avatar}
-                      alt={profileForm.name}
+                      src={getUserAvatarUrl(profileForm.avatar || currentUser?.avatar, currentUser?.role)}
+                      alt={profileForm.name || "Athlete Profile"}
+                      onError={(e) => handleAvatarError(e, currentUser?.role)}
                       className="w-full h-full object-cover grayscale contrast-125"
                     />
                   </div>

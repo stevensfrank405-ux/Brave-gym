@@ -45,7 +45,12 @@ import {
 import { Link, useSearchParams } from "react-router-dom";
 import { useGym } from "../../context/GymContext";
 import { api } from "../../services/api";
-import { getTrainerImageUrl, handleTrainerImageError } from "../../utils/mediaUtils";
+import { 
+  getTrainerImageUrl, 
+  handleTrainerImageError, 
+  getUserAvatarUrl, 
+  handleAvatarError 
+} from "../../utils/mediaUtils";
 
 export default function AdminDashboard() {
   const {
@@ -219,11 +224,15 @@ export default function AdminDashboard() {
       try {
         setIsUploadingAdminAvatar(true);
         const publicUrl = await uploadUserAvatar(file);
-        if (!publicUrl) {
+        if (publicUrl) {
+          setAdminProfileForm((prev) => ({ ...prev, avatar: publicUrl }));
+        } else {
           // Fallback to data URL only if server upload didn't return public url
           const reader = new FileReader();
           reader.onloadend = () => {
-            updateProfile({ avatar: reader.result });
+            const dataUrl = reader.result;
+            setAdminProfileForm((prev) => ({ ...prev, avatar: dataUrl }));
+            updateProfile({ avatar: dataUrl });
           };
           reader.readAsDataURL(file);
         }
@@ -241,7 +250,8 @@ export default function AdminDashboard() {
     try {
       await updateProfile({
         name: adminProfileForm.name,
-        bio: adminProfileForm.bio
+        bio: adminProfileForm.bio,
+        avatar: adminProfileForm.avatar || currentUser?.avatar
       });
       setIsEditingAdminProfile(false);
     } catch (err) {
@@ -750,8 +760,9 @@ export default function AdminDashboard() {
             <div className="w-9 h-9 rounded-full bg-amber-400/20 border border-amber-400/40 overflow-hidden flex shrink-0 items-center justify-center text-amber-300 font-bold text-xs">
               {currentUser?.avatar ? (
                 <img
-                  src={currentUser.avatar}
+                  src={getUserAvatarUrl(currentUser.avatar, "admin")}
                   alt={currentUser.name || "Admin"}
+                  onError={(e) => handleAvatarError(e, "admin")}
                   className="w-full h-full object-cover"
                 />
               ) : (
@@ -775,8 +786,9 @@ export default function AdminDashboard() {
             <div className="w-7 h-7 rounded-full bg-amber-400/20 border border-amber-400/40 overflow-hidden flex items-center justify-center text-amber-300 font-bold text-[10px]">
               {currentUser?.avatar ? (
                 <img
-                  src={currentUser.avatar}
+                  src={getUserAvatarUrl(currentUser.avatar, "admin")}
                   alt="Admin"
+                  onError={(e) => handleAvatarError(e, "admin")}
                   className="w-full h-full object-cover"
                 />
               ) : (
@@ -2740,7 +2752,12 @@ export default function AdminDashboard() {
                         <Loader2 className="w-6 h-6 text-amber-400 animate-spin" />
                       </div>
                     ) : currentUser?.avatar ? (
-                      <img src={currentUser.avatar} alt="Admin" className="w-full h-full object-cover" />
+                      <img
+                        src={getUserAvatarUrl(currentUser.avatar, "admin")}
+                        alt="Admin"
+                        onError={(e) => handleAvatarError(e, "admin")}
+                        className="w-full h-full object-cover"
+                      />
                     ) : (
                       "HQ"
                     )}

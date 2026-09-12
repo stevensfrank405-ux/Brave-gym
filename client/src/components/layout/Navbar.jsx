@@ -20,6 +20,7 @@ import {
   Layers
 } from "lucide-react";
 import { useGym } from "../../context/GymContext";
+import { getUserAvatarUrl, handleAvatarError } from "../../utils/mediaUtils";
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -119,8 +120,9 @@ export default function Navbar() {
                 <div className="relative shrink-0">
                   <div className="w-9 h-9 rounded-full overflow-hidden border border-white/40 bg-black">
                     <img
-                      src={currentUser.avatar || "/media/chris-kendall-sJ6az6-T1u8-unsplash.jpg"}
-                      alt={currentUser.name}
+                      src={getUserAvatarUrl(currentUser.avatar, currentUser.role)}
+                      alt={currentUser.name || "Account"}
+                      onError={(e) => handleAvatarError(e, currentUser.role)}
                       className="w-full h-full object-cover grayscale contrast-125 group-hover:scale-105 transition-transform"
                     />
                   </div>
@@ -297,8 +299,9 @@ export default function Navbar() {
             >
               <div className={`w-8 h-8 rounded-full overflow-hidden border ${currentUser.role === "admin" ? "border-amber-400" : "border-white/40"} bg-black`}>
                 <img
-                  src={currentUser.avatar || "/media/chris-kendall-sJ6az6-T1u8-unsplash.jpg"}
-                  alt={currentUser.name}
+                  src={getUserAvatarUrl(currentUser.avatar, currentUser.role)}
+                  alt={currentUser.name || "Account"}
+                  onError={(e) => handleAvatarError(e, currentUser.role)}
                   className="w-full h-full object-cover grayscale contrast-125"
                 />
               </div>
@@ -340,7 +343,12 @@ export default function Navbar() {
             <div className="p-3.5 bg-[#141414] border border-white/10 rounded-sm flex items-center justify-between gap-3">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-10 h-10 rounded-full overflow-hidden border border-white/20 bg-black shrink-0 relative">
-                  <img src={currentUser.avatar || "/media/chris-kendall-sJ6az6-T1u8-unsplash.jpg"} alt={currentUser.name} className="w-full h-full object-cover grayscale" />
+                  <img
+                    src={getUserAvatarUrl(currentUser.avatar, currentUser.role)}
+                    alt={currentUser.name || "User"}
+                    onError={(e) => handleAvatarError(e, currentUser.role)}
+                    className="w-full h-full object-cover grayscale"
+                  />
                 </div>
                 <div className="min-w-0">
                   <strong className="text-white text-sm block uppercase font-display truncate">{currentUser.name}</strong>
